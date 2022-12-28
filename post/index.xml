@@ -6,14 +6,14 @@
     <description>Recent content in Posts on 争的是滔滔不绝</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 28 Dec 2022 16:29:17 +0800</lastBuildDate><atom:link href="https://akother.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 28 Dec 2022 17:58:25 +0800</lastBuildDate><atom:link href="https://akother.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>HelloWorld</title>
-      <link>https://akother.github.io/post/helloworld/</link>
-      <pubDate>Wed, 28 Dec 2022 16:29:17 +0800</pubDate>
+      <title>JWT基础介绍</title>
+      <link>https://akother.github.io/post/jwt/</link>
+      <pubDate>Wed, 28 Dec 2022 17:58:25 +0800</pubDate>
       
-      <guid>https://akother.github.io/post/helloworld/</guid>
-      <description></description>
+      <guid>https://akother.github.io/post/jwt/</guid>
+      <description>JWT 传统认证规则 互联网服务离不开用户认证。一般流程是下面这样（ Session和Cookie相关） 1、用户向服务器发送用户名和密码。 2、服务器验</description>
     </item>
     
   </channel>
