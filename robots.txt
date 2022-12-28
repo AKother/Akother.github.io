@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://akother.github.io/sitemap.xml

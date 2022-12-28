@@ -1,18 +1,37 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<?xml-stylesheet type="text/xsl" href="https://akother.github.io/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
   <url>
     <loc>https://akother.github.io/post/helloworld/</loc>
     <lastmod>2022-12-28T16:29:17+08:00</lastmod>
-  </url><url>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>https://akother.github.io/post/</loc>
     <lastmod>2022-12-28T16:29:17+08:00</lastmod>
-  </url><url>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>https://akother.github.io/</loc>
     <lastmod>2022-12-28T16:29:17+08:00</lastmod>
-  </url><url>
-    <loc>https://akother.github.io/categories/</loc>
-  </url><url>
-    <loc>https://akother.github.io/tags/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
   </url>
+  
+  <url>
+    <loc>https://akother.github.io/categories/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://akother.github.io/tags/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
 </urlset>
