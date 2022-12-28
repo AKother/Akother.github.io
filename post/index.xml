@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on 争的是滔滔不绝</title>
-    <link>http://example.org/post/</link>
+    <link>https://akother.github.io/post/</link>
     <description>Recent content in Posts on 争的是滔滔不绝</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 28 Dec 2022 16:29:17 +0800</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 28 Dec 2022 16:29:17 +0800</lastBuildDate><atom:link href="https://akother.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>HelloWorld</title>
-      <link>http://example.org/post/helloworld/</link>
+      <link>https://akother.github.io/post/helloworld/</link>
       <pubDate>Wed, 28 Dec 2022 16:29:17 +0800</pubDate>
       
-      <guid>http://example.org/post/helloworld/</guid>
+      <guid>https://akother.github.io/post/helloworld/</guid>
       <description></description>
     </item>
     
