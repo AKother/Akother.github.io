@@ -1,127 +1,1034 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<meta name="referrer" content="no-referrer" />
+<html><head>
+<title>MySQL性能调优与架构设计 笔记</title>
 
-<head>
-  <title>MySQL性能调优与架构设计 笔记 | 争的是滔滔不绝</title>
 
-  <meta charset="UTF-8">
-  <meta name="language" content="en">
-  <meta name="description" content="">
-  <meta name="keywords" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="MySQL性能调优与架构设计 笔记" />
+<meta property="og:description" content="MySQL性能调优与架构设计 读者记
+本文是读《MySQL性能调优与架构设计》时划的一些笔记，一些读后体会写在微信读书中了。读完确实是学到了很多，不管对于MySQL的架构和底层了解都增进了几分，很适合初学MySQL时研读（当然基础的SQL和数据库知识还是需要有的），但是有些内容可能比较过期，比如“查询缓存”等再在MySQL 8.0&#43;就已经去除了（MySQL 查询不建议使用缓存，因为查询缓存失效在实际业务场景中可能会非常频繁，假如对一个表更新的话，这个表上的所有的查询缓存都会被清空），光看本书肯定是不够的，还需要辅以别的专业书籍/博客等自学。
+前言
+对MySQL的优化更多的不在于数据库本身，而在于架构的设计，即如何通过分表、分库、复制、Cache等技术使得数据库能合理分配访问压力。 第一篇 基础篇 1985年，瑞典几位志同道合的小伙子（以David Axmark为首）成立了一家公司，这就是MySQL AB的前身。这家公司最初并不是为了开发数据库产品，而是因为在实现其他目标的过程中，需要一个数据库。他们希望能够使用开源的产品，但当时并没有合适的选择，于是就自己开发。
+从安装方面来说，MySQL安装包大小仅100MB左右，与那几大商业数据库相比完全不是一个数量级。它的安装也比Oracle等商业数据库容易很多，不论是通过已经编译好的二进制分发包，还是通过源码编译安装，都非常简单。 再从数据库创建方面来比较，MySQL仅仅需要一个简单的CREATE DATABASE命令即可在瞬间完成建库的动作，而Oracle数据库与之相比，创建一个数据库简直就是一个庞大的工程。当然，二者在概念上存在一定差别也不可否认。
+MySQL架构组成 如果要开启系统记录错误日志的功能，须要在启动时开启&ndash;log-error选项。错误日志默认存放在数据目录下，以hostname.err命名。但是可以使用命令：&ndash;log-error[=file_name]修改其存放目录和文件名。
+为了方便维护，有时候会希望将错误日志中的内容做备份并重新开始记录，这时候就可以利用MySQL的FLUSH LOGS命令来告诉MySQL备份旧日志文件并生成新的日志文件。备份文件名以“.old”结尾。
+慢查询日志：slow query log 顾名思义，慢查询日志中记录的是执行时间较长的Query，也就是我们常说的Slow Query，通过设&ndash;log-slow-queries[=file_name]来打开该功能并设置记录位置和文件名，默认文件名为hostname-slow.log，默认目录也是数据目录。
+与表相关的元数据（meta）信息都存放在“.frm”文件，包括表结构的定义信息等。
+MySQL可以看成是两层架构，==第一层我们通常叫做SQL Layer，在MySQL数据库系统处理底层数据之前的所有工作都是在这一层完成的，包括权限判断、Query解析、执行计划优化、query cache的处理等；第二层就是存储引擎层，通常叫做Storage Engine Layer，也就是底层数据存取操作实现部分，由多种存储引擎共同组成。==
+如果是一个Query类型的请求，它将控制权交给Query解析器。Query解析器首先分析是不是一个select类型的Query，如果是，则调用查询缓存模块，让它检查该Query在Query cache中是否已经存在。如果有，则直接将cache中的数据返回给连接线程模块，然后通过与客户端的连接线程将数据传输给客户端。如果是一个不能被缓存（cache）的Query类型，或者cache中没有该Query的数据，那么Query将被继续传回Query解析器，让Query解析器进行相应处理，再通过Query分发器分发给相关处理模块。
+MySQL存储引擎简介 MyISAM支持以下三种类型的索引。 1. B-Tree索引 B-Tree索引，顾名思义，就是所有的索引节点都按照balance tree的数据结构来存储，所有的索引数据节点都在叶节点。 2. R-Tree索引 R-Tree索引的存储方式和b-tree索引有一些区别，主要设计用于为存储空间和多维数据的字段做索引，目前的MySQL版本仅支持geometry类型的字段作索引。 3. Full-text索引 Full-text索引就是我们常说的全文索引，它的存储结构也是b-tree。主要是为了解决当须要用like查询时的低效问题。
+MyISAM存储引擎的某个表文件出错之后，仅影响到该表，不会影响到其他表，更不会影响到数据库。如果数据库正在运行过程中发现某个MyISAM表出现问题了，则可以在线通过Check Table命令来尝试校验它，并可以通过repair table命令来尝试修复。
+1.支持事务安全 InnoDB在功能方面最重要的一点就是对事务安全的支持，这无疑是让InnoDB成为MySQL最为流行的存储引擎的一个非常重要原因。而且它实现了SQL92标准所定义的所有4个级别的要求（READ UNCOMMITTED、READ COMMITTED、REPEATABLE和SERIALIZABLE）。对事务安全的支持，无疑让很多之前因为特殊业务要求而不得不放弃使用MySQL的用户重新支持MySQL，那些之前对数据库选型持观望态度的用户，也大大增加了对MySQL好感。
+2.数据多版本读取 InnoDB在事务支持的同时，为了保证数据的一致性及并发的性能，通过UNDO信息实现了数据的多版本读取。
+3.锁定机制的改进 InnoDB改变了MyISAM的锁机制，实现了行锁。虽然InnoDB行锁机制的实现是通过索引来完成的，但毕竟在数据库中，99%的SQL语句都是要使用索引来做数据检索的。所以，行锁定机制也无疑为InnoDB在承受高并发压力的环境下增强了不小的竞争力。
+4.实现外键 InnoDB实现了外键引用这一数据库的重要特性，使在数据库端控制部分数据的完整性成为可能。虽然很多数据库系统调优专家都建议不要这样做，但是对于不少用户来说在数据库端加入外键控制可能仍然是成本最低的选择。
+MySQL安全管理 注意：若某用户向某个表插入（INSERT）数据，但他在该表中的某列上没有INSERT权限，则该列的数据将以默认值填充。
+MySQL备份与恢复 数据丢失应用场景 （1）人为操作失误造成某些数据被误操作；
+（2）软件BUG造成数据部分或全部丢失；
+（3）硬件故障造成数据库数据部分或全部丢失；
+（4）因安全漏洞，入侵者将数据恶意破坏。
+逻辑备份可以说是最简单，也是目前中小型系统最常使用的备份方式。在MySQL中常用的逻辑备份主要就是两种，一种是将数据生成为可以完全重现当前数据库中数据的INSERT语句，另外一种就是将数据通过逻辑备份软件，将数据库表的数据以特定分隔符进行分隔后记录在文本文件中。
+数据库的物理对象主要由数据库的物理数据文件、日志文件及配置文件等组成。在MySQL数据库中，除了MySQL系统共有的一些日志文件和系统表的数据文件之外，每一种存储引擎还会有不太一样的物理对象
+MyISAM存储引擎文件的物理文件比较集中，而且不支持事务没有REDO和UNDO日志，对数据一致性的要求也并不是特别高，所以MyISAM存储引擎表的物理备份也比较简单，只要将MyISAM的物理文件复制出来即可。
+mysqlhotcopy是一个用perl编写的使用程序，其主要实现原理实际上就是先锁住（LOCK）表，然后执行FLUSH TABLES动作，该正常关闭的表正常关闭，该进行flush同步的数据都进行同步，然后通过执行OS级别的复制（cp等）命令，将须要备份的表或数据库的所有物理文件都复制到指定的备份集位置。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-01-03T17:46:16+08:00" />
+<meta property="article:modified_time" content="2023-01-03T17:46:16+08:00" /><meta property="og:site_name" content="My Blog" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MySQL性能调优与架构设计 笔记"/>
+<meta name="twitter:description" content="MySQL性能调优与架构设计 读者记
+本文是读《MySQL性能调优与架构设计》时划的一些笔记，一些读后体会写在微信读书中了。读完确实是学到了很多，不管对于MySQL的架构和底层了解都增进了几分，很适合初学MySQL时研读（当然基础的SQL和数据库知识还是需要有的），但是有些内容可能比较过期，比如“查询缓存”等再在MySQL 8.0&#43;就已经去除了（MySQL 查询不建议使用缓存，因为查询缓存失效在实际业务场景中可能会非常频繁，假如对一个表更新的话，这个表上的所有的查询缓存都会被清空），光看本书肯定是不够的，还需要辅以别的专业书籍/博客等自学。
+前言
+对MySQL的优化更多的不在于数据库本身，而在于架构的设计，即如何通过分表、分库、复制、Cache等技术使得数据库能合理分配访问压力。 第一篇 基础篇 1985年，瑞典几位志同道合的小伙子（以David Axmark为首）成立了一家公司，这就是MySQL AB的前身。这家公司最初并不是为了开发数据库产品，而是因为在实现其他目标的过程中，需要一个数据库。他们希望能够使用开源的产品，但当时并没有合适的选择，于是就自己开发。
+从安装方面来说，MySQL安装包大小仅100MB左右，与那几大商业数据库相比完全不是一个数量级。它的安装也比Oracle等商业数据库容易很多，不论是通过已经编译好的二进制分发包，还是通过源码编译安装，都非常简单。 再从数据库创建方面来比较，MySQL仅仅需要一个简单的CREATE DATABASE命令即可在瞬间完成建库的动作，而Oracle数据库与之相比，创建一个数据库简直就是一个庞大的工程。当然，二者在概念上存在一定差别也不可否认。
+MySQL架构组成 如果要开启系统记录错误日志的功能，须要在启动时开启&ndash;log-error选项。错误日志默认存放在数据目录下，以hostname.err命名。但是可以使用命令：&ndash;log-error[=file_name]修改其存放目录和文件名。
+为了方便维护，有时候会希望将错误日志中的内容做备份并重新开始记录，这时候就可以利用MySQL的FLUSH LOGS命令来告诉MySQL备份旧日志文件并生成新的日志文件。备份文件名以“.old”结尾。
+慢查询日志：slow query log 顾名思义，慢查询日志中记录的是执行时间较长的Query，也就是我们常说的Slow Query，通过设&ndash;log-slow-queries[=file_name]来打开该功能并设置记录位置和文件名，默认文件名为hostname-slow.log，默认目录也是数据目录。
+与表相关的元数据（meta）信息都存放在“.frm”文件，包括表结构的定义信息等。
+MySQL可以看成是两层架构，==第一层我们通常叫做SQL Layer，在MySQL数据库系统处理底层数据之前的所有工作都是在这一层完成的，包括权限判断、Query解析、执行计划优化、query cache的处理等；第二层就是存储引擎层，通常叫做Storage Engine Layer，也就是底层数据存取操作实现部分，由多种存储引擎共同组成。==
+如果是一个Query类型的请求，它将控制权交给Query解析器。Query解析器首先分析是不是一个select类型的Query，如果是，则调用查询缓存模块，让它检查该Query在Query cache中是否已经存在。如果有，则直接将cache中的数据返回给连接线程模块，然后通过与客户端的连接线程将数据传输给客户端。如果是一个不能被缓存（cache）的Query类型，或者cache中没有该Query的数据，那么Query将被继续传回Query解析器，让Query解析器进行相应处理，再通过Query分发器分发给相关处理模块。
+MySQL存储引擎简介 MyISAM支持以下三种类型的索引。 1. B-Tree索引 B-Tree索引，顾名思义，就是所有的索引节点都按照balance tree的数据结构来存储，所有的索引数据节点都在叶节点。 2. R-Tree索引 R-Tree索引的存储方式和b-tree索引有一些区别，主要设计用于为存储空间和多维数据的字段做索引，目前的MySQL版本仅支持geometry类型的字段作索引。 3. Full-text索引 Full-text索引就是我们常说的全文索引，它的存储结构也是b-tree。主要是为了解决当须要用like查询时的低效问题。
+MyISAM存储引擎的某个表文件出错之后，仅影响到该表，不会影响到其他表，更不会影响到数据库。如果数据库正在运行过程中发现某个MyISAM表出现问题了，则可以在线通过Check Table命令来尝试校验它，并可以通过repair table命令来尝试修复。
+1.支持事务安全 InnoDB在功能方面最重要的一点就是对事务安全的支持，这无疑是让InnoDB成为MySQL最为流行的存储引擎的一个非常重要原因。而且它实现了SQL92标准所定义的所有4个级别的要求（READ UNCOMMITTED、READ COMMITTED、REPEATABLE和SERIALIZABLE）。对事务安全的支持，无疑让很多之前因为特殊业务要求而不得不放弃使用MySQL的用户重新支持MySQL，那些之前对数据库选型持观望态度的用户，也大大增加了对MySQL好感。
+2.数据多版本读取 InnoDB在事务支持的同时，为了保证数据的一致性及并发的性能，通过UNDO信息实现了数据的多版本读取。
+3.锁定机制的改进 InnoDB改变了MyISAM的锁机制，实现了行锁。虽然InnoDB行锁机制的实现是通过索引来完成的，但毕竟在数据库中，99%的SQL语句都是要使用索引来做数据检索的。所以，行锁定机制也无疑为InnoDB在承受高并发压力的环境下增强了不小的竞争力。
+4.实现外键 InnoDB实现了外键引用这一数据库的重要特性，使在数据库端控制部分数据的完整性成为可能。虽然很多数据库系统调优专家都建议不要这样做，但是对于不少用户来说在数据库端加入外键控制可能仍然是成本最低的选择。
+MySQL安全管理 注意：若某用户向某个表插入（INSERT）数据，但他在该表中的某列上没有INSERT权限，则该列的数据将以默认值填充。
+MySQL备份与恢复 数据丢失应用场景 （1）人为操作失误造成某些数据被误操作；
+（2）软件BUG造成数据部分或全部丢失；
+（3）硬件故障造成数据库数据部分或全部丢失；
+（4）因安全漏洞，入侵者将数据恶意破坏。
+逻辑备份可以说是最简单，也是目前中小型系统最常使用的备份方式。在MySQL中常用的逻辑备份主要就是两种，一种是将数据生成为可以完全重现当前数据库中数据的INSERT语句，另外一种就是将数据通过逻辑备份软件，将数据库表的数据以特定分隔符进行分隔后记录在文本文件中。
+数据库的物理对象主要由数据库的物理数据文件、日志文件及配置文件等组成。在MySQL数据库中，除了MySQL系统共有的一些日志文件和系统表的数据文件之外，每一种存储引擎还会有不太一样的物理对象
+MyISAM存储引擎文件的物理文件比较集中，而且不支持事务没有REDO和UNDO日志，对数据一致性的要求也并不是特别高，所以MyISAM存储引擎表的物理备份也比较简单，只要将MyISAM的物理文件复制出来即可。
+mysqlhotcopy是一个用perl编写的使用程序，其主要实现原理实际上就是先锁住（LOCK）表，然后执行FLUSH TABLES动作，该正常关闭的表正常关闭，该进行flush同步的数据都进行同步，然后通过执行OS级别的复制（cp等）命令，将须要备份的表或数据库的所有物理文件都复制到指定的备份集位置。"/>
+
+
+
+
+
+
+
+
+
 
   
-  
-
-  <link rel="shortcut icon" type="image/png" href="/favicon.ico" />
 
 
-  
-  
+
+
+
+
+      <script src="/js/toc.js"></script>
     
- 
-  
-  
-  
-  
-  
-  
-    
-    <link type="text/css" rel="stylesheet" href="/css/post.min.86d1effd4c412b85ac13db53a90c473a0f256f789b821e131125c9aa25cb6a6d.css" integrity="sha256-htHv/UxBK4WsE9tTqQxHOg8lb3ibgh4TESXJqiXLam0="/>
-  
-    
-    <link type="text/css" rel="stylesheet" href="/css/custom.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css" integrity="sha256-47DEQpj8HBSa&#43;/TImW&#43;5JCeuQeRkm5NMpJWZG3hSuFU="/>
-  
-  
-   
-   
-    
+    <link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<link rel="stylesheet" href="/scss/journal.min.c5d92f380bf10f6849c7ac487c7df2b22c081e0851e5339224f1ae29210b20d2.css" integrity="sha256-xdkvOAvxD2hJx6xIfH3ysiwIHghR5TOSJPGuKSELINI=" media="screen">
 
-<script type="application/ld+json">
-  
-    { 
-      "@context": "http://schema.org", 
-      "@type": "WebSite", 
-      "url": "https:\/\/akother.github.io\/post\/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0\/",
-      "name": "MySQL性能调优与架构设计 笔记",
-      "author": {
-        "@type": "Person",
-        "name": ""
-      },
-      "description": ""
-    }
-  
-  </script>
+
+
+<link rel="stylesheet" href="/scss/dark-mode.min.9f8d8c2df9285089d141edd4a50cb7506c7948e6ab79a29968dced1bd0ab7d22.css" integrity="sha256-n42MLfkoUInRQe3UpQy3UGx5SOareaKZaNztG9CrfSI=" media="screen">
+
+
+<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Material+Icons">
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="/vendor/js/md5.min.js"></script><script>
+  var gitalk = new Gitalk({
+  clientID: 'your client id',
+  clientSecret: 'your client secret',
+  repo: 'repo name',
+  owner: 'user',
+  admin: ['user'],
+  id: md5(location.pathname),
+  distractionFreeMode: 'false'
+  });
+  window.onload = function () {
+        gitalk.render('gitalk-container')
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
 </head>
-
 <body>
-  <div class="burger__container">
-  <div class="burger" aria-controls="navigation" aria-label="Menu">
-    <div class="burger__meat burger__meat--1"></div>
-    <div class="burger__meat burger__meat--2"></div>
-    <div class="burger__meat burger__meat--3"></div>
-  </div>
+    	<div id="app"><div id="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://akother.github.io/">
+    
+        <div class="nav-title">
+            争的是滔滔不绝
+        </div>
+        
+        <div class="nav-subtitle">
+            记录点有趣的.
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/post">
+                Blog
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                Index
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+
+    </div>
+    
+</div><div id="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- CATALOG -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e6%80%a7%e8%83%bd%e8%b0%83%e4%bc%98%e4%b8%8e%e6%9e%b6%e6%9e%84%e8%ae%be%e8%ae%a1" onclick="onNavClick(`#mysql性能调优与架构设计-nav`)" id="mysql性能调优与架构设计-nav">
+									MySQL性能调优与架构设计
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%af%87-%e5%9f%ba%e7%a1%80%e7%af%87" onclick="onNavClick(`#第一篇-基础篇-nav`)" id="第一篇-基础篇-nav">
+									第一篇 基础篇
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#mysql%e6%9e%b6%e6%9e%84%e7%bb%84%e6%88%90" onclick="onNavClick(`#mysql架构组成-nav`)" id="mysql架构组成-nav">
+									MySQL架构组成
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e5%ad%98%e5%82%a8%e5%bc%95%e6%93%8e%e7%ae%80%e4%bb%8b" onclick="onNavClick(`#mysql存储引擎简介-nav`)" id="mysql存储引擎简介-nav">
+									MySQL存储引擎简介
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e5%ae%89%e5%85%a8%e7%ae%a1%e7%90%86" onclick="onNavClick(`#mysql安全管理-nav`)" id="mysql安全管理-nav">
+									MySQL安全管理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e5%a4%87%e4%bb%bd%e4%b8%8e%e6%81%a2%e5%a4%8d" onclick="onNavClick(`#mysql备份与恢复-nav`)" id="mysql备份与恢复-nav">
+									MySQL备份与恢复
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%af%87-%e6%80%a7%e8%83%bd%e4%bc%98%e5%8c%96%e7%af%87" onclick="onNavClick(`#第二篇-性能优化篇-nav`)" id="第二篇-性能优化篇-nav">
+									第二篇 性能优化篇
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#mysql%e6%80%a7%e8%83%bd%e5%bd%b1%e5%93%8d%e5%9b%a0%e7%b4%a0" onclick="onNavClick(`#mysql性能影响因素-nav`)" id="mysql性能影响因素-nav">
+									MySQL性能影响因素
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e6%95%b0%e6%8d%ae%e5%ba%93%e9%94%81%e5%ae%9a%e6%9c%ba%e5%88%b6" onclick="onNavClick(`#mysql数据库锁定机制-nav`)" id="mysql数据库锁定机制-nav">
+									MySQL数据库锁定机制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e6%95%b0%e6%8d%ae%e5%ba%93query%e7%9a%84%e4%bc%98%e5%8c%96" onclick="onNavClick(`#mysql数据库query的优化-nav`)" id="mysql数据库query的优化-nav">
+									MySQL数据库Query的优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e6%95%b0%e6%8d%ae%e5%ba%93schema%e8%ae%be%e8%ae%a1%e7%9a%84%e6%80%a7%e8%83%bd%e4%bc%98%e5%8c%96" onclick="onNavClick(`#mysql数据库schema设计的性能优化-nav`)" id="mysql数据库schema设计的性能优化-nav">
+									MySQL数据库Schema设计的性能优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%ad%98%e5%82%a8%e5%bc%95%e6%93%8e%e4%bc%98%e5%8c%96" onclick="onNavClick(`#常用存储引擎优化-nav`)" id="常用存储引擎优化-nav">
+									常用存储引擎优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%af%87-%e6%9e%b6%e6%9e%84%e8%ae%be%e8%ae%a1%e7%af%87" onclick="onNavClick(`#第三篇-架构设计篇-nav`)" id="第三篇-架构设计篇-nav">
+									第三篇 架构设计篇
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e6%89%a9%e5%b1%95%e6%80%a7%e8%ae%be%e8%ae%a1%e4%b9%8b%e6%95%b0%e6%8d%ae%e5%88%87%e5%88%86" onclick="onNavClick(`#可扩展性设计之数据切分-nav`)" id="可扩展性设计之数据切分-nav">
+									可扩展性设计之数据切分
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e6%89%a9%e5%b1%95%e6%80%a7%e8%ae%be%e8%ae%a1%e4%b9%8bcache%e4%b8%8esearch%e7%9a%84%e5%88%a9%e7%94%a8" onclick="onNavClick(`#可扩展性设计之cache与search的利用-nav`)" id="可扩展性设计之cache与search的利用-nav">
+									可扩展性设计之Cache与Search的利用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%ab%98%e5%8f%af%e7%94%a8%e8%ae%be%e8%ae%a1%e4%b9%8bmysql%e7%9b%91%e6%8e%a7" onclick="onNavClick(`#高可用设计之mysql监控-nav`)" id="高可用设计之mysql监控-nav">
+									高可用设计之MySQL监控
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
 </div>
- 
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a type="button" class="pagination-action" id="darkModeToggleButton">
+            <span class="material-icons pagination-action-icon" id="darkModeToggleIcon">
+                dark_mode
+            </span>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" id="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/post">
+                    Blog
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    Index
+                </a>
+                
+            
+            
+            <div class="toc">
 
-  <nav class="nav" id="navigation">
-  <ul class="nav__list">
-    
-    
-      <li>
-        <a  href="/">about</a>
-      </li>
-    
-      <li>
-        <a  href="/post">blog</a>
-      </li>
-    
-  </ul>
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- CATALOG -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e6%80%a7%e8%83%bd%e8%b0%83%e4%bc%98%e4%b8%8e%e6%9e%b6%e6%9e%84%e8%ae%be%e8%ae%a1" onclick="onNavClick(`#mysql性能调优与架构设计-nav`)" id="mysql性能调优与架构设计-nav">
+									MySQL性能调优与架构设计
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%af%87-%e5%9f%ba%e7%a1%80%e7%af%87" onclick="onNavClick(`#第一篇-基础篇-nav`)" id="第一篇-基础篇-nav">
+									第一篇 基础篇
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#mysql%e6%9e%b6%e6%9e%84%e7%bb%84%e6%88%90" onclick="onNavClick(`#mysql架构组成-nav`)" id="mysql架构组成-nav">
+									MySQL架构组成
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e5%ad%98%e5%82%a8%e5%bc%95%e6%93%8e%e7%ae%80%e4%bb%8b" onclick="onNavClick(`#mysql存储引擎简介-nav`)" id="mysql存储引擎简介-nav">
+									MySQL存储引擎简介
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e5%ae%89%e5%85%a8%e7%ae%a1%e7%90%86" onclick="onNavClick(`#mysql安全管理-nav`)" id="mysql安全管理-nav">
+									MySQL安全管理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e5%a4%87%e4%bb%bd%e4%b8%8e%e6%81%a2%e5%a4%8d" onclick="onNavClick(`#mysql备份与恢复-nav`)" id="mysql备份与恢复-nav">
+									MySQL备份与恢复
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%af%87-%e6%80%a7%e8%83%bd%e4%bc%98%e5%8c%96%e7%af%87" onclick="onNavClick(`#第二篇-性能优化篇-nav`)" id="第二篇-性能优化篇-nav">
+									第二篇 性能优化篇
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#mysql%e6%80%a7%e8%83%bd%e5%bd%b1%e5%93%8d%e5%9b%a0%e7%b4%a0" onclick="onNavClick(`#mysql性能影响因素-nav`)" id="mysql性能影响因素-nav">
+									MySQL性能影响因素
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e6%95%b0%e6%8d%ae%e5%ba%93%e9%94%81%e5%ae%9a%e6%9c%ba%e5%88%b6" onclick="onNavClick(`#mysql数据库锁定机制-nav`)" id="mysql数据库锁定机制-nav">
+									MySQL数据库锁定机制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e6%95%b0%e6%8d%ae%e5%ba%93query%e7%9a%84%e4%bc%98%e5%8c%96" onclick="onNavClick(`#mysql数据库query的优化-nav`)" id="mysql数据库query的优化-nav">
+									MySQL数据库Query的优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#mysql%e6%95%b0%e6%8d%ae%e5%ba%93schema%e8%ae%be%e8%ae%a1%e7%9a%84%e6%80%a7%e8%83%bd%e4%bc%98%e5%8c%96" onclick="onNavClick(`#mysql数据库schema设计的性能优化-nav`)" id="mysql数据库schema设计的性能优化-nav">
+									MySQL数据库Schema设计的性能优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%ad%98%e5%82%a8%e5%bc%95%e6%93%8e%e4%bc%98%e5%8c%96" onclick="onNavClick(`#常用存储引擎优化-nav`)" id="常用存储引擎优化-nav">
+									常用存储引擎优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%af%87-%e6%9e%b6%e6%9e%84%e8%ae%be%e8%ae%a1%e7%af%87" onclick="onNavClick(`#第三篇-架构设计篇-nav`)" id="第三篇-架构设计篇-nav">
+									第三篇 架构设计篇
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e6%89%a9%e5%b1%95%e6%80%a7%e8%ae%be%e8%ae%a1%e4%b9%8b%e6%95%b0%e6%8d%ae%e5%88%87%e5%88%86" onclick="onNavClick(`#可扩展性设计之数据切分-nav`)" id="可扩展性设计之数据切分-nav">
+									可扩展性设计之数据切分
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e6%89%a9%e5%b1%95%e6%80%a7%e8%ae%be%e8%ae%a1%e4%b9%8bcache%e4%b8%8esearch%e7%9a%84%e5%88%a9%e7%94%a8" onclick="onNavClick(`#可扩展性设计之cache与search的利用-nav`)" id="可扩展性设计之cache与search的利用-nav">
+									可扩展性设计之Cache与Search的利用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%ab%98%e5%8f%af%e7%94%a8%e8%ae%be%e8%ae%a1%e4%b9%8bmysql%e7%9b%91%e6%8e%a7" onclick="onNavClick(`#高可用设计之mysql监控-nav`)" id="高可用设计之mysql监控-nav">
+									高可用设计之MySQL监控
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div id="drawer-mask" v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav id="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div id="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a id="navTitle" class="navbar-brand" href="https://akother.github.io/">
+            争的是滔滔不绝
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" id="darkModeToggleButton2">
+            <i class="material-icons" id="darkModeToggleIcon2">
+                dark_mode
+            </i>
+        </button>
+        
+    </div>
 </nav>
+<div class="single-column-header-container" id="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://akother.github.io/">
+        <div class="single-column-header-title">争的是滔滔不绝</div>
+        
+        <div class="single-column-header-subtitle">记录点有趣的.</div>
+        
 
+    </a>
+</div>
 
-  <main>
-    
-    
+            <div id="content">
+                <div id="streamContainer" class="stream-container">
 
-    <div class="flex-wrapper">
-      <div class="post__container">
+    <div class="post-list-container post-list-container-shadow">
         <div class="post">
-          <header class="post__header">
-            <h1 id="post__title">MySQL性能调优与架构设计 笔记</h1>
-            <time datetime="2023-01-03 17:46:16 &#43;0800 CST" class="post__date">Jan 3 2023</time> 
-          </header>
-          <article class="post__content">
-              
-<h1 id="mysql性能调优与架构设计">MySQL性能调优与架构设计</h1>
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    MySQL性能调优与架构设计 笔记
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-01-03 17:46
+                        </time>
+                        
+
+                        
+
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="mysql性能调优与架构设计">MySQL性能调优与架构设计</h1>
 <p><strong>读者记</strong></p>
 <p>本文是读《MySQL性能调优与架构设计》时划的一些笔记，一些读后体会写在微信读书中了。读完确实是学到了很多，不管对于MySQL的架构和底层了解都增进了几分，很适合初学MySQL时研读（当然基础的SQL和数据库知识还是需要有的），但是有些内容可能比较过期，比如“查询缓存”等再在MySQL 8.0+就已经去除了（MySQL 查询不建议使用缓存，因为查询缓存失效在实际业务场景中可能会非常频繁，假如对一个表更新的话，这个表上的所有的查询缓存都会被清空），光看本书肯定是不够的，还需要辅以别的专业书籍/博客等自学。</p>
 <p><strong>前言</strong></p>
 <ul>
 <li>对MySQL的优化更多的不在于数据库本身，而在于架构的设计，即如何通过分表、分库、复制、Cache等技术使得数据库能合理分配访问压力。</li>
 </ul>
-<h2 id="第一篇-基础篇">第一篇 基础篇<a class="anchor" href="#第一篇-基础篇">#</a></h2>
+<h2 id="第一篇-基础篇">第一篇 基础篇</h2>
 <p>1985年，瑞典几位志同道合的小伙子（以David Axmark为首）成立了一家公司，这就是MySQL AB的前身。这家公司最初并不是为了开发数据库产品，而是因为在实现其他目标的过程中，需要一个数据库。他们希望能够使用开源的产品，但当时并没有合适的选择，于是就自己开发。</p>
 <p>从安装方面来说，MySQL安装包大小仅100MB左右，与那几大商业数据库相比完全不是一个数量级。它的安装也比Oracle等商业数据库容易很多，不论是通过已经编译好的二进制分发包，还是通过源码编译安装，都非常简单。 再从数据库创建方面来比较，MySQL仅仅需要一个简单的CREATE DATABASE命令即可在瞬间完成建库的动作，而Oracle数据库与之相比，创建一个数据库简直就是一个庞大的工程。当然，二者在概念上存在一定差别也不可否认。</p>
-<h3 id="mysql架构组成">MySQL架构组成<a class="anchor" href="#mysql架构组成">#</a></h3>
+<h3 id="mysql架构组成">MySQL架构组成</h3>
 <p>如果要开启系统记录错误日志的功能，须要在启动时开启&ndash;log-error选项。错误日志默认存放在数据目录下，以hostname.err命名。但是可以使用命令：&ndash;log-error[=file_name]修改其存放目录和文件名。</p>
 <p>为了方便维护，有时候会希望将错误日志中的内容做备份并重新开始记录，这时候就可以利用MySQL的FLUSH LOGS命令来告诉MySQL备份旧日志文件并生成新的日志文件。备份文件名以“.old”结尾。</p>
 <p>慢查询日志：slow query log 顾名思义，慢查询日志中记录的是执行时间较长的Query，也就是我们常说的Slow Query，通过设&ndash;log-slow-queries[=file_name]来打开该功能并设置记录位置和文件名，默认文件名为hostname-slow.log，默认目录也是数据目录。</p>
 <p>与表相关的元数据（meta）信息都存放在“.frm”文件，包括表结构的定义信息等。</p>
 <p>MySQL可以看成是两层架构，==第一层我们通常叫做SQL Layer，在MySQL数据库系统处理底层数据之前的所有工作都是在这一层完成的，包括权限判断、Query解析、执行计划优化、query cache的处理等；第二层就是存储引擎层，通常叫做Storage Engine Layer，也就是底层数据存取操作实现部分，由多种存储引擎共同组成。==</p>
 <p>如果是一个Query类型的请求，它将控制权交给Query解析器。Query解析器首先分析是不是一个select类型的Query，如果是，则调用查询缓存模块，让它检查该Query在Query cache中是否已经存在。如果有，则直接将cache中的数据返回给连接线程模块，然后通过与客户端的连接线程将数据传输给客户端。如果是一个不能被缓存（cache）的Query类型，或者cache中没有该Query的数据，那么Query将被继续传回Query解析器，让Query解析器进行相应处理，再通过Query分发器分发给相关处理模块。</p>
-<h3 id="mysql存储引擎简介">MySQL存储引擎简介<a class="anchor" href="#mysql存储引擎简介">#</a></h3>
+<h3 id="mysql存储引擎简介">MySQL存储引擎简介</h3>
 <p>MyISAM支持以下三种类型的索引。 1. B-Tree索引 B-Tree索引，顾名思义，就是所有的索引节点都按照balance tree的数据结构来存储，所有的索引数据节点都在叶节点。 2. R-Tree索引 R-Tree索引的存储方式和b-tree索引有一些区别，主要设计用于为存储空间和多维数据的字段做索引，目前的MySQL版本仅支持geometry类型的字段作索引。 3. Full-text索引 Full-text索引就是我们常说的全文索引，它的存储结构也是b-tree。主要是为了解决当须要用like查询时的低效问题。</p>
 <p>MyISAM存储引擎的某个表文件出错之后，仅影响到该表，不会影响到其他表，更不会影响到数据库。如果数据库正在运行过程中发现某个MyISAM表出现问题了，则可以在线通过Check Table命令来尝试校验它，并可以通过repair table命令来尝试修复。</p>
 <p>1.支持事务安全 InnoDB在功能方面最重要的一点就是对事务安全的支持，这无疑是让InnoDB成为MySQL最为流行的存储引擎的一个非常重要原因。而且它实现了SQL92标准所定义的所有4个级别的要求（READ UNCOMMITTED、READ COMMITTED、REPEATABLE和SERIALIZABLE）。对事务安全的支持，无疑让很多之前因为特殊业务要求而不得不放弃使用MySQL的用户重新支持MySQL，那些之前对数据库选型持观望态度的用户，也大大增加了对MySQL好感。</p>
 <p>2.数据多版本读取 InnoDB在事务支持的同时，为了保证数据的一致性及并发的性能，通过UNDO信息实现了数据的多版本读取。</p>
 <p>3.锁定机制的改进 InnoDB改变了MyISAM的锁机制，实现了行锁。虽然InnoDB行锁机制的实现是通过索引来完成的，但毕竟在数据库中，99%的SQL语句都是要使用索引来做数据检索的。所以，行锁定机制也无疑为InnoDB在承受高并发压力的环境下增强了不小的竞争力。</p>
 <p>4.实现外键 InnoDB实现了外键引用这一数据库的重要特性，使在数据库端控制部分数据的完整性成为可能。虽然很多数据库系统调优专家都建议不要这样做，但是对于不少用户来说在数据库端加入外键控制可能仍然是成本最低的选择。</p>
-<h3 id="mysql安全管理">MySQL安全管理<a class="anchor" href="#mysql安全管理">#</a></h3>
+<h3 id="mysql安全管理">MySQL安全管理</h3>
 <p>注意：若某用户向某个表插入（INSERT）数据，但他在该表中的某列上没有INSERT权限，则该列的数据将以默认值填充。</p>
-<h3 id="mysql备份与恢复">MySQL备份与恢复<a class="anchor" href="#mysql备份与恢复">#</a></h3>
+<h3 id="mysql备份与恢复">MySQL备份与恢复</h3>
 <ol>
 <li>数据丢失应用场景</li>
 </ol>
@@ -133,8 +1040,8 @@
 <p>数据库的物理对象主要由数据库的物理数据文件、日志文件及配置文件等组成。在MySQL数据库中，除了MySQL系统共有的一些日志文件和系统表的数据文件之外，每一种存储引擎还会有不太一样的物理对象</p>
 <p>MyISAM存储引擎文件的物理文件比较集中，而且不支持事务没有REDO和UNDO日志，对数据一致性的要求也并不是特别高，所以MyISAM存储引擎表的物理备份也比较简单，只要将MyISAM的物理文件复制出来即可。</p>
 <p>mysqlhotcopy是一个用perl编写的使用程序，其主要实现原理实际上就是先锁住（LOCK）表，然后执行FLUSH TABLES动作，该正常关闭的表正常关闭，该进行flush同步的数据都进行同步，然后通过执行OS级别的复制（cp等）命令，将须要备份的表或数据库的所有物理文件都复制到指定的备份集位置。</p>
-<h2 id="第二篇-性能优化篇">第二篇 性能优化篇<a class="anchor" href="#第二篇-性能优化篇">#</a></h2>
-<h3 id="mysql性能影响因素">MySQL性能影响因素<a class="anchor" href="#mysql性能影响因素">#</a></h3>
+<h2 id="第二篇-性能优化篇">第二篇 性能优化篇</h2>
+<h3 id="mysql性能影响因素">MySQL性能影响因素</h3>
 <p>其实这个问题的焦点不应该是实现这个功能的技术细节，而是这个功能的附加要求“实时更新”。当一个论坛的帖子数量很大时，到底有多少人会关注这个统计数据是否是实时变化的？有多少人在乎这个数据在短时间内的不精确性？我想恐怕不会有人会傻傻地盯着这个统计数字并追究当自己发了一个帖子回头刷新页面时这个统计数字是否加1？即使明明白白地告诉用户这个统计数据是每隔一定时间段更新一次，那又怎样？难道会有很多用户就此很不爽么？ 只要去掉了这个“实时更新”的附加条件，就可以非常容易实现这个功能了。就像之前所提到的，==创建一个统计表，然后通过一个定时任务每隔一定时间就去更新一次统计值，这样既可以解决统计值查询的效率问题，又能保证不影响新发贴的效率==，一举两得。</p>
 <p>实际上，在应用的系统中还有很多类似的功能点可以优化。如某些场合的列表页面参与列表的数据量达到一定数量级之后，完全可以不用准确地显示这个列表共有多少条信息，总共分了多少页，只需要一个大概的估计值或一个时间段之前的统计值。这样就省略了分页程序在分以前实时计算（COUNT）出满足条件的记录数。</p>
 <p>在很多应用系统中，实时和准实时，精确与基本准确，在很多地方所带来的性能消耗可能是几个性能的差别</p>
@@ -175,7 +1082,7 @@
 <p>此外，由于OLAP系统每次运算过程较长，可以很好地并行，所以一般的OLAP系统都是由多台主机构成的一个集群，而集群中主机与主机之间的数据交互量一般来说都非常大，所以在集群中主机之间的网络设备要求很高。</p>
 <p>它们的数据量不是特别大，但是访问请求极其频繁，而且大部分是读请求。可能每秒须要提供上万甚至几万次请求，每次请求都非常简单，大部分都只有一条或几条比较小的记录返回，比如基于数据库的DNS服务就是这种类型的服务。 · 上面所述这种情况，可以通过较大的内存来Cache住大部分的数据，这能够保证非常高的命中率，磁盘IO量比较小，所以磁盘也不需要特别高性能的； · 并发请求非常频繁，必须要较强的CPU处理能力才能处理； · 虽然应用与数据库交互量非常大，但是每次交互的数据较少；总体流量虽然会较大，但是一般来说普通的千兆网卡已经足够了。</p>
 <p>需求和架构及业务实现优化：55% Query语句的优化：30% 数据库自身的优化：15%</p>
-<h3 id="mysql数据库锁定机制">MySQL数据库锁定机制<a class="anchor" href="#mysql数据库锁定机制">#</a></h3>
+<h3 id="mysql数据库锁定机制">MySQL数据库锁定机制</h3>
 <p>MySQL各存储引擎使用了三种类型（级别）的锁定机制：行级锁定、页级锁定和表级锁定</p>
 <p>1.行级锁定（row-level） 行级锁定最大的特点就是锁定对象的颗粒度很小，它是目前各大数据库管理软件所实现的锁定颗粒度最小的。由于锁定颗粒度很小，发生锁定资源争用的概率也最小，能够给予应用程序尽可能大的并发处理能力，从而提高一些需要高并发应用系统的整体性能。 虽然能够在并发处理能力上面有较大的优势，但是行级锁定也因此带来了不少弊端。由于锁定资源的颗粒度很小，所以每次获取锁和释放锁须要的操作就更多，带来的消耗自然也就更大了。此外，行级锁定也最容易发生死锁。</p>
 <p>2.表级锁定（table-level） 和行级锁定相反，表级别的锁定是MySQL各存储引擎中最大颗粒度的锁定机制。该锁定机制最大的特点是实现逻辑非常简单，带来的系统处理成本最小，所以获取锁和释放锁的速度很快。由于表级锁一次会将整个表锁定，所以可以很好地避免困扰我们的死锁问题。 当然，锁定颗粒度大带来最大的负面影响就是出现锁定资源争用的概率也会最高，致使并发度大打折扣。</p>
@@ -191,7 +1098,7 @@
 <p>（3）尽可能减少基于范围的数据检索过滤条件，避免因为间隙锁带来的负面影响而锁定了不该锁定的记录；</p>
 <p>（4）尽量控制事务的大小，减少锁定的资源量和锁定时间长度；</p>
 <p>（5）在业务环境允许的情况下，尽量使用较低级别的事务隔离，以减少MySQL因为实现事务隔离级别所带来的附加成本。</p>
-<h3 id="mysql数据库query的优化">MySQL数据库Query的优化<a class="anchor" href="#mysql数据库query的优化">#</a></h3>
+<h3 id="mysql数据库query的优化">MySQL数据库Query的优化</h3>
 <p>当MySQL Query Optimizer接收到从Query Parser（解析器）过来的Query时，会根据MySQL Query语句的相应语法对该Query进行分解分析，同时还会做很多其他的计算转化工作，如常量转化，无效内容删除，常量计算等。所有这些工作都是为了Optimizer分析出最优的数据检索方式，也就是常说的执行计划。</p>
 <p>在分析如何优化MySQL Query之前，须要先了解一下Query语句优化的基本思路和原则。一般来说，==Query语句的优化思路和原则主要体现在以下几个方面：== （1）优化更需要优化的Query；</p>
 <p>（2）定位优化对象的性能瓶颈；</p>
@@ -250,7 +1157,7 @@
 <p>当无法避免排序操作时，又该如何来优化呢？很显然，应该尽可能让MySQL选择使用第二种算法来进行排序。这样可以减少大量的随机IO操作，很大幅度地提高排序工作的效率。 1. 加大max_length_for_sort_data参数的设置 在MySQL中，决定使用老式排序算法还是改进版排序算法是通过参数max_length_for_sort_data来决定的。当所有返回字段的最大长度小于这个参数值时，MySQL就会选择改进后的排序算法，反之，则选择老式的算法。所以，如果有充足的内存让MySQL存放须要返回的非排序字段，就可以加大这个参数的值来让MySQL选择使用改进版的排序算法。 2. 去掉不必要的返回字段 当内存不是很充裕时，不能简单地通过强行加大上面的参数来强迫MySQL去使用改进版的排序算法，否则可能会造成MySQL不得不将数据分成很多段，然后进行排序，这样可能会得不偿失。此时就须要去掉不必要的返回字段，让返回结果长度适应max_length_for_sort_data参数的限制。 3. 增大sort_buffer_size参数设置 增大sort_buffer_size并不是为了让MySQL选择改进版的排序算法，而是为了让MySQL尽量减少在排序过程中对须要排序的数据进行分段，因为分段会造成MySQL不得不使用临时表来进行交换排序。</p>
 <p>对于上面三种MySQL处理GROUP BY的方式，可以针对性地得出如下两种优化思路： （1）尽可能让MySQL利用索引来完成GROUP BY操作，当然最好是松散索引扫描的方式。在系统允许的情况下，可以通过调整索引或调整Query这两种方式来达到目的； （2）当无法使用索引完成GROUP BY时，由于要使用到临时表且需要filesort，所以必须要有足够的sort_buffer_size供MySQL排序时使用，而且尽量不要进行大结果集的GROUP BY操作，因为如果超出系统设置的临时表大小就会出现将临时表数据复制（copy）到磁盘上面再进行操作的情况，这时的排序分组操作性能将成数量级的下降。</p>
 <p>此外，在优化GROUP BY时还有一个小技巧可以让我们在有些无法利用到索引的情况下避免filesort操作，即在整个语句最后添加一个以null排序（ORDER BY null）的子句，大家可以尝试一下看会有什么效果。</p>
-<h3 id="mysql数据库schema设计的性能优化">MySQL数据库Schema设计的性能优化<a class="anchor" href="#mysql数据库schema设计的性能优化">#</a></h3>
+<h3 id="mysql数据库schema设计的性能优化">MySQL数据库Schema设计的性能优化</h3>
 <p>真正影响性能的部分多是在设计中就已经产生了，很多时候后期的优化所能带来的改善都只是解决前期设计遗留下来的问题而已，而且能解决的问题通常也比较有限。</p>
 <p>从数据库范式理论来看，这样的设计是不太合理的。因为可能造成user表和group_message表中的用户昵称数据不一致。每次更新用户昵称时，都须要更新两个表的数据，为了尽可能让两者数据保证一致，应用程序中须要处理更多的逻辑。但是，从性能角度来看，这种冗余是非常有价值的，虽然数据更新逻辑复杂了，但是在考虑更新带来的附加成本时，还应考虑到底会有多少更新发生在用户昵称上面。我们须要考虑的是一个系统的整体性能，而不是系统中单个行为的性能。就像示例中的昵称数据，虽然更新的成本增加了，但是查询的效率提高了，而且发生该查询的频率要远大于更新的频率，通过少部分操作的成本投入换取更大的性能收获，实际上是系统性能优化中经常使用的策略。</p>
 <p>在得到该需求后，我们的第一反应肯定是通过在group_message表中增加一个标识列，用来存放帖子的类型，标识出是普通会员的讨论贴还是系统管理员的置顶帖。然后在每个列表展示的页面都对group_message表进行两次查询（一次置顶信息、一次普通讨论帖），最后在应用程序中合并再展示。由于整个group_message表的数据较大，查询置顶信息的Query成本会相对有些高。 下面换一个思路来考虑这个问题。 首先，置顶信息和其他讨论帖完全不会产生任何关联交互； 其次，置顶信息的变化相对于其他讨论帖来说很少； 再次，置顶信息的访问频率非常高； 最后，置顶信息的量和普通讨论帖相比非常少； 通过上面的分析，如果将置顶信息单独存放在普通讨论帖之外的其他表里，不但不会带来将会附加的性能消耗，而且可以使每次检索置顶信息的成本都有所下降。由于访问频率非常高，因为每次检索置顶信息的成本下降而总成本将会得到较大的节省。数量少而且变化不怎么频繁的特点使其非常适合使用MySQL的Query Cache，而如果和普通讨论帖在一起，由于普通讨论帖的频繁变化带来group_message表相关的Query Cache失效问题会让它无法使用Query Cache功能。</p>
@@ -263,9 +1170,9 @@
 <p>在VARCHAR类型字段的数据中，MySQL会在每个VARCHAR数据中使用1到2个字节来存放VARCHAR数据的实际长度，当实际数据在255字节之内时，会使用1字节来存放实际长度，而大于255字节时，则需要使用2字节来存放。</p>
 <p>TINYTEXT需要1个字节来存放，TEXT需要2个字节，MEDIUMTEXT和LONGTEXT则分别需要3个和4个字节来存放实际数据长度。实际上，除了MySQL内嵌的最大长度限制之外，它们还受到客户端与服务器端的网络通信缓冲区最大值（max_allowed_packet）的限制。</p>
 <p>一般来说，应该注意以下一些方面： 1. 数据库和表名应尽可能和所服务的业务模块名一致 这样，当DBA维护相关数据库对象时，新开发人员进行程序开发时，相关技术（或非技术）人员整理业务逻辑和数据关系时，都能非常容易地理解其中的关系。 2. 服务于同一子模块的一类表尽量以子模块名（或部分单词）为前缀或后缀 对同类功能的表增加前缀或后缀，也是让查看使用该表的各类人员能够很快地根据相关对象的名称就能联想到相应的功能，以及相关业务。不论是从维护角度，还是从使用角度来看都会带来非常大的便利性。 3. 表名应尽量包含与所存放数据相对应的单词 这对于新员工来说尤其重要，要想尽快的熟悉数据，尽快了解相关业务，快速地定位数据库中各表对应的数据意义是非常有帮助的。 4. 字段名称也尽量保持和实际数据相对应 这一点的意义各位读者朋友应该都非常清楚，每个表都会有很多的字段对应数据的各种不同属性，要搞清楚各自代表的含义，除了完整规范的说明文档之外，命名清晰合理的字段名也是一个有用的补充，而且更为直接。 5. 索引名称尽量包含所有的索引键字段名或缩写，且各字段名在索引名中的顺序应与索引键在索引中的索引顺序一致，并尽量包含一个类似于idx或ind的前缀或后缀，以表明其对象类型是索引，同时还可以包含该索引所属表的名称 这样做最大的好处在于DBA在维护过程中能够非常直接清晰地通过索引名称就能了解到该索引大部分的信息。 6. 约束等其他对象也应该尽可能包含所属表或其他对象的名称，以表明各自关系 上面列出的只是一个比较初略的规范建议，各位读者完全可以根据各自公司的习惯，制定自己的命名规范，只要适用，就可以了。规范不在多，而在实用。而且一旦制定了规范，就必须严格地按照规范执行，否则就变成了花架子，没有任何实际意义了。</p>
-<h3 id="常用存储引擎优化">常用存储引擎优化<a class="anchor" href="#常用存储引擎优化">#</a></h3>
+<h3 id="常用存储引擎优化">常用存储引擎优化</h3>
 <p>一般来说，InnoDB在将数据同步到数据文件进行持久化之前，首先会将须要同步的内容写入存在于表空间中的系统保留的存储空间，也就是被称之为Double Write Buffer的地方，然后再将数据进行文件同步。所以实质上，Double Write Buffer中就是存放了一份需要同步到文件中数据的备份，以便在遇到系统崩溃（Crash）或主机断电时，能够校验最后一次文件同步是否准确地完成了。如果未完成，则可以通过这个备份来继续完成工作，从而保证数据的正确性。</p>
-<h2 id="第三篇-架构设计篇">第三篇 架构设计篇<a class="anchor" href="#第三篇-架构设计篇">#</a></h2>
+<h2 id="第三篇-架构设计篇">第三篇 架构设计篇</h2>
 <p>Scale Out指横向的扩展，向外扩展，也就是通过增加处理节点的方式来提高整体处理能力，说得更实际一点就是通过增加机器来提升整体的处理能力。 Scale Up则是指纵向的扩展，向上扩展，也就是通过增加当前处理节点的处理能力来提高整体的处理能力。说白了就是通过升级现有服务器的配置，如增加内存，增加CPU，增加存储系统的硬件配置，或者直接更换处理能力更强的服务器和更高端的存储系统。</p>
 <p>Scale Out优点：</p>
 <p>（1）成本低，很容易通过价格低廉的PC Server搭建出一个处理能力非常强大的计算集群；</p>
@@ -286,78 +1193,71 @@
 <p>BASE模型。即：基本可用，柔性状态，基本一致和最终一致。这几个词看似复杂深奥，其实大家可以简单地理解为非实时的一致性原则。</p>
 <p>如何让系统中的不一致数据达到最终一致？一般来说，必须将这类数据所涉及的业务模块和需要实时一致数据的业务模块明确地划分开来。然后通过相关的异步机制技术，利用相应的后台进程，通过系统中的数据、日志等信息将当前并不一致的数据进行进一步处理，使最终数据处于完全一致状态。对于不同的模块使用不同的后台进程，既可以避免数据出现紊乱，也可以并发执行，提高处理效率。如对用户的消息、通知之类的信息，就没有必要做到严格的实时一致性，只要先记录需要处理的消息，然后让后台的处理进程依次处理，避免造成前台业务的拥塞。</p>
 <p>避免实时一致与最终一致两类数据的前台在线交互。由于两类数据状态的不一致性，很可能导致两类数据在交互过程中出现紊乱，应该尽量让所有非实时一致的数据和实时一致数据在应用程序中有效隔离。甚至在有些特别的场景下，记录在不同的MySQL Server中来进行物理隔离是有必要的。</p>
-<h3 id="可扩展性设计之数据切分">可扩展性设计之数据切分<a class="anchor" href="#可扩展性设计之数据切分">#</a></h3>
+<h3 id="可扩展性设计之数据切分">可扩展性设计之数据切分</h3>
 <p>数据的切分（Sharding）根据其切分规则的类型，可以分为两种切分模式。一种是按照不同的表（或者Schema）来切分到不同的数据库（主机）之上，这种切分可以称之为数据的垂直（纵向）切分；另外一种则是根据表中数据的逻辑关系，将同一个表中的数据按照某种条件拆分到多台数据库（主机）上，这种切分称之为数据的水平（横向）切分。</p>
 <p>数据的垂直切分，也可以称为纵向切分。将数据库想象成由很多个一大块一大块的“数据块”（表）组成，垂直地将这些“数据块”切开，然后把它们分散到多台数据库主机上面。这样的切分方法就是垂直（纵向）的数据切分。</p>
 <p>一个架构设计较好的应用系统，其总体功能肯定是由很多个功能模块所组成的，而每一个功能模块所需要的数据对应到数据库中就是一个或多个表。而在架构设计中，各个功能模块相互之间的交互点越统一、越少，系统的耦合度就越低，系统各个模块的维护性及扩展性也就越好。这样的系统，实现数据的垂直切分也就越容易。</p>
 <p>数据的整合很难依靠数据库本身来达到，虽然MySQL存在Federated存储引擎，可以解决部分类似的问题，但是在实际应用场景中却很难较好地运用。那该如何来整合这些分散在各个MySQL主机上的数据源呢？ 总的来说，存在两种解决思路： （1）在每个应用程序模块中配置管理自己需要的一个（或者多个）数据源，直接访问各个数据库，在模块内完成数据的整合； （2）通过中间代理层来统一管理所有的数据源，后端数据库集群对前端应用程序透明。 可能90%以上的人在面对这两种解决思路时都会倾向于选择第二种，尤其是系统不断庞大复杂的时候。确实，这是一个非常正确的选择，虽然短期内须要付出的成本可能会相对大一些，但对整个系统的扩展性来说，是非常有帮助的。</p>
-<h3 id="可扩展性设计之cache与search的利用">可扩展性设计之Cache与Search的利用<a class="anchor" href="#可扩展性设计之cache与search的利用">#</a></h3>
+<h3 id="可扩展性设计之cache与search的利用">可扩展性设计之Cache与Search的利用</h3>
 <p>数据本身肯定都需要有一个可以持久化地方，但是否有必要让所有冗余数据都进行持久化呢？我想读者肯定都会觉得没有这个必要，只要保证有至少两份冗余的数据进行持久化就足够了。而另外一些为了提高扩展性而产生的冗余数据，完全可以通过一些特别的技术来替代须要持久化的数据库，如内存Cache、Search，以及磁盘文件Cache和Search，等等。</p>
 <p>只要将我们数据库中被持久化下来的数据通过应用程序调用Lucene的相关API写入，并利用Lucene创建好索引，然后就可以通过调用Lucene所提供的数据检索API得到需要访问的数据，而且可以进行全模糊匹配。</p>
-<h3 id="高可用设计之mysql监控">高可用设计之MySQL监控<a class="anchor" href="#高可用设计之mysql监控">#</a></h3>
+<h3 id="高可用设计之mysql监控">高可用设计之MySQL监控</h3>
 <p>少数几台主机的监控在大多数时候可以通过几个简单的脚本（Shell或者Perl等）、发发邮件，或再高一点，发发手机报警短信，基本就搞定了。监控点少，发出的信息量也少。很多状态信息甚至都可以通过维护人员登录到主机上面来定时检查（Check）即可。但如果有上百台主机，仍然仅仅依靠在每台主机上面部署几个简单的脚本的方式来进行监控，后期的管理维护成本就会非常高了。</p>
 
-
-              
-          </article>
-          
-
- <div class="pagination">
-  
-    <a class="pagination__item" href="https://akother.github.io/post/jwt/">
-        <span class="pagination__label">Previous Post</span>
-        <span class="pagination__title">JWT基础介绍</span>
-    </a>
-  
-
-  
-    <a class="pagination__item" href="https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/">
-      <span class="pagination__label">Next Post</span>
-      <span class="pagination__title" >Spring源码Demo</span>
-    </a>
-  
-</div>
-
-          
-          <footer class="post__footer">
+                    
+                    <HR width="100%" id="EOF">
+		    <p style="color:#777;">Last modified on 2023-01-03</p>
+                    
+                </div>
+            </div>
             
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="/post/spring%E6%BA%90%E7%A0%81demo/">
+			Next<br>Spring源码Demo
+                </a>
+                
+                
+                
+                <a class="older-posts" href="/post/jwt/">
+			Previous<br>JWT基础介绍
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
 
 
-<div class="social-icons">
-  
-     
-    
-  
-     
-    
-     
-</div>
+<div id="gitalk-container"></div>
 
-            <p>© 2023</p>
-          </footer>
-          </div>
-      </div>
-      
+
+
+
+
+
+
+
+
+            </div>
+        </div>
     </div>
+
+
+                    </div>
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+</div>
+            </div>
     
-
-  </main>
-
-   
-
-  
-  <script src="/js/index.min.301a8b0870381bf76b3b5182e8966d363a0474281183439beb024d8b8228fc66.js" integrity="sha256-MBqLCHA4G/drO1GC6JZtNjoEdCgRg0Ob6wJNi4Io/GY=" crossorigin="anonymous"></script>
-  
-  
-  <script src="https://unpkg.com/prismjs@1.20.0/components/prism-core.min.js"></script>
-
-  
-  <script src="https://unpkg.com/prismjs@1.20.0/plugins/autoloader/prism-autoloader.min.js"
-    data-autoloader-path="https://unpkg.com/prismjs@1.20.0/components/"></script>
-
-  
-
-
-</body>
-
+    <script src="/js/journal.js"></script></body>
 </html>

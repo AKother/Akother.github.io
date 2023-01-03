@@ -1,101 +1,607 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<meta name="referrer" content="no-referrer" />
+<html><head>
+<title>Spring源码Demo</title>
 
-<head>
-  <title>Spring源码Demo | 争的是滔滔不绝</title>
 
-  <meta charset="UTF-8">
-  <meta name="language" content="en">
-  <meta name="description" content="">
-  <meta name="keywords" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="Spring源码Demo" />
+<meta property="og:description" content="Demo内容 一个简单模拟Spring源码的Demo，内容包括如下：
+1.模拟Spring中Bean的生命周期
+2.@ComponentScan，@Component的实现
+3.Bean的初始化实现（初始化前方法 / 初始化后方法）
+4.Bean的单例实现（单例池），非单例实现
+5.@Autowired是如何实现的（扫描，注入）
+6.Aware回调实现
+7.AOP实现（代理）
+Bean的创建生命周期 UserService.class -&gt; 推断构造方法 -&gt; 对象 -&gt; 依赖注入 -&gt; -&gt; 初始化前(@PostConstruct) -&gt; 初始化 -&gt; 初始化后(AOP) -&gt; 代理对象 -&gt; 放入单例池 -&gt; Bean对象
+Demo结构 代码地址
+https://github.com/AKother/Spring-Code
+ApplicationContext 核心类，用于实现Bean的初始化
+public class ApplicationContext { private Class configClass; private ConcurrentHashMap&lt;String, BeanDefinition&gt; beanDefinitionMap = new ConcurrentHashMap&lt;&gt;(); private ConcurrentHashMap&lt;String, Object&gt; singletonObjects = new ConcurrentHashMap&lt;&gt;();// 大名鼎鼎单例池 private ArrayList&lt;TestBeanPostProcessor&gt; testBeanPostProcessorList = new ArrayList&lt;&gt;(); public ApplicationContext(Class configClass){ this.configClass = configClass; // 扫描，如果有ComponentScan注解 --&gt; 得到一堆beanDefinition if (configClass." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-01-03T20:30:07+08:00" />
+<meta property="article:modified_time" content="2023-01-03T20:30:07+08:00" /><meta property="og:site_name" content="My Blog" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring源码Demo"/>
+<meta name="twitter:description" content="Demo内容 一个简单模拟Spring源码的Demo，内容包括如下：
+1.模拟Spring中Bean的生命周期
+2.@ComponentScan，@Component的实现
+3.Bean的初始化实现（初始化前方法 / 初始化后方法）
+4.Bean的单例实现（单例池），非单例实现
+5.@Autowired是如何实现的（扫描，注入）
+6.Aware回调实现
+7.AOP实现（代理）
+Bean的创建生命周期 UserService.class -&gt; 推断构造方法 -&gt; 对象 -&gt; 依赖注入 -&gt; -&gt; 初始化前(@PostConstruct) -&gt; 初始化 -&gt; 初始化后(AOP) -&gt; 代理对象 -&gt; 放入单例池 -&gt; Bean对象
+Demo结构 代码地址
+https://github.com/AKother/Spring-Code
+ApplicationContext 核心类，用于实现Bean的初始化
+public class ApplicationContext { private Class configClass; private ConcurrentHashMap&lt;String, BeanDefinition&gt; beanDefinitionMap = new ConcurrentHashMap&lt;&gt;(); private ConcurrentHashMap&lt;String, Object&gt; singletonObjects = new ConcurrentHashMap&lt;&gt;();// 大名鼎鼎单例池 private ArrayList&lt;TestBeanPostProcessor&gt; testBeanPostProcessorList = new ArrayList&lt;&gt;(); public ApplicationContext(Class configClass){ this.configClass = configClass; // 扫描，如果有ComponentScan注解 --&gt; 得到一堆beanDefinition if (configClass."/>
+
+
+
+
+
+
+
+
+
 
   
-  
-
-  <link rel="shortcut icon" type="image/png" href="/favicon.ico" />
 
 
-  
-  
+
+
+
+
+      <script src="/js/toc.js"></script>
     
- 
-  
-  
-  
-  
-  
-  
-    
-    <link type="text/css" rel="stylesheet" href="/css/post.min.86d1effd4c412b85ac13db53a90c473a0f256f789b821e131125c9aa25cb6a6d.css" integrity="sha256-htHv/UxBK4WsE9tTqQxHOg8lb3ibgh4TESXJqiXLam0="/>
-  
-    
-    <link type="text/css" rel="stylesheet" href="/css/custom.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css" integrity="sha256-47DEQpj8HBSa&#43;/TImW&#43;5JCeuQeRkm5NMpJWZG3hSuFU="/>
-  
-  
-   
-   
-    
+    <link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<link rel="stylesheet" href="/scss/journal.min.c5d92f380bf10f6849c7ac487c7df2b22c081e0851e5339224f1ae29210b20d2.css" integrity="sha256-xdkvOAvxD2hJx6xIfH3ysiwIHghR5TOSJPGuKSELINI=" media="screen">
 
-<script type="application/ld+json">
-  
-    { 
-      "@context": "http://schema.org", 
-      "@type": "WebSite", 
-      "url": "https:\/\/akother.github.io\/post\/spring%E6%BA%90%E7%A0%81demo\/",
-      "name": "Spring源码Demo",
-      "author": {
-        "@type": "Person",
-        "name": ""
-      },
-      "description": ""
-    }
-  
-  </script>
+
+
+<link rel="stylesheet" href="/scss/dark-mode.min.9f8d8c2df9285089d141edd4a50cb7506c7948e6ab79a29968dced1bd0ab7d22.css" integrity="sha256-n42MLfkoUInRQe3UpQy3UGx5SOareaKZaNztG9CrfSI=" media="screen">
+
+
+<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Material+Icons">
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="/vendor/js/md5.min.js"></script><script>
+  var gitalk = new Gitalk({
+  clientID: 'your client id',
+  clientSecret: 'your client secret',
+  repo: 'repo name',
+  owner: 'user',
+  admin: ['user'],
+  id: md5(location.pathname),
+  distractionFreeMode: 'false'
+  });
+  window.onload = function () {
+        gitalk.render('gitalk-container')
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
 </head>
-
 <body>
-  <div class="burger__container">
-  <div class="burger" aria-controls="navigation" aria-label="Menu">
-    <div class="burger__meat burger__meat--1"></div>
-    <div class="burger__meat burger__meat--2"></div>
-    <div class="burger__meat burger__meat--3"></div>
-  </div>
+    	<div id="app"><div id="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://akother.github.io/">
+    
+        <div class="nav-title">
+            争的是滔滔不绝
+        </div>
+        
+        <div class="nav-subtitle">
+            记录点有趣的.
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/post">
+                Blog
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                Index
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+
+    </div>
+    
+</div><div id="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- CATALOG -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#demo%e5%86%85%e5%ae%b9" onclick="onNavClick(`#demo内容-nav`)" id="demo内容-nav">
+									Demo内容
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#bean%e7%9a%84%e5%88%9b%e5%bb%ba%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f" onclick="onNavClick(`#bean的创建生命周期-nav`)" id="bean的创建生命周期-nav">
+									Bean的创建生命周期
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#demo%e7%bb%93%e6%9e%84" onclick="onNavClick(`#demo结构-nav`)" id="demo结构-nav">
+									Demo结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#applicationcontext" onclick="onNavClick(`#applicationcontext-nav`)" id="applicationcontext-nav">
+									ApplicationContext
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#beanpostprocessor" onclick="onNavClick(`#beanpostprocessor-nav`)" id="beanpostprocessor-nav">
+									BeanPostProcessor
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#userservice" onclick="onNavClick(`#userservice-nav`)" id="userservice-nav">
+									UserService
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8e%a8%e6%96%ad%e6%9e%84%e9%80%a0%e6%96%b9%e6%b3%95%e5%8e%9f%e7%90%86" onclick="onNavClick(`#推断构造方法原理-nav`)" id="推断构造方法原理-nav">
+									推断构造方法原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
 </div>
- 
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a type="button" class="pagination-action" id="darkModeToggleButton">
+            <span class="material-icons pagination-action-icon" id="darkModeToggleIcon">
+                dark_mode
+            </span>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" id="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/post">
+                    Blog
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    Index
+                </a>
+                
+            
+            
+            <div class="toc">
 
-  <nav class="nav" id="navigation">
-  <ul class="nav__list">
-    
-    
-      <li>
-        <a  href="/">about</a>
-      </li>
-    
-      <li>
-        <a  href="/post">blog</a>
-      </li>
-    
-  </ul>
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- CATALOG -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#demo%e5%86%85%e5%ae%b9" onclick="onNavClick(`#demo内容-nav`)" id="demo内容-nav">
+									Demo内容
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#bean%e7%9a%84%e5%88%9b%e5%bb%ba%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f" onclick="onNavClick(`#bean的创建生命周期-nav`)" id="bean的创建生命周期-nav">
+									Bean的创建生命周期
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#demo%e7%bb%93%e6%9e%84" onclick="onNavClick(`#demo结构-nav`)" id="demo结构-nav">
+									Demo结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#applicationcontext" onclick="onNavClick(`#applicationcontext-nav`)" id="applicationcontext-nav">
+									ApplicationContext
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#beanpostprocessor" onclick="onNavClick(`#beanpostprocessor-nav`)" id="beanpostprocessor-nav">
+									BeanPostProcessor
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#userservice" onclick="onNavClick(`#userservice-nav`)" id="userservice-nav">
+									UserService
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8e%a8%e6%96%ad%e6%9e%84%e9%80%a0%e6%96%b9%e6%b3%95%e5%8e%9f%e7%90%86" onclick="onNavClick(`#推断构造方法原理-nav`)" id="推断构造方法原理-nav">
+									推断构造方法原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div id="drawer-mask" v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav id="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div id="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a id="navTitle" class="navbar-brand" href="https://akother.github.io/">
+            争的是滔滔不绝
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" id="darkModeToggleButton2">
+            <i class="material-icons" id="darkModeToggleIcon2">
+                dark_mode
+            </i>
+        </button>
+        
+    </div>
 </nav>
+<div class="single-column-header-container" id="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://akother.github.io/">
+        <div class="single-column-header-title">争的是滔滔不绝</div>
+        
+        <div class="single-column-header-subtitle">记录点有趣的.</div>
+        
 
+    </a>
+</div>
 
-  <main>
-    
-    
+            <div id="content">
+                <div id="streamContainer" class="stream-container">
 
-    <div class="flex-wrapper">
-      <div class="post__container">
+    <div class="post-list-container post-list-container-shadow">
         <div class="post">
-          <header class="post__header">
-            <h1 id="post__title">Spring源码Demo</h1>
-            <time datetime="2023-01-03 20:30:07 &#43;0800 CST" class="post__date">Jan 3 2023</time> 
-          </header>
-          <article class="post__content">
-              
-<h2 id="demo内容">Demo内容<a class="anchor" href="#demo内容">#</a></h2>
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    Spring源码Demo
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-01-03 20:30
+                        </time>
+                        
+
+                        
+
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <!-- raw HTML omitted -->
+<h2 id="demo内容">Demo内容</h2>
 <p>一个简单模拟Spring源码的Demo，内容包括如下：</p>
 <p>1.模拟Spring中Bean的生命周期</p>
 <p>2.@ComponentScan，@Component的实现</p>
@@ -104,315 +610,305 @@
 <p>5.@Autowired是如何实现的（扫描，注入）</p>
 <p>6.Aware回调实现</p>
 <p>7.AOP实现（代理）</p>
-<h2 id="bean的创建生命周期">Bean的创建生命周期<a class="anchor" href="#bean的创建生命周期">#</a></h2>
+<h2 id="bean的创建生命周期">Bean的创建生命周期</h2>
 <p>UserService.class -&gt; 推断构造方法 -&gt; 对象 -&gt; 依赖注入 -&gt; -&gt; 初始化前(@PostConstruct) -&gt; 初始化 -&gt; 初始化后(AOP) -&gt; 代理对象 -&gt; 放入单例池 -&gt; Bean对象</p>
-<h2 id="demo结构">Demo结构<a class="anchor" href="#demo结构">#</a></h2>
-<p><img src="https://gitee.com/kother/typora/raw/master/img/202301032030911.png" alt="image-20230103201840897"></p>
+<h2 id="demo结构">Demo结构</h2>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301032048289.png" alt="imgae-springdemo"></p>
 <p>代码地址</p>
-<p><a href="https://github.com/AKother/Spring-Code" 
-  
-   target="_blank" rel="noreferrer noopener" 
->https://github.com/AKother/Spring-Code</a></p>
-<h2 id="applicationcontext">ApplicationContext<a class="anchor" href="#applicationcontext">#</a></h2>
+<p><a href="https://github.com/AKother/Spring-Code">https://github.com/AKother/Spring-Code</a></p>
+<h2 id="applicationcontext">ApplicationContext</h2>
 <p>核心类，用于实现Bean的初始化</p>
-<pre><code class="language-java">public class ApplicationContext {
-
-    private Class configClass;
-
-    private ConcurrentHashMap&lt;String, BeanDefinition&gt; beanDefinitionMap = new ConcurrentHashMap&lt;&gt;();
-    private ConcurrentHashMap&lt;String, Object&gt; singletonObjects = new ConcurrentHashMap&lt;&gt;();// 大名鼎鼎单例池
-    private ArrayList&lt;TestBeanPostProcessor&gt; testBeanPostProcessorList = new ArrayList&lt;&gt;();
-
-    public ApplicationContext(Class configClass){
-        this.configClass = configClass;
-        // 扫描，如果有ComponentScan注解 --&gt; 得到一堆beanDefinition
-        if (configClass.isAnnotationPresent(ComponentScan.class)) {
-            ComponentScan componentScanAnnotation = (ComponentScan) configClass.getAnnotation(ComponentScan.class);
-            String path = componentScanAnnotation.value(); // 扫描路径 com.xxx.xxx....
-            path = path.replace(&quot;.&quot;, &quot;/&quot;); // 相对路径
-            ClassLoader classLoader = ApplicationContext.class.getClassLoader();
-            URL resource = classLoader.getResource(path);// 获取路径下的资源
-            File file = new File(resource.getFile());
-
-            // 如果是文件夹
-            if (file.isDirectory()) {
-                File[] files = file.listFiles();
-                for (File f : files) {
-                    String fileName = f.getAbsolutePath();
-                    if(fileName.endsWith(&quot;.class&quot;)){
-                        // 接下来判断这个类 是不是一个bean
-                        // 逻辑：判断一个类有没有Component注解
-                        // 方式：反射
-                        String className = fileName.substring(fileName.indexOf(&quot;service&quot;), fileName.indexOf(&quot;.class&quot;));
-                        className = className.replace(&quot;/&quot;, &quot;.&quot;);
-                        try {
-                            Class&lt;?&gt; clazz = classLoader.loadClass(className);
-                            if (clazz.isAnnotationPresent(Component.class)) {
-
-                                // 如果类实现了BeanPostProcessor接口
-                                if(TestBeanPostProcessor.class.isAssignableFrom(clazz)){
-                                    TestBeanPostProcessor instance = (TestBeanPostProcessor) clazz.newInstance();
-                                    testBeanPostProcessorList.add(instance);
-                                }
-
-                                // 是Bean
-                                // 1. 拿到bean的名字
-                                Component componentAnnotation = clazz.getAnnotation(Component.class);
-                                String beanName = componentAnnotation.value();
-                                if(beanName.equals(&quot;&quot;)){
-                                    // Spring中默认的名字生成规则，如下
-                                    // Thus &quot;FooBah&quot; becomes &quot;fooBah&quot; and &quot;X&quot; becomes &quot;x&quot;, but &quot;URL&quot; stays as &quot;URL&quot;.
-                                    beanName = Introspector.decapitalize(clazz.getSimpleName());
-                                }
-                                // 2. 设置BeanDefinition
-                                BeanDefinition beanDefinition = new BeanDefinition();
-                                beanDefinition.setType(clazz);
-                                // 2.1. 判断单例？多例？
-                                if (clazz.isAnnotationPresent(Scope.class)) {
-                                    Scope scopeAnnotation = clazz.getAnnotation(Scope.class);
-                                    beanDefinition.setScope(scopeAnnotation.value());
-
-                                }else{
-                                    beanDefinition.setScope(&quot;singleton&quot;);
-                                }
-                                beanDefinitionMap.put(beanName, beanDefinition);
-                            }
-                        } catch (ClassNotFoundException e) {
-
-                        } catch (InstantiationException e) {
-                            throw new RuntimeException(e);
-                        } catch (IllegalAccessException e) {
-                            throw new RuntimeException(e);
-                        }
-
-                    }
-                }
-            }
-        }
-
-        // 实例化单例Bean，放到单例池
-        for (String beanName : beanDefinitionMap.keySet()) {
-            BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
-            if(beanDefinition.getScope().equals(&quot;singleton&quot;)){
-                Object bean = createBean(beanName, beanDefinition);
-                singletonObjects.put(beanName, bean);
-            }
-        }
-    }
-
-    // 仅在内部调用
-    private Object createBean(String beanName, BeanDefinition beanDefinition){
-        Class clazz = beanDefinition.getType();
-        try {
-            Object bean = clazz.getConstructor().newInstance(); // 无参创建
-
-            // 处理依赖注入(Autowired)
-            for (Field f : clazz.getDeclaredFields()) {
-                if (f.isAnnotationPresent(Autowired.class)) {
-                    f.setAccessible(true);
-                    f.set(bean, getBean(f.getName()));
-                }
-            }
-
-            // Aware回调
-            if(bean instanceof BeanNameAware){
-                ((BeanNameAware) bean).setBeanName(beanName);
-            }
-
-            // 此处是重复调，每个bean创建的时候都会调用
-            // 初始化前：postProcessBeforeInitializing
-            for (TestBeanPostProcessor testBeanPostProcessor : testBeanPostProcessorList) {
-                // 这里完全可以对bean做修改，比如换成代理对象 / ...
-                bean = testBeanPostProcessor.postProcessBeforeInitializing(beanName, bean);
-            }
-
-            // 初始化
-            if(bean instanceof InitializingBean){
-                ((InitializingBean) bean).afterPropertiesSet();
-            }
-
-            // 初始化后: postProcessAfterInitializing
-            for (TestBeanPostProcessor testBeanPostProcessor : testBeanPostProcessorList) {
-                bean = testBeanPostProcessor.postProcessAfterInitializing(beanName, bean);
-            }
-
-            return bean;
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Object getBean(String beanName){
-        BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
-        if(beanDefinition == null){
-            // 1.beanName错误，不存在该bean
-        }else{
-            // 2.存在bean的定义
-            String scope = beanDefinition.getScope();
-            // 2.1 需要的bean为单例bean --&gt; 从单例池里面拿
-            if(scope.equals(&quot;singleton&quot;)){
-                Object bean = singletonObjects.get(beanName);
-                // 可能为null的原因:
-                // beanA(singleton)中依赖注入了beanB(singleton)，此时先创建beanA，beanB在单例池里面还不存在
-                if(bean == null){
-                    bean = createBean(beanName, beanDefinition);
-                    singletonObjects.put(beanName, bean);
-                }
-                return bean;
-            }
-            // 2.2 需要的bean为多例bean --&gt; 每次都创建
-            else{
-                return createBean(beanName, beanDefinition);
-            }
-        }
-        return null;
-    }
-
-}
-</code></pre>
-<h2 id="beanpostprocessor">BeanPostProcessor<a class="anchor" href="#beanpostprocessor">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">ApplicationContext</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> Class configClass;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> ConcurrentHashMap&lt;String, BeanDefinition&gt; beanDefinitionMap = <span style="color:#8b008b;font-weight:bold">new</span> ConcurrentHashMap&lt;&gt;();
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> ConcurrentHashMap&lt;String, Object&gt; singletonObjects = <span style="color:#8b008b;font-weight:bold">new</span> ConcurrentHashMap&lt;&gt;();<span style="color:#228b22">// 大名鼎鼎单例池
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">private</span> ArrayList&lt;TestBeanPostProcessor&gt; testBeanPostProcessorList = <span style="color:#8b008b;font-weight:bold">new</span> ArrayList&lt;&gt;();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#008b45">ApplicationContext</span>(Class configClass){
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">this</span>.<span style="color:#658b00">configClass</span> = configClass;
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// 扫描，如果有ComponentScan注解 --&gt; 得到一堆beanDefinition
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">if</span> (configClass.<span style="color:#658b00">isAnnotationPresent</span>(ComponentScan.<span style="color:#658b00">class</span>)) {
+</span></span><span style="display:flex;"><span>            ComponentScan componentScanAnnotation = (ComponentScan) configClass.<span style="color:#658b00">getAnnotation</span>(ComponentScan.<span style="color:#658b00">class</span>);
+</span></span><span style="display:flex;"><span>            String path = componentScanAnnotation.<span style="color:#658b00">value</span>(); <span style="color:#228b22">// 扫描路径 com.xxx.xxx....
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            path = path.<span style="color:#658b00">replace</span>(<span style="color:#cd5555">&#34;.&#34;</span>, <span style="color:#cd5555">&#34;/&#34;</span>); <span style="color:#228b22">// 相对路径
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            ClassLoader classLoader = ApplicationContext.<span style="color:#658b00">class</span>.<span style="color:#658b00">getClassLoader</span>();
+</span></span><span style="display:flex;"><span>            URL resource = classLoader.<span style="color:#658b00">getResource</span>(path);<span style="color:#228b22">// 获取路径下的资源
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            File file = <span style="color:#8b008b;font-weight:bold">new</span> File(resource.<span style="color:#658b00">getFile</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 如果是文件夹
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (file.<span style="color:#658b00">isDirectory</span>()) {
+</span></span><span style="display:flex;"><span>                File[] files = file.<span style="color:#658b00">listFiles</span>();
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">for</span> (File f : files) {
+</span></span><span style="display:flex;"><span>                    String fileName = f.<span style="color:#658b00">getAbsolutePath</span>();
+</span></span><span style="display:flex;"><span>                    <span style="color:#8b008b;font-weight:bold">if</span>(fileName.<span style="color:#658b00">endsWith</span>(<span style="color:#cd5555">&#34;.class&#34;</span>)){
+</span></span><span style="display:flex;"><span>                        <span style="color:#228b22">// 接下来判断这个类 是不是一个bean
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                        <span style="color:#228b22">// 逻辑：判断一个类有没有Component注解
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                        <span style="color:#228b22">// 方式：反射
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                        String className = fileName.<span style="color:#658b00">substring</span>(fileName.<span style="color:#658b00">indexOf</span>(<span style="color:#cd5555">&#34;service&#34;</span>), fileName.<span style="color:#658b00">indexOf</span>(<span style="color:#cd5555">&#34;.class&#34;</span>));
+</span></span><span style="display:flex;"><span>                        className = className.<span style="color:#658b00">replace</span>(<span style="color:#cd5555">&#34;/&#34;</span>, <span style="color:#cd5555">&#34;.&#34;</span>);
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">try</span> {
+</span></span><span style="display:flex;"><span>                            Class&lt;?&gt; clazz = classLoader.<span style="color:#658b00">loadClass</span>(className);
+</span></span><span style="display:flex;"><span>                            <span style="color:#8b008b;font-weight:bold">if</span> (clazz.<span style="color:#658b00">isAnnotationPresent</span>(Component.<span style="color:#658b00">class</span>)) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                                <span style="color:#228b22">// 如果类实现了BeanPostProcessor接口
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                                <span style="color:#8b008b;font-weight:bold">if</span>(TestBeanPostProcessor.<span style="color:#658b00">class</span>.<span style="color:#658b00">isAssignableFrom</span>(clazz)){
+</span></span><span style="display:flex;"><span>                                    TestBeanPostProcessor instance = (TestBeanPostProcessor) clazz.<span style="color:#658b00">newInstance</span>();
+</span></span><span style="display:flex;"><span>                                    testBeanPostProcessorList.<span style="color:#658b00">add</span>(instance);
+</span></span><span style="display:flex;"><span>                                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                                <span style="color:#228b22">// 是Bean
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                                <span style="color:#228b22">// 1. 拿到bean的名字
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                                Component componentAnnotation = clazz.<span style="color:#658b00">getAnnotation</span>(Component.<span style="color:#658b00">class</span>);
+</span></span><span style="display:flex;"><span>                                String beanName = componentAnnotation.<span style="color:#658b00">value</span>();
+</span></span><span style="display:flex;"><span>                                <span style="color:#8b008b;font-weight:bold">if</span>(beanName.<span style="color:#658b00">equals</span>(<span style="color:#cd5555">&#34;&#34;</span>)){
+</span></span><span style="display:flex;"><span>                                    <span style="color:#228b22">// Spring中默认的名字生成规则，如下
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                                    <span style="color:#228b22">// Thus &#34;FooBah&#34; becomes &#34;fooBah&#34; and &#34;X&#34; becomes &#34;x&#34;, but &#34;URL&#34; stays as &#34;URL&#34;.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                                    beanName = Introspector.<span style="color:#658b00">decapitalize</span>(clazz.<span style="color:#658b00">getSimpleName</span>());
+</span></span><span style="display:flex;"><span>                                }
+</span></span><span style="display:flex;"><span>                                <span style="color:#228b22">// 2. 设置BeanDefinition
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                                BeanDefinition beanDefinition = <span style="color:#8b008b;font-weight:bold">new</span> BeanDefinition();
+</span></span><span style="display:flex;"><span>                                beanDefinition.<span style="color:#658b00">setType</span>(clazz);
+</span></span><span style="display:flex;"><span>                                <span style="color:#228b22">// 2.1. 判断单例？多例？
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                                <span style="color:#8b008b;font-weight:bold">if</span> (clazz.<span style="color:#658b00">isAnnotationPresent</span>(Scope.<span style="color:#658b00">class</span>)) {
+</span></span><span style="display:flex;"><span>                                    Scope scopeAnnotation = clazz.<span style="color:#658b00">getAnnotation</span>(Scope.<span style="color:#658b00">class</span>);
+</span></span><span style="display:flex;"><span>                                    beanDefinition.<span style="color:#658b00">setScope</span>(scopeAnnotation.<span style="color:#658b00">value</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                                }<span style="color:#8b008b;font-weight:bold">else</span>{
+</span></span><span style="display:flex;"><span>                                    beanDefinition.<span style="color:#658b00">setScope</span>(<span style="color:#cd5555">&#34;singleton&#34;</span>);
+</span></span><span style="display:flex;"><span>                                }
+</span></span><span style="display:flex;"><span>                                beanDefinitionMap.<span style="color:#658b00">put</span>(beanName, beanDefinition);
+</span></span><span style="display:flex;"><span>                            }
+</span></span><span style="display:flex;"><span>                        } <span style="color:#8b008b;font-weight:bold">catch</span> (ClassNotFoundException e) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                        } <span style="color:#8b008b;font-weight:bold">catch</span> (InstantiationException e) {
+</span></span><span style="display:flex;"><span>                            <span style="color:#8b008b;font-weight:bold">throw</span> <span style="color:#8b008b;font-weight:bold">new</span> RuntimeException(e);
+</span></span><span style="display:flex;"><span>                        } <span style="color:#8b008b;font-weight:bold">catch</span> (IllegalAccessException e) {
+</span></span><span style="display:flex;"><span>                            <span style="color:#8b008b;font-weight:bold">throw</span> <span style="color:#8b008b;font-weight:bold">new</span> RuntimeException(e);
+</span></span><span style="display:flex;"><span>                        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                    }
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// 实例化单例Bean，放到单例池
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">for</span> (String beanName : beanDefinitionMap.<span style="color:#658b00">keySet</span>()) {
+</span></span><span style="display:flex;"><span>            BeanDefinition beanDefinition = beanDefinitionMap.<span style="color:#658b00">get</span>(beanName);
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span>(beanDefinition.<span style="color:#658b00">getScope</span>().<span style="color:#658b00">equals</span>(<span style="color:#cd5555">&#34;singleton&#34;</span>)){
+</span></span><span style="display:flex;"><span>                Object bean = createBean(beanName, beanDefinition);
+</span></span><span style="display:flex;"><span>                singletonObjects.<span style="color:#658b00">put</span>(beanName, bean);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 仅在内部调用
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">private</span> Object <span style="color:#008b45">createBean</span>(String beanName, BeanDefinition beanDefinition){
+</span></span><span style="display:flex;"><span>        Class clazz = beanDefinition.<span style="color:#658b00">getType</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">try</span> {
+</span></span><span style="display:flex;"><span>            Object bean = clazz.<span style="color:#658b00">getConstructor</span>().<span style="color:#658b00">newInstance</span>(); <span style="color:#228b22">// 无参创建
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 处理依赖注入(Autowired)
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">for</span> (Field f : clazz.<span style="color:#658b00">getDeclaredFields</span>()) {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> (f.<span style="color:#658b00">isAnnotationPresent</span>(Autowired.<span style="color:#658b00">class</span>)) {
+</span></span><span style="display:flex;"><span>                    f.<span style="color:#658b00">setAccessible</span>(<span style="color:#8b008b;font-weight:bold">true</span>);
+</span></span><span style="display:flex;"><span>                    f.<span style="color:#658b00">set</span>(bean, getBean(f.<span style="color:#658b00">getName</span>()));
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// Aware回调
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span>(bean <span style="color:#8b008b;font-weight:bold">instanceof</span> BeanNameAware){
+</span></span><span style="display:flex;"><span>                ((BeanNameAware) bean).<span style="color:#658b00">setBeanName</span>(beanName);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 此处是重复调，每个bean创建的时候都会调用
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#228b22">// 初始化前：postProcessBeforeInitializing
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">for</span> (TestBeanPostProcessor testBeanPostProcessor : testBeanPostProcessorList) {
+</span></span><span style="display:flex;"><span>                <span style="color:#228b22">// 这里完全可以对bean做修改，比如换成代理对象 / ...
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                bean = testBeanPostProcessor.<span style="color:#658b00">postProcessBeforeInitializing</span>(beanName, bean);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 初始化
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span>(bean <span style="color:#8b008b;font-weight:bold">instanceof</span> InitializingBean){
+</span></span><span style="display:flex;"><span>                ((InitializingBean) bean).<span style="color:#658b00">afterPropertiesSet</span>();
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 初始化后: postProcessAfterInitializing
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">for</span> (TestBeanPostProcessor testBeanPostProcessor : testBeanPostProcessorList) {
+</span></span><span style="display:flex;"><span>                bean = testBeanPostProcessor.<span style="color:#658b00">postProcessAfterInitializing</span>(beanName, bean);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">return</span> bean;
+</span></span><span style="display:flex;"><span>        } <span style="color:#8b008b;font-weight:bold">catch</span> (InstantiationException e) {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">throw</span> <span style="color:#8b008b;font-weight:bold">new</span> RuntimeException(e);
+</span></span><span style="display:flex;"><span>        } <span style="color:#8b008b;font-weight:bold">catch</span> (IllegalAccessException e) {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">throw</span> <span style="color:#8b008b;font-weight:bold">new</span> RuntimeException(e);
+</span></span><span style="display:flex;"><span>        } <span style="color:#8b008b;font-weight:bold">catch</span> (InvocationTargetException e) {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">throw</span> <span style="color:#8b008b;font-weight:bold">new</span> RuntimeException(e);
+</span></span><span style="display:flex;"><span>        } <span style="color:#8b008b;font-weight:bold">catch</span> (NoSuchMethodException e) {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">throw</span> <span style="color:#8b008b;font-weight:bold">new</span> RuntimeException(e);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> Object <span style="color:#008b45">getBean</span>(String beanName){
+</span></span><span style="display:flex;"><span>        BeanDefinition beanDefinition = beanDefinitionMap.<span style="color:#658b00">get</span>(beanName);
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span>(beanDefinition == <span style="color:#8b008b;font-weight:bold">null</span>){
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 1.beanName错误，不存在该bean
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        }<span style="color:#8b008b;font-weight:bold">else</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 2.存在bean的定义
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            String scope = beanDefinition.<span style="color:#658b00">getScope</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 2.1 需要的bean为单例bean --&gt; 从单例池里面拿
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span>(scope.<span style="color:#658b00">equals</span>(<span style="color:#cd5555">&#34;singleton&#34;</span>)){
+</span></span><span style="display:flex;"><span>                Object bean = singletonObjects.<span style="color:#658b00">get</span>(beanName);
+</span></span><span style="display:flex;"><span>                <span style="color:#228b22">// 可能为null的原因:
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                <span style="color:#228b22">// beanA(singleton)中依赖注入了beanB(singleton)，此时先创建beanA，beanB在单例池里面还不存在
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                <span style="color:#8b008b;font-weight:bold">if</span>(bean == <span style="color:#8b008b;font-weight:bold">null</span>){
+</span></span><span style="display:flex;"><span>                    bean = createBean(beanName, beanDefinition);
+</span></span><span style="display:flex;"><span>                    singletonObjects.<span style="color:#658b00">put</span>(beanName, bean);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">return</span> bean;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 2.2 需要的bean为多例bean --&gt; 每次都创建
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">else</span>{
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">return</span> createBean(beanName, beanDefinition);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">null</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="beanpostprocessor">BeanPostProcessor</h2>
 <p>BeanPostProcessor接口</p>
-<pre><code class="language-java">public interface BeanPostProcessor {
-
-    public Object postProcessBeforeInitializing(String beanName, Object bean);
-
-    public Object postProcessAfterInitializing(String beanName, Object bean);
-
-}
-</code></pre>
-<p>自己实现方法，Spring中用的是==轮询调用==，因此方法内部来判断Bean</p>
-<pre><code class="language-java">@Component
-public class TestBeanPostProcessor implements BeanPostProcessor {
-
-    @Override
-    public Object postProcessBeforeInitializing(String beanName, Object bean) {
-        if(beanName.equals(&quot;userService&quot;)){
-            System.out.println(&quot;userService postProcessBeforeInitializing ..&quot;);
-        }
-        return bean;
-    }
-
-    @Override
-    public Object postProcessAfterInitializing(String beanName, Object bean) {
-        if(beanName.equals(&quot;userService&quot;)){
-            // AOP逻辑
-            Object proxyInstance = Proxy.newProxyInstance(TestBeanPostProcessor.class.getClassLoader(), bean.getClass().getInterfaces(), new InvocationHandler() {
-                @Override
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    System.out.println(&quot;AOP逻辑&quot;);
-                    // 之后再执行原本对象的原本方法
-                    return method.invoke(bean, args);
-                }
-            });
-            return proxyInstance;
-        }
-        return bean;
-    }
-}
-
-</code></pre>
-<h2 id="userservice">UserService<a class="anchor" href="#userservice">#</a></h2>
-<pre><code class="language-java">@Component(&quot;userService&quot;)
-@Scope(&quot;prototype&quot;)
-public class UserService implements BeanNameAware, InitializingBean, UserInterface {
-
-    @Autowired
-    private OrderService orderService;
-
-    private String beanName;
-
-    public void test(){
-        System.out.println(&quot;进入test方法&quot;);
-        System.out.println(orderService);
-    }
-
-    @Override
-    public void setBeanName(String beanName) {
-        this.beanName = beanName;
-    }
-
-    @Override
-    public void afterPropertiesSet() {
-
-    }
-}
-</code></pre>
-<p>UserInterface 用于实现代理</p>
-<pre><code class="language-java">public interface UserInterface{
-
-    public void test();
-
-}
-</code></pre>
-<h2 id="推断构造方法原理">推断构造方法原理<a class="anchor" href="#推断构造方法原理">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">interface</span> <span style="color:#008b45;font-weight:bold">BeanPostProcessor</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> Object <span style="color:#008b45">postProcessBeforeInitializing</span>(String beanName, Object bean);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> Object <span style="color:#008b45">postProcessAfterInitializing</span>(String beanName, Object bean);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>自己实现方法，Spring中用的是==轮询调用==，因此方法内部来判断Bean</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@Component</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">TestBeanPostProcessor</span> <span style="color:#8b008b;font-weight:bold">implements</span> BeanPostProcessor {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> Object <span style="color:#008b45">postProcessBeforeInitializing</span>(String beanName, Object bean) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span>(beanName.<span style="color:#658b00">equals</span>(<span style="color:#cd5555">&#34;userService&#34;</span>)){
+</span></span><span style="display:flex;"><span>            System.<span style="color:#658b00">out</span>.<span style="color:#658b00">println</span>(<span style="color:#cd5555">&#34;userService postProcessBeforeInitializing ..&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> bean;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> Object <span style="color:#008b45">postProcessAfterInitializing</span>(String beanName, Object bean) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span>(beanName.<span style="color:#658b00">equals</span>(<span style="color:#cd5555">&#34;userService&#34;</span>)){
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// AOP逻辑
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            Object proxyInstance = Proxy.<span style="color:#658b00">newProxyInstance</span>(TestBeanPostProcessor.<span style="color:#658b00">class</span>.<span style="color:#658b00">getClassLoader</span>(), bean.<span style="color:#658b00">getClass</span>().<span style="color:#658b00">getInterfaces</span>(), <span style="color:#8b008b;font-weight:bold">new</span> InvocationHandler() {
+</span></span><span style="display:flex;"><span>                <span style="color:#707a7c">@Override</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">public</span> Object <span style="color:#008b45">invoke</span>(Object proxy, Method method, Object[] args) <span style="color:#8b008b;font-weight:bold">throws</span> Throwable {
+</span></span><span style="display:flex;"><span>                    System.<span style="color:#658b00">out</span>.<span style="color:#658b00">println</span>(<span style="color:#cd5555">&#34;AOP逻辑&#34;</span>);
+</span></span><span style="display:flex;"><span>                    <span style="color:#228b22">// 之后再执行原本对象的原本方法
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                    <span style="color:#8b008b;font-weight:bold">return</span> method.<span style="color:#658b00">invoke</span>(bean, args);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            });
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">return</span> proxyInstance;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> bean;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="userservice">UserService</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@Component</span>(<span style="color:#cd5555">&#34;userService&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@Scope</span>(<span style="color:#cd5555">&#34;prototype&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">UserService</span> <span style="color:#8b008b;font-weight:bold">implements</span> BeanNameAware, InitializingBean, UserInterface {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> OrderService orderService;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> String beanName;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">test</span>(){
+</span></span><span style="display:flex;"><span>        System.<span style="color:#658b00">out</span>.<span style="color:#658b00">println</span>(<span style="color:#cd5555">&#34;进入test方法&#34;</span>);
+</span></span><span style="display:flex;"><span>        System.<span style="color:#658b00">out</span>.<span style="color:#658b00">println</span>(orderService);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">setBeanName</span>(String beanName) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">this</span>.<span style="color:#658b00">beanName</span> = beanName;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">afterPropertiesSet</span>() {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>UserInterface 用于实现代理</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">interface</span> <span style="color:#008b45;font-weight:bold">UserInterface</span>{
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">test</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="推断构造方法原理">推断构造方法原理</h2>
 <p>1.如果只有一个构造方法，不管是无参还是有参，都用这个</p>
 <p>2.有多个构造方法的情况下，用无参构造</p>
 <p>3.但是如果没有无参构造，就报错</p>
-<p>但是可以用``@Autowired`指定让Spring实现哪个构造方法</p>
+<p>==但是可以用``@Autowired`指定让Spring实现哪个构造方法==</p>
 <p><img src="https://gitee.com/kother/typora/raw/master/img/202301032038278.png" alt="image-20230103203828251"></p>
+<p>这里可能会出现<strong>循环依赖</strong>（调OrderService的构造方法，如果OrderService需要UserService才能创建，就会出现循环依赖）。</p>
 
-
-              
-          </article>
-          
-
- <div class="pagination">
-  
-    <a class="pagination__item" href="https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/">
-        <span class="pagination__label">Previous Post</span>
-        <span class="pagination__title">MySQL性能调优与架构设计 笔记</span>
-    </a>
-  
-
-  
-</div>
-
-          
-          <footer class="post__footer">
+                    
+                    <HR width="100%" id="EOF">
+		    <p style="color:#777;">Last modified on 2023-01-03</p>
+                    
+                </div>
+            </div>
             
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			Next<br>No newer posts.
+                </a>
+                
+                
+                
+                <a class="older-posts" href="/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/">
+			Previous<br>MySQL性能调优与架构设计 笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
 
 
-<div class="social-icons">
-  
-     
-    
-  
-     
-    
-     
-</div>
+<div id="gitalk-container"></div>
 
-            <p>© 2023</p>
-          </footer>
-          </div>
-      </div>
-      
+
+
+
+
+
+
+
+
+            </div>
+        </div>
     </div>
+
+
+                    </div>
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+</div>
+            </div>
     
-
-  </main>
-
-   
-
-  
-  <script src="/js/index.min.301a8b0870381bf76b3b5182e8966d363a0474281183439beb024d8b8228fc66.js" integrity="sha256-MBqLCHA4G/drO1GC6JZtNjoEdCgRg0Ob6wJNi4Io/GY=" crossorigin="anonymous"></script>
-  
-  
-  <script src="https://unpkg.com/prismjs@1.20.0/components/prism-core.min.js"></script>
-
-  
-  <script src="https://unpkg.com/prismjs@1.20.0/plugins/autoloader/prism-autoloader.min.js"
-    data-autoloader-path="https://unpkg.com/prismjs@1.20.0/components/"></script>
-
-  
-
-
-</body>
-
+    <script src="/js/journal.js"></script></body>
 </html>
