@@ -7,7 +7,28 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© {year}</copyright>
-    <lastBuildDate>Tue, 03 Jan 2023 17:46:16 +0800</lastBuildDate><atom:link href="https://akother.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 03 Jan 2023 20:30:07 +0800</lastBuildDate><atom:link href="https://akother.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Spring源码Demo</title>
+      <link>https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/</link>
+      <pubDate>Tue, 03 Jan 2023 20:30:07 +0800</pubDate>
+      
+      <guid>https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/</guid>
+      <description>Demo内容 一个简单模拟Spring源码的Demo，内容包括如下：
+1.模拟Spring中Bean的生命周期
+2.@ComponentScan，@Component的实现
+3.Bean的初始化实现（初始化前方法 / 初始化后方法）
+4.Bean的单例实现（单例池），非单例实现
+5.@Autowired是如何实现的（扫描，注入）
+6.Aware回调实现
+7.AOP实现（代理）
+Bean的创建生命周期 UserService.class -&amp;gt; 推断构造方法 -&amp;gt; 对象 -&amp;gt; 依赖注入 -&amp;gt; -&amp;gt; 初始化前(@PostConstruct) -&amp;gt; 初始化 -&amp;gt; 初始化后(AOP) -&amp;gt; 代理对象 -&amp;gt; 放入单例池 -&amp;gt; Bean对象
+Demo结构 代码地址
+https://github.com/AKother/Spring-Code
+ApplicationContext 核心类，用于实现Bean的初始化
+public class ApplicationContext { private Class configClass; private ConcurrentHashMap&amp;lt;String, BeanDefinition&amp;gt; beanDefinitionMap = new ConcurrentHashMap&amp;lt;&amp;gt;(); private ConcurrentHashMap&amp;lt;String, Object&amp;gt; singletonObjects = new ConcurrentHashMap&amp;lt;&amp;gt;();// 大名鼎鼎单例池 private ArrayList&amp;lt;TestBeanPostProcessor&amp;gt; testBeanPostProcessorList = new ArrayList&amp;lt;&amp;gt;(); public ApplicationContext(Class configClass){ this.configClass = configClass; // 扫描，如果有ComponentScan注解 --&amp;gt; 得到一堆beanDefinition if (configClass.</description>
+    </item>
+    
     <item>
       <title>MySQL性能调优与架构设计 笔记</title>
       <link>https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</link>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <title>Spring源码Demo | 争的是滔滔不绝</title>
+
+  <meta charset="UTF-8">
+  <meta name="language" content="en">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  
+  
+
+  <link rel="shortcut icon" type="image/png" href="/favicon.ico" />
+
+
+  
+  
+    
+ 
+  
+  
+  
+  
+  
+  
+    
+    <link type="text/css" rel="stylesheet" href="/css/post.min.86d1effd4c412b85ac13db53a90c473a0f256f789b821e131125c9aa25cb6a6d.css" integrity="sha256-htHv/UxBK4WsE9tTqQxHOg8lb3ibgh4TESXJqiXLam0="/>
+  
+    
+    <link type="text/css" rel="stylesheet" href="/css/custom.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css" integrity="sha256-47DEQpj8HBSa&#43;/TImW&#43;5JCeuQeRkm5NMpJWZG3hSuFU="/>
+  
+  
+   
+   
+    
+
+<script type="application/ld+json">
+  
+    { 
+      "@context": "http://schema.org", 
+      "@type": "WebSite", 
+      "url": "https:\/\/akother.github.io\/post\/spring%E6%BA%90%E7%A0%81demo\/",
+      "name": "Spring源码Demo",
+      "author": {
+        "@type": "Person",
+        "name": ""
+      },
+      "description": ""
+    }
+  
+  </script>
+</head>
+
+<body>
+  <div class="burger__container">
+  <div class="burger" aria-controls="navigation" aria-label="Menu">
+    <div class="burger__meat burger__meat--1"></div>
+    <div class="burger__meat burger__meat--2"></div>
+    <div class="burger__meat burger__meat--3"></div>
+  </div>
+</div>
+ 
+
+  <nav class="nav" id="navigation">
+  <ul class="nav__list">
+    
+    
+      <li>
+        <a  href="/">about</a>
+      </li>
+    
+      <li>
+        <a  href="/post">blog</a>
+      </li>
+    
+  </ul>
+</nav>
+
+
+  <main>
+    
+    
+
+    <div class="flex-wrapper">
+      <div class="post__container">
+        <div class="post">
+          <header class="post__header">
+            <h1 id="post__title">Spring源码Demo</h1>
+            <time datetime="2023-01-03 20:30:07 &#43;0800 CST" class="post__date">Jan 3 2023</time> 
+          </header>
+          <article class="post__content">
+              
+<h2 id="demo内容">Demo内容<a class="anchor" href="#demo内容">#</a></h2>
+<p>一个简单模拟Spring源码的Demo，内容包括如下：</p>
+<p>1.模拟Spring中Bean的生命周期</p>
+<p>2.@ComponentScan，@Component的实现</p>
+<p>3.Bean的初始化实现（初始化前方法 / 初始化后方法）</p>
+<p>4.Bean的单例实现（单例池），非单例实现</p>
+<p>5.@Autowired是如何实现的（扫描，注入）</p>
+<p>6.Aware回调实现</p>
+<p>7.AOP实现（代理）</p>
+<h2 id="bean的创建生命周期">Bean的创建生命周期<a class="anchor" href="#bean的创建生命周期">#</a></h2>
+<p>UserService.class -&gt; 推断构造方法 -&gt; 对象 -&gt; 依赖注入 -&gt; -&gt; 初始化前(@PostConstruct) -&gt; 初始化 -&gt; 初始化后(AOP) -&gt; 代理对象 -&gt; 放入单例池 -&gt; Bean对象</p>
+<h2 id="demo结构">Demo结构<a class="anchor" href="#demo结构">#</a></h2>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301032030911.png" alt="image-20230103201840897"></p>
+<p>代码地址</p>
+<p><a href="https://github.com/AKother/Spring-Code" 
+  
+   target="_blank" rel="noreferrer noopener" 
+>https://github.com/AKother/Spring-Code</a></p>
+<h2 id="applicationcontext">ApplicationContext<a class="anchor" href="#applicationcontext">#</a></h2>
+<p>核心类，用于实现Bean的初始化</p>
+<pre><code class="language-java">public class ApplicationContext {
+
+    private Class configClass;
+
+    private ConcurrentHashMap&lt;String, BeanDefinition&gt; beanDefinitionMap = new ConcurrentHashMap&lt;&gt;();
+    private ConcurrentHashMap&lt;String, Object&gt; singletonObjects = new ConcurrentHashMap&lt;&gt;();// 大名鼎鼎单例池
+    private ArrayList&lt;TestBeanPostProcessor&gt; testBeanPostProcessorList = new ArrayList&lt;&gt;();
+
+    public ApplicationContext(Class configClass){
+        this.configClass = configClass;
+        // 扫描，如果有ComponentScan注解 --&gt; 得到一堆beanDefinition
+        if (configClass.isAnnotationPresent(ComponentScan.class)) {
+            ComponentScan componentScanAnnotation = (ComponentScan) configClass.getAnnotation(ComponentScan.class);
+            String path = componentScanAnnotation.value(); // 扫描路径 com.xxx.xxx....
+            path = path.replace(&quot;.&quot;, &quot;/&quot;); // 相对路径
+            ClassLoader classLoader = ApplicationContext.class.getClassLoader();
+            URL resource = classLoader.getResource(path);// 获取路径下的资源
+            File file = new File(resource.getFile());
+
+            // 如果是文件夹
+            if (file.isDirectory()) {
+                File[] files = file.listFiles();
+                for (File f : files) {
+                    String fileName = f.getAbsolutePath();
+                    if(fileName.endsWith(&quot;.class&quot;)){
+                        // 接下来判断这个类 是不是一个bean
+                        // 逻辑：判断一个类有没有Component注解
+                        // 方式：反射
+                        String className = fileName.substring(fileName.indexOf(&quot;service&quot;), fileName.indexOf(&quot;.class&quot;));
+                        className = className.replace(&quot;/&quot;, &quot;.&quot;);
+                        try {
+                            Class&lt;?&gt; clazz = classLoader.loadClass(className);
+                            if (clazz.isAnnotationPresent(Component.class)) {
+
+                                // 如果类实现了BeanPostProcessor接口
+                                if(TestBeanPostProcessor.class.isAssignableFrom(clazz)){
+                                    TestBeanPostProcessor instance = (TestBeanPostProcessor) clazz.newInstance();
+                                    testBeanPostProcessorList.add(instance);
+                                }
+
+                                // 是Bean
+                                // 1. 拿到bean的名字
+                                Component componentAnnotation = clazz.getAnnotation(Component.class);
+                                String beanName = componentAnnotation.value();
+                                if(beanName.equals(&quot;&quot;)){
+                                    // Spring中默认的名字生成规则，如下
+                                    // Thus &quot;FooBah&quot; becomes &quot;fooBah&quot; and &quot;X&quot; becomes &quot;x&quot;, but &quot;URL&quot; stays as &quot;URL&quot;.
+                                    beanName = Introspector.decapitalize(clazz.getSimpleName());
+                                }
+                                // 2. 设置BeanDefinition
+                                BeanDefinition beanDefinition = new BeanDefinition();
+                                beanDefinition.setType(clazz);
+                                // 2.1. 判断单例？多例？
+                                if (clazz.isAnnotationPresent(Scope.class)) {
+                                    Scope scopeAnnotation = clazz.getAnnotation(Scope.class);
+                                    beanDefinition.setScope(scopeAnnotation.value());
+
+                                }else{
+                                    beanDefinition.setScope(&quot;singleton&quot;);
+                                }
+                                beanDefinitionMap.put(beanName, beanDefinition);
+                            }
+                        } catch (ClassNotFoundException e) {
+
+                        } catch (InstantiationException e) {
+                            throw new RuntimeException(e);
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        // 实例化单例Bean，放到单例池
+        for (String beanName : beanDefinitionMap.keySet()) {
+            BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
+            if(beanDefinition.getScope().equals(&quot;singleton&quot;)){
+                Object bean = createBean(beanName, beanDefinition);
+                singletonObjects.put(beanName, bean);
+            }
+        }
+    }
+
+    // 仅在内部调用
+    private Object createBean(String beanName, BeanDefinition beanDefinition){
+        Class clazz = beanDefinition.getType();
+        try {
+            Object bean = clazz.getConstructor().newInstance(); // 无参创建
+
+            // 处理依赖注入(Autowired)
+            for (Field f : clazz.getDeclaredFields()) {
+                if (f.isAnnotationPresent(Autowired.class)) {
+                    f.setAccessible(true);
+                    f.set(bean, getBean(f.getName()));
+                }
+            }
+
+            // Aware回调
+            if(bean instanceof BeanNameAware){
+                ((BeanNameAware) bean).setBeanName(beanName);
+            }
+
+            // 此处是重复调，每个bean创建的时候都会调用
+            // 初始化前：postProcessBeforeInitializing
+            for (TestBeanPostProcessor testBeanPostProcessor : testBeanPostProcessorList) {
+                // 这里完全可以对bean做修改，比如换成代理对象 / ...
+                bean = testBeanPostProcessor.postProcessBeforeInitializing(beanName, bean);
+            }
+
+            // 初始化
+            if(bean instanceof InitializingBean){
+                ((InitializingBean) bean).afterPropertiesSet();
+            }
+
+            // 初始化后: postProcessAfterInitializing
+            for (TestBeanPostProcessor testBeanPostProcessor : testBeanPostProcessorList) {
+                bean = testBeanPostProcessor.postProcessAfterInitializing(beanName, bean);
+            }
+
+            return bean;
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Object getBean(String beanName){
+        BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
+        if(beanDefinition == null){
+            // 1.beanName错误，不存在该bean
+        }else{
+            // 2.存在bean的定义
+            String scope = beanDefinition.getScope();
+            // 2.1 需要的bean为单例bean --&gt; 从单例池里面拿
+            if(scope.equals(&quot;singleton&quot;)){
+                Object bean = singletonObjects.get(beanName);
+                // 可能为null的原因:
+                // beanA(singleton)中依赖注入了beanB(singleton)，此时先创建beanA，beanB在单例池里面还不存在
+                if(bean == null){
+                    bean = createBean(beanName, beanDefinition);
+                    singletonObjects.put(beanName, bean);
+                }
+                return bean;
+            }
+            // 2.2 需要的bean为多例bean --&gt; 每次都创建
+            else{
+                return createBean(beanName, beanDefinition);
+            }
+        }
+        return null;
+    }
+
+}
+</code></pre>
+<h2 id="beanpostprocessor">BeanPostProcessor<a class="anchor" href="#beanpostprocessor">#</a></h2>
+<p>BeanPostProcessor接口</p>
+<pre><code class="language-java">public interface BeanPostProcessor {
+
+    public Object postProcessBeforeInitializing(String beanName, Object bean);
+
+    public Object postProcessAfterInitializing(String beanName, Object bean);
+
+}
+</code></pre>
+<p>自己实现方法，Spring中用的是==轮询调用==，因此方法内部来判断Bean</p>
+<pre><code class="language-java">@Component
+public class TestBeanPostProcessor implements BeanPostProcessor {
+
+    @Override
+    public Object postProcessBeforeInitializing(String beanName, Object bean) {
+        if(beanName.equals(&quot;userService&quot;)){
+            System.out.println(&quot;userService postProcessBeforeInitializing ..&quot;);
+        }
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitializing(String beanName, Object bean) {
+        if(beanName.equals(&quot;userService&quot;)){
+            // AOP逻辑
+            Object proxyInstance = Proxy.newProxyInstance(TestBeanPostProcessor.class.getClassLoader(), bean.getClass().getInterfaces(), new InvocationHandler() {
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    System.out.println(&quot;AOP逻辑&quot;);
+                    // 之后再执行原本对象的原本方法
+                    return method.invoke(bean, args);
+                }
+            });
+            return proxyInstance;
+        }
+        return bean;
+    }
+}
+
+</code></pre>
+<h2 id="userservice">UserService<a class="anchor" href="#userservice">#</a></h2>
+<pre><code class="language-java">@Component(&quot;userService&quot;)
+@Scope(&quot;prototype&quot;)
+public class UserService implements BeanNameAware, InitializingBean, UserInterface {
+
+    @Autowired
+    private OrderService orderService;
+
+    private String beanName;
+
+    public void test(){
+        System.out.println(&quot;进入test方法&quot;);
+        System.out.println(orderService);
+    }
+
+    @Override
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+
+    }
+}
+</code></pre>
+<p>UserInterface 用于实现代理</p>
+<pre><code class="language-java">public interface UserInterface{
+
+    public void test();
+
+}
+</code></pre>
+<h2 id="推断构造方法原理">推断构造方法原理<a class="anchor" href="#推断构造方法原理">#</a></h2>
+<p>1.如果只有一个构造方法，不管是无参还是有参，都用这个</p>
+<p>2.有多个构造方法的情况下，用无参构造</p>
+<p>3.但是如果没有无参构造，就报错</p>
+<p>但是可以用``@Autowired`指定让Spring实现哪个构造方法</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301032038278.png" alt="image-20230103203828251"></p>
+
+
+              
+          </article>
+          
+
+ <div class="pagination">
+  
+    <a class="pagination__item" href="https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/">
+        <span class="pagination__label">Previous Post</span>
+        <span class="pagination__title">MySQL性能调优与架构设计 笔记</span>
+    </a>
+  
+
+  
+</div>
+
+          
+          <footer class="post__footer">
+            
+
+
+<div class="social-icons">
+  
+     
+    
+  
+     
+    
+     
+</div>
+
+            <p>© 2023</p>
+          </footer>
+          </div>
+      </div>
+      
+    </div>
+    
+
+  </main>
+
+   
+
+  
+  <script src="/js/index.min.301a8b0870381bf76b3b5182e8966d363a0474281183439beb024d8b8228fc66.js" integrity="sha256-MBqLCHA4G/drO1GC6JZtNjoEdCgRg0Ob6wJNi4Io/GY=" crossorigin="anonymous"></script>
+  
+  
+  <script src="https://unpkg.com/prismjs@1.20.0/components/prism-core.min.js"></script>
+
+  
+  <script src="https://unpkg.com/prismjs@1.20.0/plugins/autoloader/prism-autoloader.min.js"
+    data-autoloader-path="https://unpkg.com/prismjs@1.20.0/components/"></script>
+
+  
+
+
+</body>
+
+</html>
