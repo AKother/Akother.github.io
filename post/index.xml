@@ -7,7 +7,41 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>© {year}</copyright>
-    <lastBuildDate>Wed, 28 Dec 2022 17:58:25 +0800</lastBuildDate><atom:link href="https://akother.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 03 Jan 2023 17:46:16 +0800</lastBuildDate><atom:link href="https://akother.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>MySQL性能调优与架构设计 笔记</title>
+      <link>https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Tue, 03 Jan 2023 17:46:16 +0800</pubDate>
+      
+      <guid>https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</guid>
+      <description>MySQL性能调优与架构设计 读者记
+本文是读《MySQL性能调优与架构设计》时划的一些笔记，一些读后体会写在微信读书中了。读完确实是学到了很多，不管对于MySQL的架构和底层了解都增进了几分，很适合初学MySQL时研读（当然基础的SQL和数据库知识还是需要有的），但是有些内容可能比较过期，比如“查询缓存”等再在MySQL 8.0+就已经去除了（MySQL 查询不建议使用缓存，因为查询缓存失效在实际业务场景中可能会非常频繁，假如对一个表更新的话，这个表上的所有的查询缓存都会被清空），光看本书肯定是不够的，还需要辅以别的专业书籍/博客等自学。
+前言
+对MySQL的优化更多的不在于数据库本身，而在于架构的设计，即如何通过分表、分库、复制、Cache等技术使得数据库能合理分配访问压力。 第一篇 基础篇 1985年，瑞典几位志同道合的小伙子（以David Axmark为首）成立了一家公司，这就是MySQL AB的前身。这家公司最初并不是为了开发数据库产品，而是因为在实现其他目标的过程中，需要一个数据库。他们希望能够使用开源的产品，但当时并没有合适的选择，于是就自己开发。
+从安装方面来说，MySQL安装包大小仅100MB左右，与那几大商业数据库相比完全不是一个数量级。它的安装也比Oracle等商业数据库容易很多，不论是通过已经编译好的二进制分发包，还是通过源码编译安装，都非常简单。 再从数据库创建方面来比较，MySQL仅仅需要一个简单的CREATE DATABASE命令即可在瞬间完成建库的动作，而Oracle数据库与之相比，创建一个数据库简直就是一个庞大的工程。当然，二者在概念上存在一定差别也不可否认。
+MySQL架构组成 如果要开启系统记录错误日志的功能，须要在启动时开启&amp;ndash;log-error选项。错误日志默认存放在数据目录下，以hostname.err命名。但是可以使用命令：&amp;ndash;log-error[=file_name]修改其存放目录和文件名。
+为了方便维护，有时候会希望将错误日志中的内容做备份并重新开始记录，这时候就可以利用MySQL的FLUSH LOGS命令来告诉MySQL备份旧日志文件并生成新的日志文件。备份文件名以“.old”结尾。
+慢查询日志：slow query log 顾名思义，慢查询日志中记录的是执行时间较长的Query，也就是我们常说的Slow Query，通过设&amp;ndash;log-slow-queries[=file_name]来打开该功能并设置记录位置和文件名，默认文件名为hostname-slow.log，默认目录也是数据目录。
+与表相关的元数据（meta）信息都存放在“.frm”文件，包括表结构的定义信息等。
+MySQL可以看成是两层架构，==第一层我们通常叫做SQL Layer，在MySQL数据库系统处理底层数据之前的所有工作都是在这一层完成的，包括权限判断、Query解析、执行计划优化、query cache的处理等；第二层就是存储引擎层，通常叫做Storage Engine Layer，也就是底层数据存取操作实现部分，由多种存储引擎共同组成。==
+如果是一个Query类型的请求，它将控制权交给Query解析器。Query解析器首先分析是不是一个select类型的Query，如果是，则调用查询缓存模块，让它检查该Query在Query cache中是否已经存在。如果有，则直接将cache中的数据返回给连接线程模块，然后通过与客户端的连接线程将数据传输给客户端。如果是一个不能被缓存（cache）的Query类型，或者cache中没有该Query的数据，那么Query将被继续传回Query解析器，让Query解析器进行相应处理，再通过Query分发器分发给相关处理模块。
+MySQL存储引擎简介 MyISAM支持以下三种类型的索引。 1. B-Tree索引 B-Tree索引，顾名思义，就是所有的索引节点都按照balance tree的数据结构来存储，所有的索引数据节点都在叶节点。 2. R-Tree索引 R-Tree索引的存储方式和b-tree索引有一些区别，主要设计用于为存储空间和多维数据的字段做索引，目前的MySQL版本仅支持geometry类型的字段作索引。 3. Full-text索引 Full-text索引就是我们常说的全文索引，它的存储结构也是b-tree。主要是为了解决当须要用like查询时的低效问题。
+MyISAM存储引擎的某个表文件出错之后，仅影响到该表，不会影响到其他表，更不会影响到数据库。如果数据库正在运行过程中发现某个MyISAM表出现问题了，则可以在线通过Check Table命令来尝试校验它，并可以通过repair table命令来尝试修复。
+1.支持事务安全 InnoDB在功能方面最重要的一点就是对事务安全的支持，这无疑是让InnoDB成为MySQL最为流行的存储引擎的一个非常重要原因。而且它实现了SQL92标准所定义的所有4个级别的要求（READ UNCOMMITTED、READ COMMITTED、REPEATABLE和SERIALIZABLE）。对事务安全的支持，无疑让很多之前因为特殊业务要求而不得不放弃使用MySQL的用户重新支持MySQL，那些之前对数据库选型持观望态度的用户，也大大增加了对MySQL好感。
+2.数据多版本读取 InnoDB在事务支持的同时，为了保证数据的一致性及并发的性能，通过UNDO信息实现了数据的多版本读取。
+3.锁定机制的改进 InnoDB改变了MyISAM的锁机制，实现了行锁。虽然InnoDB行锁机制的实现是通过索引来完成的，但毕竟在数据库中，99%的SQL语句都是要使用索引来做数据检索的。所以，行锁定机制也无疑为InnoDB在承受高并发压力的环境下增强了不小的竞争力。
+4.实现外键 InnoDB实现了外键引用这一数据库的重要特性，使在数据库端控制部分数据的完整性成为可能。虽然很多数据库系统调优专家都建议不要这样做，但是对于不少用户来说在数据库端加入外键控制可能仍然是成本最低的选择。
+MySQL安全管理 注意：若某用户向某个表插入（INSERT）数据，但他在该表中的某列上没有INSERT权限，则该列的数据将以默认值填充。
+MySQL备份与恢复 数据丢失应用场景 （1）人为操作失误造成某些数据被误操作；
+（2）软件BUG造成数据部分或全部丢失；
+（3）硬件故障造成数据库数据部分或全部丢失；
+（4）因安全漏洞，入侵者将数据恶意破坏。
+逻辑备份可以说是最简单，也是目前中小型系统最常使用的备份方式。在MySQL中常用的逻辑备份主要就是两种，一种是将数据生成为可以完全重现当前数据库中数据的INSERT语句，另外一种就是将数据通过逻辑备份软件，将数据库表的数据以特定分隔符进行分隔后记录在文本文件中。
+数据库的物理对象主要由数据库的物理数据文件、日志文件及配置文件等组成。在MySQL数据库中，除了MySQL系统共有的一些日志文件和系统表的数据文件之外，每一种存储引擎还会有不太一样的物理对象
+MyISAM存储引擎文件的物理文件比较集中，而且不支持事务没有REDO和UNDO日志，对数据一致性的要求也并不是特别高，所以MyISAM存储引擎表的物理备份也比较简单，只要将MyISAM的物理文件复制出来即可。
+mysqlhotcopy是一个用perl编写的使用程序，其主要实现原理实际上就是先锁住（LOCK）表，然后执行FLUSH TABLES动作，该正常关闭的表正常关闭，该进行flush同步的数据都进行同步，然后通过执行OS级别的复制（cp等）命令，将须要备份的表或数据库的所有物理文件都复制到指定的备份集位置。</description>
+    </item>
+    
     <item>
       <title>JWT基础介绍</title>
       <link>https://akother.github.io/post/jwt/</link>
