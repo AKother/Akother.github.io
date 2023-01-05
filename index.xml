@@ -784,12 +784,104 @@
 &lt;p&gt;2.有多个构造方法的情况下，用无参构造&lt;/p&gt;
 &lt;p&gt;3.但是如果没有无参构造，就报错&lt;/p&gt;
 &lt;p&gt;但是可以用``@Autowired`指定让Spring实现哪个构造方法&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301032038278.png&#34; alt=&#34;image-20230103203828251&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052210469.png&#34; alt=&#34;image-20230103203828251&#34;&gt;&lt;/p&gt;
 &lt;p&gt;这里可能会出现&lt;strong&gt;循环依赖&lt;/strong&gt;（调OrderService的构造方法，如果OrderService需要UserService才能创建，就会出现循环依赖）。&lt;/p&gt;
 &lt;h2 id=&#34;aop底层原理&#34;&gt;AOP底层原理&lt;/h2&gt;
 &lt;p&gt;UserService.class -&amp;gt; 推断构造方法 -&amp;gt; 对象 -&amp;gt; 依赖注入 -&amp;gt; -&amp;gt; 初始化前(@PostConstruct) -&amp;gt; 初始化 -&amp;gt; 初始化后(AOP) -&amp;gt; &lt;!-- raw HTML omitted --&gt;&amp;ldquo;代理对象 &lt;!-- raw HTML omitted --&gt;-&amp;gt; 放入单例池 -&amp;gt; Bean对象&lt;/p&gt;
 &lt;p&gt;这里代理对象中的@Autowired的对象是null&lt;/p&gt;
 &lt;p&gt;但是如果说调用test方法打印UserService中的orderService的值，却又非null，是怎么实现的？&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052210548.png&#34; alt=&#34;image-20230103222501808&#34;&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;// 代理对象 (不继承的话会导致强制转换失败)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;UserServiceProxy&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;extends&lt;/span&gt; UserService {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#228b22&#34;&gt;// 原始对象
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  UserService target;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#228b22&#34;&gt;// 底层会重写有切面逻辑的方法
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;test&lt;/span&gt;(){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      执行切面逻辑 &lt;span style=&#34;color:#707a7c&#34;&gt;@Before&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      target.&lt;span style=&#34;color:#658b00&#34;&gt;test&lt;/span&gt;(); &lt;span style=&#34;color:#228b22&#34;&gt;// 调用的还是原对象的test方法，而原对象是有执行依赖注入的
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;spring事务底层原理&#34;&gt;Spring事务底层原理&lt;/h2&gt;
+&lt;p&gt;Spring用@Transactional实现事务&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052210316.png&#34; alt=&#34;image-20230104215658921&#34;&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;test&lt;/span&gt;(){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#707a7c&#34;&gt;@Transactional&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;// 1.事务管理器会新建一个数据库连接conn
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;// conn.autocommit = false;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;  	target.&lt;span style=&#34;color:#658b00&#34;&gt;test&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;// 成功：conn.commit(); / 失败：conn.rollback();
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;jdbcTemplate需要拿到Spring的事务连接&lt;/p&gt;
+&lt;h2 id=&#34;spring事务失效原理&#34;&gt;Spring事务失效原理&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301042201939.png&#34; alt=&#34;image-20230104220137908&#34;&gt;&lt;/p&gt;
+&lt;p&gt;当调用a()方法时，已经是普通对象在调用该方法，并非Spring创建的代理对象，而只有代理对象可以处理@Transactional(propagation = Propagation.NEVER)注解，因此这个地方会注解失效。&lt;/p&gt;
+&lt;p&gt;解决方法：&lt;/p&gt;
+&lt;p&gt;A.拆对象，将a()方法放在新的Bean:UserServiceBase中&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052210152.png&#34; alt=&#34;image-20230104220728054&#34;&gt;&lt;/p&gt;
+&lt;p&gt;B.对象自己@Autowired自己&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301042208281.png&#34; alt=&#34;image-20230104220844249&#34;&gt;&lt;/p&gt;
+&lt;p&gt;C.直接获取当前的Bean的代理对象然后执行该方法&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;AppContext.currentProxy();&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&#34;configuration事务失效原理&#34;&gt;@Configuration事务失效原理&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052210726.png&#34; alt=&#34;image-20230104221646534&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052210487.png&#34; alt=&#34;image-20230104221524230&#34;&gt;&lt;/p&gt;
+&lt;p&gt;总结一下就是，如果没有加@Configuration，jdbcTemplate就无法从ThreadLocal中拿到自己的conn，而会选择自己创建一个conn，但是自己创建的conn默认autocommit=true，因此事务失效。&lt;/p&gt;
+&lt;p&gt;而拿不到conn的原因，本质上是创建jdbcTemplate的时候，拿到的DateSource它是new出来的，还是Spring容器中找到的。如果加了@Configuration注解，那么就是从Spring容器中拿到DataSource这个Bean，自然就是同一个对象了。&lt;/p&gt;
+&lt;h2 id=&#34;循环依赖&#34;&gt;循环依赖&lt;/h2&gt;
+&lt;h3 id=&#34;为什么会出现循环依赖&#34;&gt;为什么会出现循环依赖？&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301042226299.png&#34; alt=&#34;image-20230104222639261&#34;&gt;&lt;/p&gt;
+&lt;p&gt;AService的创建需要注入BService&lt;/p&gt;
+&lt;p&gt;而BService的创建又需要注入AService（回到AService的创建）&lt;/p&gt;
+&lt;h3 id=&#34;解决循环依赖&#34;&gt;解决循环依赖？&lt;/h3&gt;
+&lt;p&gt;==解决方式是三级缓存==&lt;/p&gt;
+&lt;p&gt;第一级缓存：singletonObjects&lt;/p&gt;
+&lt;p&gt;第二级缓存：earlySingletonObjects&lt;/p&gt;
+&lt;p&gt;第三级缓存：singletonFactories&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052210636.png&#34; alt=&#34;image-20230104222939933&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;提前aop&#34;&gt;提前AOP&lt;/h4&gt;
+&lt;p&gt;这样放入的就是单例对象&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052210037.png&#34; alt=&#34;image-20230105211125294&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;怎么判断出现了循环依赖&#34;&gt;怎么判断出现了循环依赖？&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;毕竟要出现循环依赖才能提前AOP&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;解决方法：开局用一个集合来保存此时正在创建的Bean，而当创建@Autowired对象时，如果发现需要用到此时正在创建的Bean，则说明出现了循环依赖&lt;/p&gt;
+&lt;h3 id=&#34;二级缓存作用&#34;&gt;二级缓存作用&lt;/h3&gt;
+&lt;p&gt;earlySingletonObjects&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052210743.png&#34; alt=&#34;image-20230105214242564&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;三级缓存作用&#34;&gt;三级缓存作用&lt;/h3&gt;
+&lt;p&gt;singletonFactories&lt;/p&gt;
+&lt;p&gt;打破循环&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052153589.png&#34; alt=&#34;image-20230105215356549&#34;&gt;&lt;/p&gt;
 - https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/ - Kother.</description>
         </item>
     
