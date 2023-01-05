@@ -7,9 +7,267 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Kother.</copyright>
-    <lastBuildDate>Tue, 03 Jan 2023 20:30:07 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 05 Jan 2023 20:43:53 +0800</lastBuildDate>
     
         <atom:link href="https://akother.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>自定义注解导出信息 Excel导出</title>
+        <link>https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/</link>
+        <pubDate>Thu, 05 Jan 2023 20:43:53 +0800</pubDate>
+        
+        <guid>https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/</guid>
+        <description>争的是滔滔不绝 https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/ -&lt;h2 id=&#34;使用注解目的&#34;&gt;使用注解目的&lt;/h2&gt;
+&lt;p&gt;导出某个实体类为Excel的一行时，只需要将注解放在字段上面，即可在导出时自动为其添加列名称。&lt;/p&gt;
+&lt;h2 id=&#34;注解定义&#34;&gt;注解定义&lt;/h2&gt;
+&lt;p&gt;1.设置为运行时有效&lt;/p&gt;
+&lt;p&gt;2.注解放置位置是字段&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@Retention&lt;/span&gt;(RetentionPolicy.&lt;span style=&#34;color:#658b00&#34;&gt;RUNTIME&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@Target&lt;/span&gt;(ElementType.&lt;span style=&#34;color:#658b00&#34;&gt;FIELD&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@Documented&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#707a7c&#34;&gt;@interface&lt;/span&gt; Excel {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    String &lt;span style=&#34;color:#008b45&#34;&gt;name&lt;/span&gt;() &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;default&lt;/span&gt; &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    String &lt;span style=&#34;color:#008b45&#34;&gt;dictValue&lt;/span&gt;() &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;default&lt;/span&gt; &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;实体类使用&#34;&gt;实体类使用&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;User&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; String id;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Excel&lt;/span&gt;(name = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;姓名&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; String name;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Excel&lt;/span&gt;(name = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;年龄&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; age;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/**
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     * 性别 0-女 1-男
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Excel&lt;/span&gt;(name = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;性别&amp;#34;&lt;/span&gt;, dictValue = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;0=女,1=男&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; gender;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  	&lt;span style=&#34;color:#228b22&#34;&gt;// get set toString() ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;excelexporter&#34;&gt;ExcelExporter&lt;/h2&gt;
+&lt;p&gt;1.反射获取包含@Excel的字段&lt;/p&gt;
+&lt;p&gt;2.再通过反射获取@Excel中的值&lt;/p&gt;
+&lt;p&gt;3.name的话则是写入标题行，而数据字典的值需要单独处理&lt;/p&gt;
+&lt;p&gt;4.记得设置field.setAccessible(true)，目的是为了让私有变量可以访问&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;52
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;53
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;54
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;55
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;56
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;57
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;58
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;59
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;60
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;61
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;62
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;63
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;64
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;65
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;66
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;67
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;68
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;69
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;70
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;71
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;72
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;73
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;74
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;75
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;76
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;77
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;78
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;79
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;80
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;81
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;ExcelExporter&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;export&lt;/span&gt;(List&amp;lt;User&amp;gt; users, OutputStream outputStream) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;try&lt;/span&gt; (Workbook workbook = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; XSSFWorkbook()) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            Sheet sheet = workbook.&lt;span style=&#34;color:#658b00&#34;&gt;createSheet&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 标题行
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            Row row = sheet.&lt;span style=&#34;color:#658b00&#34;&gt;createRow&lt;/span&gt;(0);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 反射获取所有包含Excel注解的字段
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            Field[] declaredFields = User.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;getDeclaredFields&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            List&amp;lt;Field&amp;gt; filteredFields = Stream.&lt;span style=&#34;color:#658b00&#34;&gt;of&lt;/span&gt;(declaredFields)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    .&lt;span style=&#34;color:#658b00&#34;&gt;filter&lt;/span&gt;(f -&amp;gt; f.&lt;span style=&#34;color:#658b00&#34;&gt;isAnnotationPresent&lt;/span&gt;(Excel.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    .&lt;span style=&#34;color:#658b00&#34;&gt;collect&lt;/span&gt;(Collectors.&lt;span style=&#34;color:#658b00&#34;&gt;toList&lt;/span&gt;());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 写入标题行
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            writeTitleRow(sheet, filteredFields);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 写入数据行
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = 0; i &amp;lt; users.&lt;span style=&#34;color:#658b00&#34;&gt;size&lt;/span&gt;(); i++) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                User user = users.&lt;span style=&#34;color:#658b00&#34;&gt;get&lt;/span&gt;(i);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                Row userRow = sheet.&lt;span style=&#34;color:#658b00&#34;&gt;createRow&lt;/span&gt;(i + 1);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                writeDataRow(userRow, user, filteredFields);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 写入文件
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            workbook.&lt;span style=&#34;color:#658b00&#34;&gt;write&lt;/span&gt;(outputStream);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        } &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;catch&lt;/span&gt; (IOException | IllegalAccessException e) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;throw&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; RuntimeException(e);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;writeTitleRow&lt;/span&gt;(Sheet sheet, List&amp;lt;Field&amp;gt; filteredFields) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Row row = sheet.&lt;span style=&#34;color:#658b00&#34;&gt;createRow&lt;/span&gt;(0);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = 0; i &amp;lt; filteredFields.&lt;span style=&#34;color:#658b00&#34;&gt;size&lt;/span&gt;(); i++) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            Cell cell = row.&lt;span style=&#34;color:#658b00&#34;&gt;createCell&lt;/span&gt;(i);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            Excel excel = filteredFields.&lt;span style=&#34;color:#658b00&#34;&gt;get&lt;/span&gt;(i).&lt;span style=&#34;color:#658b00&#34;&gt;getAnnotation&lt;/span&gt;(Excel.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            cell.&lt;span style=&#34;color:#658b00&#34;&gt;setCellValue&lt;/span&gt;(excel.&lt;span style=&#34;color:#658b00&#34;&gt;name&lt;/span&gt;());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;writeDataRow&lt;/span&gt;(Row userRow, User user, List&amp;lt;Field&amp;gt; filteredFields) &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;throws&lt;/span&gt; IllegalAccessException {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 构造字段的值字典
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Map&amp;lt;Field, Map&amp;lt;String, String&amp;gt;&amp;gt; fieldDict = buildFieldDict(filteredFields);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = 0; i &amp;lt; filteredFields.&lt;span style=&#34;color:#658b00&#34;&gt;size&lt;/span&gt;(); i++) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            Cell cell = userRow.&lt;span style=&#34;color:#658b00&#34;&gt;createCell&lt;/span&gt;(i);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            Field field = filteredFields.&lt;span style=&#34;color:#658b00&#34;&gt;get&lt;/span&gt;(i);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            field.&lt;span style=&#34;color:#658b00&#34;&gt;setAccessible&lt;/span&gt;(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;true&lt;/span&gt;); &lt;span style=&#34;color:#228b22&#34;&gt;// 使私有变量可以访问
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            Excel annotation = field.&lt;span style=&#34;color:#658b00&#34;&gt;getAnnotation&lt;/span&gt;(Excel.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (StringUtils.&lt;span style=&#34;color:#658b00&#34;&gt;hasLength&lt;/span&gt;(annotation.&lt;span style=&#34;color:#658b00&#34;&gt;dictValue&lt;/span&gt;())) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                String key = String.&lt;span style=&#34;color:#658b00&#34;&gt;valueOf&lt;/span&gt;(field.&lt;span style=&#34;color:#658b00&#34;&gt;get&lt;/span&gt;(user));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                cell.&lt;span style=&#34;color:#658b00&#34;&gt;setCellValue&lt;/span&gt;(fieldDict.&lt;span style=&#34;color:#658b00&#34;&gt;get&lt;/span&gt;(field).&lt;span style=&#34;color:#658b00&#34;&gt;get&lt;/span&gt;(key));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            } &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                cell.&lt;span style=&#34;color:#658b00&#34;&gt;setCellValue&lt;/span&gt;(String.&lt;span style=&#34;color:#658b00&#34;&gt;valueOf&lt;/span&gt;(field.&lt;span style=&#34;color:#658b00&#34;&gt;get&lt;/span&gt;(user)));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            field.&lt;span style=&#34;color:#658b00&#34;&gt;setAccessible&lt;/span&gt;(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;false&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; Map&amp;lt;Field, Map&amp;lt;String, String&amp;gt;&amp;gt; &lt;span style=&#34;color:#008b45&#34;&gt;buildFieldDict&lt;/span&gt;(List&amp;lt;Field&amp;gt; filteredFields) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Map&amp;lt;Field, Map&amp;lt;String, String&amp;gt;&amp;gt; fieldDict = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; HashMap&amp;lt;&amp;gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (Field field : filteredFields) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            Excel annotation = field.&lt;span style=&#34;color:#658b00&#34;&gt;getAnnotation&lt;/span&gt;(Excel.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 对字典值进行解析
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (StringUtils.&lt;span style=&#34;color:#658b00&#34;&gt;hasLength&lt;/span&gt;(annotation.&lt;span style=&#34;color:#658b00&#34;&gt;dictValue&lt;/span&gt;())) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                String d = annotation.&lt;span style=&#34;color:#658b00&#34;&gt;dictValue&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                String[] kvs = d.&lt;span style=&#34;color:#658b00&#34;&gt;split&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;,&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                Map&amp;lt;String, String&amp;gt; map = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; HashMap&amp;lt;&amp;gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (String kv : kvs) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    String[] split = kv.&lt;span style=&#34;color:#658b00&#34;&gt;split&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;=&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    map.&lt;span style=&#34;color:#658b00&#34;&gt;put&lt;/span&gt;(split[0], split[1]);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                fieldDict.&lt;span style=&#34;color:#658b00&#34;&gt;put&lt;/span&gt;(field, map);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; fieldDict;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;- https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/ - Kother.</description>
+        </item>
     
     
     
@@ -22,22 +280,187 @@
         <description>争的是滔滔不绝 https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/ -&lt;!-- raw HTML omitted --&gt;
 &lt;h2 id=&#34;demo内容&#34;&gt;Demo内容&lt;/h2&gt;
 &lt;p&gt;一个简单模拟Spring源码的Demo，内容包括如下：&lt;/p&gt;
-&lt;p&gt;1.模拟Spring中Bean的生命周期&lt;/p&gt;
-&lt;p&gt;2.@ComponentScan，@Component的实现&lt;/p&gt;
-&lt;p&gt;3.Bean的初始化实现（初始化前方法 / 初始化后方法）&lt;/p&gt;
-&lt;p&gt;4.Bean的单例实现（单例池），非单例实现&lt;/p&gt;
-&lt;p&gt;5.@Autowired是如何实现的（扫描，注入）&lt;/p&gt;
-&lt;p&gt;6.Aware回调实现&lt;/p&gt;
-&lt;p&gt;7.AOP实现（代理）&lt;/p&gt;
+&lt;p&gt;1.模拟Spring中Bean的生命周期
+2.@ComponentScan，@Component的实现
+3.Bean的初始化实现（初始化前方法 / 初始化后方法）
+4.Bean的单例实现（单例池），非单例实现
+5.@Autowired是如何实现的（扫描，注入）
+6.Aware回调实现
+7.AOP实现（代理）&lt;/p&gt;
 &lt;h2 id=&#34;bean的创建生命周期&#34;&gt;Bean的创建生命周期&lt;/h2&gt;
 &lt;p&gt;UserService.class -&amp;gt; 推断构造方法 -&amp;gt; 对象 -&amp;gt; 依赖注入 -&amp;gt; -&amp;gt; 初始化前(@PostConstruct) -&amp;gt; 初始化 -&amp;gt; 初始化后(AOP) -&amp;gt; 代理对象 -&amp;gt; 放入单例池 -&amp;gt; Bean对象&lt;/p&gt;
+&lt;p&gt;这里代理对象中的@Autowired的对象是null&lt;/p&gt;
 &lt;h2 id=&#34;demo结构&#34;&gt;Demo结构&lt;/h2&gt;
 &lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301032048289.png&#34; alt=&#34;imgae-springdemo&#34;&gt;&lt;/p&gt;
 &lt;p&gt;代码地址&lt;/p&gt;
 &lt;p&gt;&lt;a href=&#34;https://github.com/AKother/Spring-Code&#34;&gt;https://github.com/AKother/Spring-Code&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;applicationcontext&#34;&gt;ApplicationContext&lt;/h2&gt;
 &lt;p&gt;核心类，用于实现Bean的初始化&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;ApplicationContext&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 26
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 27
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 28
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 29
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 30
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 31
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 32
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 33
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 34
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 35
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 36
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 37
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 38
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 39
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 40
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 41
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 42
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 43
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 44
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 45
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 46
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 47
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 48
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 49
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 50
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 51
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 52
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 53
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 54
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 55
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 56
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 57
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 58
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 59
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 60
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 61
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 62
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 63
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 64
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 65
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 66
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 67
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 68
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 69
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 70
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 71
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 72
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 73
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 74
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 75
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 76
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 77
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 78
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 79
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 80
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 81
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 82
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 83
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 84
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 85
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 86
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 87
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 88
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 89
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 90
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 91
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 92
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 93
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 94
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 95
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 96
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 97
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 98
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 99
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;100
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;101
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;102
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;103
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;104
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;105
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;106
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;107
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;108
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;109
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;110
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;111
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;112
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;113
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;114
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;115
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;116
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;117
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;118
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;119
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;120
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;121
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;122
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;123
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;124
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;125
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;126
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;127
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;128
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;129
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;130
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;131
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;132
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;133
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;134
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;135
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;136
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;137
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;138
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;139
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;140
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;141
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;142
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;143
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;144
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;145
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;146
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;147
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;148
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;149
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;150
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;151
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;152
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;153
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;154
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;155
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;156
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;157
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;158
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;159
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;160
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;ApplicationContext&lt;/span&gt; {
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; Class configClass;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
@@ -197,17 +620,64 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;beanpostprocessor&#34;&gt;BeanPostProcessor&lt;/h2&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;beanpostprocessor&#34;&gt;BeanPostProcessor&lt;/h2&gt;
 &lt;p&gt;BeanPostProcessor接口&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;interface&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;BeanPostProcessor&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;interface&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;BeanPostProcessor&lt;/span&gt; {
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; Object &lt;span style=&#34;color:#008b45&#34;&gt;postProcessBeforeInitializing&lt;/span&gt;(String beanName, Object bean);
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; Object &lt;span style=&#34;color:#008b45&#34;&gt;postProcessAfterInitializing&lt;/span&gt;(String beanName, Object bean);
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;自己实现方法，Spring中用的是==轮询调用==，因此方法内部来判断Bean&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@Component&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;自己实现方法，Spring中用的是==轮询调用==，因此方法内部来判断Bean&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@Component&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;TestBeanPostProcessor&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;implements&lt;/span&gt; BeanPostProcessor {
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Override&lt;/span&gt;
@@ -235,8 +705,38 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; bean;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;userservice&#34;&gt;UserService&lt;/h2&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@Component&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;userService&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;userservice&#34;&gt;UserService&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@Component&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;userService&amp;#34;&lt;/span&gt;)
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@Scope&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;prototype&amp;#34;&lt;/span&gt;)
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;UserService&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;implements&lt;/span&gt; BeanNameAware, InitializingBean, UserInterface {
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
@@ -260,19 +760,36 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;UserInterface 用于实现代理&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;interface&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;UserInterface&lt;/span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;UserInterface 用于实现代理&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;interface&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;UserInterface&lt;/span&gt;{
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;test&lt;/span&gt;();
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;推断构造方法原理&#34;&gt;推断构造方法原理&lt;/h2&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;推断构造方法原理&#34;&gt;推断构造方法原理&lt;/h2&gt;
 &lt;p&gt;1.如果只有一个构造方法，不管是无参还是有参，都用这个&lt;/p&gt;
 &lt;p&gt;2.有多个构造方法的情况下，用无参构造&lt;/p&gt;
 &lt;p&gt;3.但是如果没有无参构造，就报错&lt;/p&gt;
-&lt;p&gt;==但是可以用``@Autowired`指定让Spring实现哪个构造方法==&lt;/p&gt;
+&lt;p&gt;但是可以用``@Autowired`指定让Spring实现哪个构造方法&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301032038278.png&#34; alt=&#34;image-20230103203828251&#34;&gt;&lt;/p&gt;
 &lt;p&gt;这里可能会出现&lt;strong&gt;循环依赖&lt;/strong&gt;（调OrderService的构造方法，如果OrderService需要UserService才能创建，就会出现循环依赖）。&lt;/p&gt;
+&lt;h2 id=&#34;aop底层原理&#34;&gt;AOP底层原理&lt;/h2&gt;
+&lt;p&gt;UserService.class -&amp;gt; 推断构造方法 -&amp;gt; 对象 -&amp;gt; 依赖注入 -&amp;gt; -&amp;gt; 初始化前(@PostConstruct) -&amp;gt; 初始化 -&amp;gt; 初始化后(AOP) -&amp;gt; &lt;!-- raw HTML omitted --&gt;&amp;ldquo;代理对象 &lt;!-- raw HTML omitted --&gt;-&amp;gt; 放入单例池 -&amp;gt; Bean对象&lt;/p&gt;
+&lt;p&gt;这里代理对象中的@Autowired的对象是null&lt;/p&gt;
+&lt;p&gt;但是如果说调用test方法打印UserService中的orderService的值，却又非null，是怎么实现的？&lt;/p&gt;
 - https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/ - Kother.</description>
         </item>
     
@@ -514,12 +1031,23 @@
 &lt;p&gt;另一种方案是服务器索性不保存 session 数据了，所有数据都保存在客户端，每次请求都发回服务器。JWT 就是这种方案的一个代表。&lt;/p&gt;
 &lt;p&gt;JWT 的原理是，服务器认证以后，生成一个 JSON 对象，发回给用户，就像下面这样。&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-javascript&#34; data-lang=&#34;javascript&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-javascript&#34; data-lang=&#34;javascript&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;姓名&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;张三&amp;#34;&lt;/span&gt;,
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;角色&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;管理员&amp;#34;&lt;/span&gt;,
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;到期时间&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;2018年7月1日0点0分&amp;#34;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/blockquote&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/blockquote&gt;
 &lt;p&gt;以后，用户与服务端通信的时候，都要发回这个 JSON 对象。服务器完全只靠这个对象认定用户身份。为了防止用户篡改数据，服务器在生成这个对象的时候，会加上签名（详见后文）。&lt;/p&gt;
 &lt;p&gt;服务器就不保存任何 session 数据了，也就是说，服务器变成无状态了，从而比较容易实现扩展。&lt;/p&gt;
 &lt;h2 id=&#34;jwt组成&#34;&gt;JWT组成&lt;/h2&gt;
@@ -536,8 +1064,15 @@
 &lt;/blockquote&gt;
 &lt;p&gt;写成一行，就是下面的样子。&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-javascript&#34; data-lang=&#34;javascript&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Header.Payload.Signature
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-javascript&#34; data-lang=&#34;javascript&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Header.Payload.Signature
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/blockquote&gt;
 &lt;h2 id=&#34;jwt特点&#34;&gt;JWT特点&lt;/h2&gt;
 &lt;p&gt;（1）JWT 默认是不加密，但也是可以加密的。生成原始 Token 以后，可以用密钥再加密一次。&lt;/p&gt;
 &lt;p&gt;（2）JWT 不加密的情况下，不能将秘密数据写入 JWT。&lt;/p&gt;

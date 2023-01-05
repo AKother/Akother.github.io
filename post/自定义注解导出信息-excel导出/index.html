@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<meta name="referrer" content="no-referrer" />
+<html><head>
+<title>自定义注解导出信息 Excel导出</title>
+
+
+
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="自定义注解导出信息 Excel导出" />
+<meta property="og:description" content="使用注解目的 导出某个实体类为Excel的一行时，只需要将注解放在字段上面，即可在导出时自动为其添加列名称。
+注解定义 1.设置为运行时有效
+2.注解放置位置是字段
+1 2 3 4 5 6 7 8 9 10 @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD) @Documented public @interface Excel { String name() default &#34;&#34;; String dictValue() default &#34;&#34;; } 实体类使用 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 public class User { private String id; @Excel(name = &#34;姓名&#34;) private String name; @Excel(name = &#34;年龄&#34;) private int age; /** * 性别 0-女 1-男 */ @Excel(name = &#34;性别&#34;, dictValue = &#34;0=女,1=男&#34;) private int gender; // get set toString() ." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2023-01-05T20:43:53+08:00" />
+<meta property="article:modified_time" content="2023-01-05T20:43:53+08:00" /><meta property="og:site_name" content="My Blog" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="自定义注解导出信息 Excel导出"/>
+<meta name="twitter:description" content="使用注解目的 导出某个实体类为Excel的一行时，只需要将注解放在字段上面，即可在导出时自动为其添加列名称。
+注解定义 1.设置为运行时有效
+2.注解放置位置是字段
+1 2 3 4 5 6 7 8 9 10 @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD) @Documented public @interface Excel { String name() default &#34;&#34;; String dictValue() default &#34;&#34;; } 实体类使用 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 public class User { private String id; @Excel(name = &#34;姓名&#34;) private String name; @Excel(name = &#34;年龄&#34;) private int age; /** * 性别 0-女 1-男 */ @Excel(name = &#34;性别&#34;, dictValue = &#34;0=女,1=男&#34;) private int gender; // get set toString() ."/>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+      <script src="/js/toc.js"></script>
+    
+    <link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<link rel="stylesheet" href="/scss/journal.min.c5d92f380bf10f6849c7ac487c7df2b22c081e0851e5339224f1ae29210b20d2.css" integrity="sha256-xdkvOAvxD2hJx6xIfH3ysiwIHghR5TOSJPGuKSELINI=" media="screen">
+
+
+
+<link rel="stylesheet" href="/scss/dark-mode.min.9f8d8c2df9285089d141edd4a50cb7506c7948e6ab79a29968dced1bd0ab7d22.css" integrity="sha256-n42MLfkoUInRQe3UpQy3UGx5SOareaKZaNztG9CrfSI=" media="screen">
+
+
+<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Material+Icons">
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="/vendor/js/md5.min.js"></script><script>
+  var gitalk = new Gitalk({
+  clientID: 'your client id',
+  clientSecret: 'your client secret',
+  repo: 'repo name',
+  owner: 'user',
+  admin: ['user'],
+  id: md5(location.pathname),
+  distractionFreeMode: 'false'
+  });
+  window.onload = function () {
+        gitalk.render('gitalk-container')
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div id="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://akother.github.io/">
+    
+        <div class="nav-title">
+            争的是滔滔不绝
+        </div>
+        
+        <div class="nav-subtitle">
+            记录点有趣的.
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/post">
+                博客
+            </a>
+            
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/index.xml">
+                主页
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+
+    </div>
+    
+</div><div id="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- CATALOG -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e6%b3%a8%e8%a7%a3%e7%9b%ae%e7%9a%84" onclick="onNavClick(`#使用注解目的-nav`)" id="使用注解目的-nav">
+									使用注解目的
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b3%a8%e8%a7%a3%e5%ae%9a%e4%b9%89" onclick="onNavClick(`#注解定义-nav`)" id="注解定义-nav">
+									注解定义
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e4%bd%93%e7%b1%bb%e4%bd%bf%e7%94%a8" onclick="onNavClick(`#实体类使用-nav`)" id="实体类使用-nav">
+									实体类使用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#excelexporter" onclick="onNavClick(`#excelexporter-nav`)" id="excelexporter-nav">
+									ExcelExporter
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a type="button" class="pagination-action" id="darkModeToggleButton">
+            <span class="material-icons pagination-action-icon" id="darkModeToggleIcon">
+                dark_mode
+            </span>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" id="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/post">
+                    博客
+                </a>
+                
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/index.xml">
+                    主页
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- CATALOG -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e6%b3%a8%e8%a7%a3%e7%9b%ae%e7%9a%84" onclick="onNavClick(`#使用注解目的-nav`)" id="使用注解目的-nav">
+									使用注解目的
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b3%a8%e8%a7%a3%e5%ae%9a%e4%b9%89" onclick="onNavClick(`#注解定义-nav`)" id="注解定义-nav">
+									注解定义
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e4%bd%93%e7%b1%bb%e4%bd%bf%e7%94%a8" onclick="onNavClick(`#实体类使用-nav`)" id="实体类使用-nav">
+									实体类使用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#excelexporter" onclick="onNavClick(`#excelexporter-nav`)" id="excelexporter-nav">
+									ExcelExporter
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div id="drawer-mask" v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav id="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div id="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a id="navTitle" class="navbar-brand" href="https://akother.github.io/">
+            争的是滔滔不绝
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" id="darkModeToggleButton2">
+            <i class="material-icons" id="darkModeToggleIcon2">
+                dark_mode
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" id="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://akother.github.io/">
+        <div class="single-column-header-title">争的是滔滔不绝</div>
+        
+        <div class="single-column-header-subtitle">记录点有趣的.</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+                <div id="streamContainer" class="stream-container">
+
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    自定义注解导出信息 Excel导出
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-01-05 20:43
+                        </time>
+                        
+
+                        
+
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h2 id="使用注解目的">使用注解目的</h2>
+<p>导出某个实体类为Excel的一行时，只需要将注解放在字段上面，即可在导出时自动为其添加列名称。</p>
+<h2 id="注解定义">注解定义</h2>
+<p>1.设置为运行时有效</p>
+<p>2.注解放置位置是字段</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@Retention</span>(RetentionPolicy.<span style="color:#658b00">RUNTIME</span>)
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@Target</span>(ElementType.<span style="color:#658b00">FIELD</span>)
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@Documented</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#707a7c">@interface</span> Excel {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    String <span style="color:#008b45">name</span>() <span style="color:#8b008b;font-weight:bold">default</span> <span style="color:#cd5555">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    String <span style="color:#008b45">dictValue</span>() <span style="color:#8b008b;font-weight:bold">default</span> <span style="color:#cd5555">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="实体类使用">实体类使用</h2>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">User</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> String id;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Excel</span>(name = <span style="color:#cd5555">&#34;姓名&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> String name;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Excel</span>(name = <span style="color:#cd5555">&#34;年龄&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> <span style="color:#00688b;font-weight:bold">int</span> age;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">     * 性别 0-女 1-男
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Excel</span>(name = <span style="color:#cd5555">&#34;性别&#34;</span>, dictValue = <span style="color:#cd5555">&#34;0=女,1=男&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> <span style="color:#00688b;font-weight:bold">int</span> gender;
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  	<span style="color:#228b22">// get set toString() ...
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="excelexporter">ExcelExporter</h2>
+<p>1.反射获取包含@Excel的字段</p>
+<p>2.再通过反射获取@Excel中的值</p>
+<p>3.name的话则是写入标题行，而数据字典的值需要单独处理</p>
+<p>4.记得设置field.setAccessible(true)，目的是为了让私有变量可以访问</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">70
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">71
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">72
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">73
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">74
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">75
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">76
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">77
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">78
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">79
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">80
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">81
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">ExcelExporter</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">export</span>(List&lt;User&gt; users, OutputStream outputStream) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">try</span> (Workbook workbook = <span style="color:#8b008b;font-weight:bold">new</span> XSSFWorkbook()) {
+</span></span><span style="display:flex;"><span>            Sheet sheet = workbook.<span style="color:#658b00">createSheet</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 标题行
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            Row row = sheet.<span style="color:#658b00">createRow</span>(0);
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 反射获取所有包含Excel注解的字段
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            Field[] declaredFields = User.<span style="color:#658b00">class</span>.<span style="color:#658b00">getDeclaredFields</span>();
+</span></span><span style="display:flex;"><span>            List&lt;Field&gt; filteredFields = Stream.<span style="color:#658b00">of</span>(declaredFields)
+</span></span><span style="display:flex;"><span>                    .<span style="color:#658b00">filter</span>(f -&gt; f.<span style="color:#658b00">isAnnotationPresent</span>(Excel.<span style="color:#658b00">class</span>))
+</span></span><span style="display:flex;"><span>                    .<span style="color:#658b00">collect</span>(Collectors.<span style="color:#658b00">toList</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 写入标题行
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            writeTitleRow(sheet, filteredFields);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 写入数据行
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = 0; i &lt; users.<span style="color:#658b00">size</span>(); i++) {
+</span></span><span style="display:flex;"><span>                User user = users.<span style="color:#658b00">get</span>(i);
+</span></span><span style="display:flex;"><span>                Row userRow = sheet.<span style="color:#658b00">createRow</span>(i + 1);
+</span></span><span style="display:flex;"><span>                writeDataRow(userRow, user, filteredFields);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 写入文件
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            workbook.<span style="color:#658b00">write</span>(outputStream);
+</span></span><span style="display:flex;"><span>        } <span style="color:#8b008b;font-weight:bold">catch</span> (IOException | IllegalAccessException e) {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">throw</span> <span style="color:#8b008b;font-weight:bold">new</span> RuntimeException(e);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">writeTitleRow</span>(Sheet sheet, List&lt;Field&gt; filteredFields) {
+</span></span><span style="display:flex;"><span>        Row row = sheet.<span style="color:#658b00">createRow</span>(0);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = 0; i &lt; filteredFields.<span style="color:#658b00">size</span>(); i++) {
+</span></span><span style="display:flex;"><span>            Cell cell = row.<span style="color:#658b00">createCell</span>(i);
+</span></span><span style="display:flex;"><span>            Excel excel = filteredFields.<span style="color:#658b00">get</span>(i).<span style="color:#658b00">getAnnotation</span>(Excel.<span style="color:#658b00">class</span>);
+</span></span><span style="display:flex;"><span>            cell.<span style="color:#658b00">setCellValue</span>(excel.<span style="color:#658b00">name</span>());
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">writeDataRow</span>(Row userRow, User user, List&lt;Field&gt; filteredFields) <span style="color:#8b008b;font-weight:bold">throws</span> IllegalAccessException {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// 构造字段的值字典
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        Map&lt;Field, Map&lt;String, String&gt;&gt; fieldDict = buildFieldDict(filteredFields);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> (<span style="color:#00688b;font-weight:bold">int</span> i = 0; i &lt; filteredFields.<span style="color:#658b00">size</span>(); i++) {
+</span></span><span style="display:flex;"><span>            Cell cell = userRow.<span style="color:#658b00">createCell</span>(i);
+</span></span><span style="display:flex;"><span>            Field field = filteredFields.<span style="color:#658b00">get</span>(i);
+</span></span><span style="display:flex;"><span>            field.<span style="color:#658b00">setAccessible</span>(<span style="color:#8b008b;font-weight:bold">true</span>); <span style="color:#228b22">// 使私有变量可以访问
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            Excel annotation = field.<span style="color:#658b00">getAnnotation</span>(Excel.<span style="color:#658b00">class</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> (StringUtils.<span style="color:#658b00">hasLength</span>(annotation.<span style="color:#658b00">dictValue</span>())) {
+</span></span><span style="display:flex;"><span>                String key = String.<span style="color:#658b00">valueOf</span>(field.<span style="color:#658b00">get</span>(user));
+</span></span><span style="display:flex;"><span>                cell.<span style="color:#658b00">setCellValue</span>(fieldDict.<span style="color:#658b00">get</span>(field).<span style="color:#658b00">get</span>(key));
+</span></span><span style="display:flex;"><span>            } <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>                cell.<span style="color:#658b00">setCellValue</span>(String.<span style="color:#658b00">valueOf</span>(field.<span style="color:#658b00">get</span>(user)));
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            field.<span style="color:#658b00">setAccessible</span>(<span style="color:#8b008b;font-weight:bold">false</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> <span style="color:#8b008b;font-weight:bold">static</span> Map&lt;Field, Map&lt;String, String&gt;&gt; <span style="color:#008b45">buildFieldDict</span>(List&lt;Field&gt; filteredFields) {
+</span></span><span style="display:flex;"><span>        Map&lt;Field, Map&lt;String, String&gt;&gt; fieldDict = <span style="color:#8b008b;font-weight:bold">new</span> HashMap&lt;&gt;();
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">for</span> (Field field : filteredFields) {
+</span></span><span style="display:flex;"><span>            Excel annotation = field.<span style="color:#658b00">getAnnotation</span>(Excel.<span style="color:#658b00">class</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 对字典值进行解析
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#8b008b;font-weight:bold">if</span> (StringUtils.<span style="color:#658b00">hasLength</span>(annotation.<span style="color:#658b00">dictValue</span>())) {
+</span></span><span style="display:flex;"><span>                String d = annotation.<span style="color:#658b00">dictValue</span>();
+</span></span><span style="display:flex;"><span>                String[] kvs = d.<span style="color:#658b00">split</span>(<span style="color:#cd5555">&#34;,&#34;</span>);
+</span></span><span style="display:flex;"><span>                Map&lt;String, String&gt; map = <span style="color:#8b008b;font-weight:bold">new</span> HashMap&lt;&gt;();
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">for</span> (String kv : kvs) {
+</span></span><span style="display:flex;"><span>                    String[] split = kv.<span style="color:#658b00">split</span>(<span style="color:#cd5555">&#34;=&#34;</span>);
+</span></span><span style="display:flex;"><span>                    map.<span style="color:#658b00">put</span>(split[0], split[1]);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                fieldDict.<span style="color:#658b00">put</span>(field, map);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> fieldDict;
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
+                    
+                    <HR width="100%" id="EOF">
+		    <p style="color:#777;">Last modified on 2023-01-05</p>
+                    
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			Next<br>No newer posts.
+                </a>
+                
+                
+                
+                <a class="older-posts" href="/post/spring%E6%BA%90%E7%A0%81demo/">
+			Previous<br>Spring源码Demo
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+<div id="gitalk-container"></div>
+
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+
+
+                    </div>
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+</div>
+            </div>
+    
+    <script src="/js/journal.js"></script></body>
+</html>
