@@ -23,7 +23,7 @@
 2.注解放置位置是字段
 1 2 3 4 5 6 7 8 9 10 @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.FIELD) @Documented public @interface Excel { String name() default &#34;&#34;; String dictValue() default &#34;&#34;; } 实体类使用 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 public class User { private String id; @Excel(name = &#34;姓名&#34;) private String name; @Excel(name = &#34;年龄&#34;) private int age; /** * 性别 0-女 1-男 */ @Excel(name = &#34;性别&#34;, dictValue = &#34;0=女,1=男&#34;) private int gender; // get set toString() ." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/" /><meta property="article:section" content="post" />
+<meta property="og:url" content="https://kother.top/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/" /><meta property="article:section" content="post" />
 <meta property="article:published_time" content="2023-01-05T20:43:53+08:00" />
 <meta property="article:modified_time" content="2023-01-05T20:43:53+08:00" /><meta property="og:site_name" content="My Blog" />
 
@@ -107,7 +107,7 @@
 <body>
     	<div id="app"><div id="sideContainer" class="side-container">
     
-    <a class="a-block nav-head false" href="https://akother.github.io/">
+    <a class="a-block nav-head false" href="https://kother.top/">
     
         <div class="nav-title">
             争的是滔滔不绝
@@ -417,7 +417,7 @@ Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopene
                 menu
             </i>
         </button>
-        <a id="navTitle" class="navbar-brand" href="https://akother.github.io/">
+        <a id="navTitle" class="navbar-brand" href="https://kother.top/">
             争的是滔滔不绝
         </a>
         
@@ -431,7 +431,7 @@ Ported from <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopene
 </nav>
 <div class="single-column-header-container" id="pageHead"
      v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
-    <a href="https://akother.github.io/">
+    <a href="https://kother.top/">
         <div class="single-column-header-title">争的是滔滔不绝</div>
         
         <div class="single-column-header-subtitle">记录点有趣的.</div>

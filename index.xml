@@ -2,24 +2,24 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>争的是滔滔不绝</title>
-    <link>https://akother.github.io/</link>
+    <link>https://kother.top/</link>
     <description>Recent content on 争的是滔滔不绝</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Kother.</copyright>
     <lastBuildDate>Thu, 05 Jan 2023 20:43:53 +0800</lastBuildDate>
     
-        <atom:link href="https://akother.github.io/index.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="https://kother.top/index.xml" rel="self" type="application/rss+xml" />
     
     
     
         <item>
         <title>自定义注解导出信息 Excel导出</title>
-        <link>https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/</link>
+        <link>https://kother.top/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/</link>
         <pubDate>Thu, 05 Jan 2023 20:43:53 +0800</pubDate>
         
-        <guid>https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/</guid>
-        <description>争的是滔滔不绝 https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/ -&lt;h2 id=&#34;使用注解目的&#34;&gt;使用注解目的&lt;/h2&gt;
+        <guid>https://kother.top/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/</guid>
+        <description>争的是滔滔不绝 https://kother.top/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/ -&lt;h2 id=&#34;使用注解目的&#34;&gt;使用注解目的&lt;/h2&gt;
 &lt;p&gt;导出某个实体类为Excel的一行时，只需要将注解放在字段上面，即可在导出时自动为其添加列名称。&lt;/p&gt;
 &lt;h2 id=&#34;注解定义&#34;&gt;注解定义&lt;/h2&gt;
 &lt;p&gt;1.设置为运行时有效&lt;/p&gt;
@@ -266,18 +266,18 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;- https://akother.github.io/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/ - Kother.</description>
+&lt;/div&gt;- https://kother.top/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/ - Kother.</description>
         </item>
     
     
     
         <item>
         <title>Spring源码Demo</title>
-        <link>https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/</link>
+        <link>https://kother.top/post/spring%E6%BA%90%E7%A0%81demo/</link>
         <pubDate>Tue, 03 Jan 2023 20:30:07 +0800</pubDate>
         
-        <guid>https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/</guid>
-        <description>争的是滔滔不绝 https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/ -&lt;!-- raw HTML omitted --&gt;
+        <guid>https://kother.top/post/spring%E6%BA%90%E7%A0%81demo/</guid>
+        <description>争的是滔滔不绝 https://kother.top/post/spring%E6%BA%90%E7%A0%81demo/ -&lt;!-- raw HTML omitted --&gt;
 &lt;h2 id=&#34;demo内容&#34;&gt;Demo内容&lt;/h2&gt;
 &lt;p&gt;一个简单模拟Spring源码的Demo，内容包括如下：&lt;/p&gt;
 &lt;p&gt;1.模拟Spring中Bean的生命周期
@@ -882,18 +882,18 @@
 &lt;p&gt;singletonFactories&lt;/p&gt;
 &lt;p&gt;打破循环&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301052153589.png&#34; alt=&#34;image-20230105215356549&#34;&gt;&lt;/p&gt;
-- https://akother.github.io/post/spring%E6%BA%90%E7%A0%81demo/ - Kother.</description>
+- https://kother.top/post/spring%E6%BA%90%E7%A0%81demo/ - Kother.</description>
         </item>
     
     
     
         <item>
         <title>MySQL性能调优与架构设计 笔记</title>
-        <link>https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</link>
+        <link>https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</link>
         <pubDate>Tue, 03 Jan 2023 17:46:16 +0800</pubDate>
         
-        <guid>https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</guid>
-        <description>争的是滔滔不绝 https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;mysql性能调优与架构设计&#34;&gt;MySQL性能调优与架构设计&lt;/h1&gt;
+        <guid>https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</guid>
+        <description>争的是滔滔不绝 https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;mysql性能调优与架构设计&#34;&gt;MySQL性能调优与架构设计&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;读者记&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;本文是读《MySQL性能调优与架构设计》时划的一些笔记，一些读后体会写在微信读书中了。读完确实是学到了很多，不管对于MySQL的架构和底层了解都增进了几分，很适合初学MySQL时研读（当然基础的SQL和数据库知识还是需要有的），但是有些内容可能比较过期，比如“查询缓存”等再在MySQL 8.0+就已经去除了（MySQL 查询不建议使用缓存，因为查询缓存失效在实际业务场景中可能会非常频繁，假如对一个表更新的话，这个表上的所有的查询缓存都会被清空），光看本书肯定是不够的，还需要辅以别的专业书籍/博客等自学。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;前言&lt;/strong&gt;&lt;/p&gt;
@@ -1094,18 +1094,18 @@
 &lt;p&gt;只要将我们数据库中被持久化下来的数据通过应用程序调用Lucene的相关API写入，并利用Lucene创建好索引，然后就可以通过调用Lucene所提供的数据检索API得到需要访问的数据，而且可以进行全模糊匹配。&lt;/p&gt;
 &lt;h3 id=&#34;高可用设计之mysql监控&#34;&gt;高可用设计之MySQL监控&lt;/h3&gt;
 &lt;p&gt;少数几台主机的监控在大多数时候可以通过几个简单的脚本（Shell或者Perl等）、发发邮件，或再高一点，发发手机报警短信，基本就搞定了。监控点少，发出的信息量也少。很多状态信息甚至都可以通过维护人员登录到主机上面来定时检查（Check）即可。但如果有上百台主机，仍然仅仅依靠在每台主机上面部署几个简单的脚本的方式来进行监控，后期的管理维护成本就会非常高了。&lt;/p&gt;
-- https://akother.github.io/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ - Kother.</description>
+- https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ - Kother.</description>
         </item>
     
     
     
         <item>
         <title>JWT基础介绍</title>
-        <link>https://akother.github.io/post/jwt/</link>
+        <link>https://kother.top/post/jwt/</link>
         <pubDate>Wed, 28 Dec 2022 17:58:25 +0800</pubDate>
         
-        <guid>https://akother.github.io/post/jwt/</guid>
-        <description>争的是滔滔不绝 https://akother.github.io/post/jwt/ -&lt;h1 id=&#34;jwt&#34;&gt;JWT&lt;/h1&gt;
+        <guid>https://kother.top/post/jwt/</guid>
+        <description>争的是滔滔不绝 https://kother.top/post/jwt/ -&lt;h1 id=&#34;jwt&#34;&gt;JWT&lt;/h1&gt;
 &lt;h2 id=&#34;传统认证规则&#34;&gt;传统认证规则&lt;/h2&gt;
 &lt;p&gt;互联网服务离不开用户认证。一般流程是下面这样（ Session和Cookie相关）&lt;/p&gt;
 &lt;blockquote&gt;
@@ -1174,7 +1174,7 @@
 &lt;p&gt;（6）为了减少盗用，JWT 不应该使用 HTTP 协议明码传输，要使用 HTTPS 协议传输。&lt;/p&gt;
 &lt;h2 id=&#34;详细使用&#34;&gt;详细使用&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&#34;https://www.jianshu.com/p/a2866247a591&#34;&gt;https://www.jianshu.com/p/a2866247a591&lt;/a&gt;&lt;/p&gt;
-- https://akother.github.io/post/jwt/ - Kother.</description>
+- https://kother.top/post/jwt/ - Kother.</description>
         </item>
     
     
