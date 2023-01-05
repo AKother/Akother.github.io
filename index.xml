@@ -1,9 +1,9 @@
 <?xml-stylesheet href="/rss.xsl" type="text/xsl"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>争的是滔滔不绝</title>
+    <title>Kother&#39;s Blog</title>
     <link>https://kother.top/</link>
-    <description>Recent content on 争的是滔滔不绝</description>
+    <description>Recent content on Kother&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Kother.</copyright>
@@ -19,7 +19,7 @@
         <pubDate>Thu, 05 Jan 2023 20:43:53 +0800</pubDate>
         
         <guid>https://kother.top/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/</guid>
-        <description>争的是滔滔不绝 https://kother.top/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/ -&lt;h2 id=&#34;使用注解目的&#34;&gt;使用注解目的&lt;/h2&gt;
+        <description>Kother&#39;s Blog https://kother.top/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/ -&lt;h2 id=&#34;使用注解目的&#34;&gt;使用注解目的&lt;/h2&gt;
 &lt;p&gt;导出某个实体类为Excel的一行时，只需要将注解放在字段上面，即可在导出时自动为其添加列名称。&lt;/p&gt;
 &lt;h2 id=&#34;注解定义&#34;&gt;注解定义&lt;/h2&gt;
 &lt;p&gt;1.设置为运行时有效&lt;/p&gt;
@@ -277,7 +277,7 @@
         <pubDate>Tue, 03 Jan 2023 20:30:07 +0800</pubDate>
         
         <guid>https://kother.top/post/spring%E6%BA%90%E7%A0%81demo/</guid>
-        <description>争的是滔滔不绝 https://kother.top/post/spring%E6%BA%90%E7%A0%81demo/ -&lt;!-- raw HTML omitted --&gt;
+        <description>Kother&#39;s Blog https://kother.top/post/spring%E6%BA%90%E7%A0%81demo/ -&lt;!-- raw HTML omitted --&gt;
 &lt;h2 id=&#34;demo内容&#34;&gt;Demo内容&lt;/h2&gt;
 &lt;p&gt;一个简单模拟Spring源码的Demo，内容包括如下：&lt;/p&gt;
 &lt;p&gt;1.模拟Spring中Bean的生命周期
@@ -893,7 +893,7 @@
         <pubDate>Tue, 03 Jan 2023 17:46:16 +0800</pubDate>
         
         <guid>https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</guid>
-        <description>争的是滔滔不绝 https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;mysql性能调优与架构设计&#34;&gt;MySQL性能调优与架构设计&lt;/h1&gt;
+        <description>Kother&#39;s Blog https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;mysql性能调优与架构设计&#34;&gt;MySQL性能调优与架构设计&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;读者记&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;本文是读《MySQL性能调优与架构设计》时划的一些笔记，一些读后体会写在微信读书中了。读完确实是学到了很多，不管对于MySQL的架构和底层了解都增进了几分，很适合初学MySQL时研读（当然基础的SQL和数据库知识还是需要有的），但是有些内容可能比较过期，比如“查询缓存”等再在MySQL 8.0+就已经去除了（MySQL 查询不建议使用缓存，因为查询缓存失效在实际业务场景中可能会非常频繁，假如对一个表更新的话，这个表上的所有的查询缓存都会被清空），光看本书肯定是不够的，还需要辅以别的专业书籍/博客等自学。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;前言&lt;/strong&gt;&lt;/p&gt;
@@ -1105,7 +1105,7 @@
         <pubDate>Wed, 28 Dec 2022 17:58:25 +0800</pubDate>
         
         <guid>https://kother.top/post/jwt/</guid>
-        <description>争的是滔滔不绝 https://kother.top/post/jwt/ -&lt;h1 id=&#34;jwt&#34;&gt;JWT&lt;/h1&gt;
+        <description>Kother&#39;s Blog https://kother.top/post/jwt/ -&lt;h1 id=&#34;jwt&#34;&gt;JWT&lt;/h1&gt;
 &lt;h2 id=&#34;传统认证规则&#34;&gt;传统认证规则&lt;/h2&gt;
 &lt;p&gt;互联网服务离不开用户认证。一般流程是下面这样（ Session和Cookie相关）&lt;/p&gt;
 &lt;blockquote&gt;
