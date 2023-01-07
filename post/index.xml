@@ -7,7 +7,32 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Kother.</copyright>
-    <lastBuildDate>Thu, 05 Jan 2023 20:43:53 +0800</lastBuildDate><atom:link href="https://kother.top/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 07 Jan 2023 22:08:34 +0800</lastBuildDate><atom:link href="https://kother.top/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>阿里进行单元测试的方法 学习记录</title>
+      <link>https://kother.top/post/%E9%98%BF%E9%87%8C%E8%BF%9B%E8%A1%8C%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E7%9A%84%E6%96%B9%E6%B3%95-%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</link>
+      <pubDate>Sat, 07 Jan 2023 22:08:34 +0800</pubDate>
+      
+      <guid>https://kother.top/post/%E9%98%BF%E9%87%8C%E8%BF%9B%E8%A1%8C%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E7%9A%84%E6%96%B9%E6%B3%95-%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</guid>
+      <description>为什么需要单元测试？ 学习文章：阿里是如何进行单元测试培训的？（附回放视频）
+公众号：阿里开发者
+作为后端，我认为写出高质量代码的前提是要会做高质量的单元测试。没有代码是可以在写出来的时候就没有BUG的，而互联网公司的人力、物力、时间皆是资源，倘若后端不进行自测，遗漏的BUG交由测试后，一定会产生更多的交流沟通成本，甚至花费相比自测要多好几倍的时间。每一个测试都是对自己代码的保证以及对下一阶段人员的承诺。
+因此在“阿里开发者”公众号发布单元测试培训文章后，我再次对自己的单元测试技能进行了一次培训，耗时三个多小时左右，写了这篇博客作为总结。
+本次培训质量很高，我仅记录一些培训时的笔记和代码以及个人体会，如果有详细培训的需求，可以关注公众号然后查找“阿里是如何进行单元测试培训的？（附回放视频）”文章。
+什么是单元测试？ 程序单元是应用的最小可测试部件。在过程化编程中，一个单元就是单个程序、函数、过程等；对于面向对象编程，最小单元就是方法，包括基类、抽象类、或者派生类中的方法。
+以下是单元测试、集成测试、系统级别测试的对比
+单元测试 集成测试 系统级别测试 编写人员 开发 开发 开发 / 测试 编写场地 生产代码仓库内 生产代码仓库内 生产代码仓库内 / 生产代码仓库外 编写时间 代码发布前 代码发布前 代码发布前 / 代码发布后 编写成本 低 中 高 编写难度 低 中 高 反馈速度 极快，秒级 较慢，分钟级 慢，天级别 覆盖面积 代码行覆盖60-80% 分支覆盖40-60% 功能级别覆盖HappyPath 核心保障链路 环境依赖 代码级别，不依赖环境 依赖日常或本地环境 依赖预发或生产环境 外部依赖模拟 全部模拟 部分模拟 不模拟，完全使用真实环境 一个单元测试小Demo 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 @Service public class UserService { /** 定义依赖对象 */ /** 用户DAO */ @Autowired private UserDAO userDAO; /** * 查询用户 * * @param companyId 公司标识 * @param startIndex 开始序号 * @param pageSize 分页大小 * @return 用户分页数据 */ public PageDataVO&amp;lt;UserVO&amp;gt; queryUser(Long companyId, Long startIndex, Integer pageSize) { //入参校验 if(ValidationUtil.</description>
+    </item>
+    
+    <item>
+      <title>ACM模式 Java</title>
+      <link>https://kother.top/post/acm%E6%A8%A1%E5%BC%8F-java/</link>
+      <pubDate>Fri, 06 Jan 2023 17:59:34 +0800</pubDate>
+      
+      <guid>https://kother.top/post/acm%E6%A8%A1%E5%BC%8F-java/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>自定义注解导出信息 Excel导出</title>
       <link>https://kother.top/post/%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%A8%E8%A7%A3%E5%AF%BC%E5%87%BA%E4%BF%A1%E6%81%AF-excel%E5%AF%BC%E5%87%BA/</link>
