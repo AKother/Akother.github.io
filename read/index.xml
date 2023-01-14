@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Reads on Kother&#39;s Blog</title>
+    <link>https://kother.top/read/</link>
+    <description>Recent content in Reads on Kother&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>Kother.</copyright>
+    <lastBuildDate>Thu, 12 Jan 2023 21:21:55 +0800</lastBuildDate><atom:link href="https://kother.top/read/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>MySQL是怎样运行的 读书笔记</title>
+      <link>https://kother.top/read/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Thu, 12 Jan 2023 21:21:55 +0800</pubDate>
+      
+      <guid>https://kother.top/read/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+      <description>MySQL是怎样运行的-读书笔记 总结了一些关键或有趣的知识点
+[TOC]
+第四章 InnDB InnoDB页简介 InnoDB将数据划分为若干个页，以页作为磁盘和内存之间交互的基本单位 每个页大小一般为16KB: 16384字节 对于存储空间非常大的列，会分散页，在真实数据中用20字节保存指向其他页的地址 InnoDB行格式 可以在创建表时决定行格式，有四种
+Compact Redundant Dynamic（默认行格式） Compressed 其中Dynamic和Compressed不会在记录字段中存储真实数据，而是都存储到其他页
+Compressed和Dynamic的区别在于Compressed会用压缩算法对页面进行压缩
+Compact 额外信息 变长字段长度列表：变长的数据类型的长度按照逆序存放（NULL列不存）
+一个字符需要W个字节，如果字段为varchar(M)，该字段最多可以存储M个字符，因此最多占用字节数为WxM，假设它实际上占用了L个字节
+如果 WxM &amp;lt;= 255，用1个字节表示占用字节数
+如果 WxM &amp;gt; 255
+L &amp;lt;= 127 : 1个字节 L &amp;gt; 127 : 2个字节 NULL值列表：存储值为NULL的列
+记录头信息：附加信息
+隐藏列 列名 是否必须 占用空间 描述 DB_ROW_ID 否 6字节 行ID，唯一标识一条记录 DB_TRX_ID 是 6字节 事务ID DB_ROLL_PTR 是 7字节 回滚指针 char(M)列的存储格式 char(M)的实际存储大小会根据字符集不同和设置的初始值不同而改变。
+对于使用UTF8字符集的char(10)的列来说，该列存储的数据字节长度的范围是10～30个字节。
+目的是为了省去再分配步骤：防止将来更新该列的值的字节长度大于原有值的字节长度而小于10个字节时，可以在该记录处直接更新，而不是在存储空间中重新分配一个新的记录空间，导致原有的记录空间成为所谓的碎片。
+InnoDB对主键的生成策略 如果用户有自定义主键，选这个
+如果用户没有自定义主键，选一个Unique键
+如果都没有，InnoDB为表默认添加一个DB_ROW_ID（行ID）的主键（原本该列不存在）
+行溢出数据 VARCHAR(M)最多能存储的数据 为了存储一个VARCHAR(M)类型的列，其实需要占用3部分存储空间（字节）：</description>
+    </item>
+    
+    <item>
+      <title>Java并发编程实战 读书笔记</title>
+      <link>https://kother.top/read/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Wed, 11 Jan 2023 17:36:19 +0800</pubDate>
+      
+      <guid>https://kother.top/read/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+      <description>Java并发编程实战-读书笔记 记录一些读Java并发编程实战的笔记和个人想法，基本围绕重点，会有一些面试内容的补充，可用作该书快速浏览（但还是推荐去看原书，质量很高，代码示例给的很清晰）或复习
+[TOC]
+第一章 简介 第一章主要内容还是介绍了一下并发的重要性，以及Java线程大概简介
+线程是Java语言中不可或缺的重要功能，它们能使复杂的异步代码变得更简单，从而极大地简化了复杂系统的开发。 线程的优势 线程能够将大部分的异步工作流转换成串行工作流，因此能更好地模拟人类的工作方式和交互方式。
+发挥多处理器的强大能力：由于基本的调度单位是线程，因此如果在程序中只有一个线程，那么最多同时只能在一个处理器上运行。在双处理器系统上，单线程的程序只能使用一半的CPU资源，而在拥有100个处理器的系统上，将有99%的资源无法使用。
+第二章 线程安全性 什么对象会是线程安全的？ 无状态对象：不包含任何Field，也不包含对任何其他类中Field的引用
+不可变对象：1.所有field都是final修饰 2.对象创建以后状态不修改 3.对象正确创建（即创建期间对象没有逸出泄漏）
+竞态条件 竞态条件的产生源于：某个结果的正确性依赖多个线程的执行次序（只是依赖，并不一定是错误）。
+先检查后执行竞态条件：首先观察到某个条件为真，再根据该“真条件”去执行对应的行为。但在[观察结果，执行行为]这个区间内，可能这个条件已经有所改变。
+也就是“观察”和“行为”是两个动作，并非原子性动作。如果假设任何线程在执行途中都很有可能睡上一会儿（尽管可能只是比另一个线程慢一点点），在它休眠时它之前做的观察都可能白费。
+因此基于错误条件而执行某些行为可能带来错误结果。
+内置锁 ⬇️同步代码块：
+锁 锁保护的代码块 1 2 3 4 // 在同一时刻只有一个线程可以执行service方法。 synchronized (lock){ // 访问或修改由锁保护的共享状态 } 性质：
+互斥锁：最多只有一个线程可以拿这个锁
+可重入锁解决死锁场景 之前一直不太明白可重入锁的作用，看了下面这个例子以后恍然大悟。
+下面有两个类，LoggingWidget继承了Widget类，重要的是它重写了父类的doSomething方法，这是一个被synchronized标志的方法。
+1 2 3 4 5 6 // 父类 public class Widget{ public synchronized void doSomething（）{ …… } } 1 2 3 4 5 6 7 // 子类 public class LoggingWidget extends Widget{ public synchronized void doSomething（）{ System.</description>
+    </item>
+    
+    <item>
+      <title>MySQL性能调优与架构设计 笔记</title>
+      <link>https://kother.top/read/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Tue, 03 Jan 2023 17:46:16 +0800</pubDate>
+      
+      <guid>https://kother.top/read/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</guid>
+      <description>MySQL性能调优与架构设计 读者记
+本文是读《MySQL性能调优与架构设计》时划的一些笔记，一些读后体会写在微信读书中了。读完确实是学到了很多，不管对于MySQL的架构和底层了解都增进了几分，很适合初学MySQL时研读（当然基础的SQL和数据库知识还是需要有的），但是有些内容可能比较过期，比如“查询缓存”等再在MySQL 8.0+就已经去除了（MySQL 查询不建议使用缓存，因为查询缓存失效在实际业务场景中可能会非常频繁，假如对一个表更新的话，这个表上的所有的查询缓存都会被清空），光看本书肯定是不够的，还需要辅以别的专业书籍/博客等自学。
+前言
+对MySQL的优化更多的不在于数据库本身，而在于架构的设计，即如何通过分表、分库、复制、Cache等技术使得数据库能合理分配访问压力。 第一篇 基础篇 1985年，瑞典几位志同道合的小伙子（以David Axmark为首）成立了一家公司，这就是MySQL AB的前身。这家公司最初并不是为了开发数据库产品，而是因为在实现其他目标的过程中，需要一个数据库。他们希望能够使用开源的产品，但当时并没有合适的选择，于是就自己开发。
+从安装方面来说，MySQL安装包大小仅100MB左右，与那几大商业数据库相比完全不是一个数量级。它的安装也比Oracle等商业数据库容易很多，不论是通过已经编译好的二进制分发包，还是通过源码编译安装，都非常简单。 再从数据库创建方面来比较，MySQL仅仅需要一个简单的CREATE DATABASE命令即可在瞬间完成建库的动作，而Oracle数据库与之相比，创建一个数据库简直就是一个庞大的工程。当然，二者在概念上存在一定差别也不可否认。
+MySQL架构组成 如果要开启系统记录错误日志的功能，须要在启动时开启&amp;ndash;log-error选项。错误日志默认存放在数据目录下，以hostname.err命名。但是可以使用命令：&amp;ndash;log-error[=file_name]修改其存放目录和文件名。
+为了方便维护，有时候会希望将错误日志中的内容做备份并重新开始记录，这时候就可以利用MySQL的FLUSH LOGS命令来告诉MySQL备份旧日志文件并生成新的日志文件。备份文件名以“.old”结尾。
+慢查询日志：slow query log 顾名思义，慢查询日志中记录的是执行时间较长的Query，也就是我们常说的Slow Query，通过设&amp;ndash;log-slow-queries[=file_name]来打开该功能并设置记录位置和文件名，默认文件名为hostname-slow.log，默认目录也是数据目录。
+与表相关的元数据（meta）信息都存放在“.frm”文件，包括表结构的定义信息等。
+MySQL可以看成是两层架构，==第一层我们通常叫做SQL Layer，在MySQL数据库系统处理底层数据之前的所有工作都是在这一层完成的，包括权限判断、Query解析、执行计划优化、query cache的处理等；第二层就是存储引擎层，通常叫做Storage Engine Layer，也就是底层数据存取操作实现部分，由多种存储引擎共同组成。==
+如果是一个Query类型的请求，它将控制权交给Query解析器。Query解析器首先分析是不是一个select类型的Query，如果是，则调用查询缓存模块，让它检查该Query在Query cache中是否已经存在。如果有，则直接将cache中的数据返回给连接线程模块，然后通过与客户端的连接线程将数据传输给客户端。如果是一个不能被缓存（cache）的Query类型，或者cache中没有该Query的数据，那么Query将被继续传回Query解析器，让Query解析器进行相应处理，再通过Query分发器分发给相关处理模块。
+MySQL存储引擎简介 MyISAM支持以下三种类型的索引。 1. B-Tree索引 B-Tree索引，顾名思义，就是所有的索引节点都按照balance tree的数据结构来存储，所有的索引数据节点都在叶节点。 2. R-Tree索引 R-Tree索引的存储方式和b-tree索引有一些区别，主要设计用于为存储空间和多维数据的字段做索引，目前的MySQL版本仅支持geometry类型的字段作索引。 3. Full-text索引 Full-text索引就是我们常说的全文索引，它的存储结构也是b-tree。主要是为了解决当须要用like查询时的低效问题。
+MyISAM存储引擎的某个表文件出错之后，仅影响到该表，不会影响到其他表，更不会影响到数据库。如果数据库正在运行过程中发现某个MyISAM表出现问题了，则可以在线通过Check Table命令来尝试校验它，并可以通过repair table命令来尝试修复。
+1.支持事务安全 InnoDB在功能方面最重要的一点就是对事务安全的支持，这无疑是让InnoDB成为MySQL最为流行的存储引擎的一个非常重要原因。而且它实现了SQL92标准所定义的所有4个级别的要求（READ UNCOMMITTED、READ COMMITTED、REPEATABLE和SERIALIZABLE）。对事务安全的支持，无疑让很多之前因为特殊业务要求而不得不放弃使用MySQL的用户重新支持MySQL，那些之前对数据库选型持观望态度的用户，也大大增加了对MySQL好感。
+2.数据多版本读取 InnoDB在事务支持的同时，为了保证数据的一致性及并发的性能，通过UNDO信息实现了数据的多版本读取。
+3.锁定机制的改进 InnoDB改变了MyISAM的锁机制，实现了行锁。虽然InnoDB行锁机制的实现是通过索引来完成的，但毕竟在数据库中，99%的SQL语句都是要使用索引来做数据检索的。所以，行锁定机制也无疑为InnoDB在承受高并发压力的环境下增强了不小的竞争力。
+4.实现外键 InnoDB实现了外键引用这一数据库的重要特性，使在数据库端控制部分数据的完整性成为可能。虽然很多数据库系统调优专家都建议不要这样做，但是对于不少用户来说在数据库端加入外键控制可能仍然是成本最低的选择。
+MySQL安全管理 注意：若某用户向某个表插入（INSERT）数据，但他在该表中的某列上没有INSERT权限，则该列的数据将以默认值填充。
+MySQL备份与恢复 数据丢失应用场景 （1）人为操作失误造成某些数据被误操作；
+（2）软件BUG造成数据部分或全部丢失；
+（3）硬件故障造成数据库数据部分或全部丢失；
+（4）因安全漏洞，入侵者将数据恶意破坏。
+逻辑备份可以说是最简单，也是目前中小型系统最常使用的备份方式。在MySQL中常用的逻辑备份主要就是两种，一种是将数据生成为可以完全重现当前数据库中数据的INSERT语句，另外一种就是将数据通过逻辑备份软件，将数据库表的数据以特定分隔符进行分隔后记录在文本文件中。
+数据库的物理对象主要由数据库的物理数据文件、日志文件及配置文件等组成。在MySQL数据库中，除了MySQL系统共有的一些日志文件和系统表的数据文件之外，每一种存储引擎还会有不太一样的物理对象
+MyISAM存储引擎文件的物理文件比较集中，而且不支持事务没有REDO和UNDO日志，对数据一致性的要求也并不是特别高，所以MyISAM存储引擎表的物理备份也比较简单，只要将MyISAM的物理文件复制出来即可。
+mysqlhotcopy是一个用perl编写的使用程序，其主要实现原理实际上就是先锁住（LOCK）表，然后执行FLUSH TABLES动作，该正常关闭的表正常关闭，该进行flush同步的数据都进行同步，然后通过执行OS级别的复制（cp等）命令，将须要备份的表或数据库的所有物理文件都复制到指定的备份集位置。</description>
+    </item>
+    
+  </channel>
+</rss>

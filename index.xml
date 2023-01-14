@@ -1399,11 +1399,11 @@
     
         <item>
         <title>MySQL是怎样运行的 读书笔记</title>
-        <link>https://kother.top/post/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+        <link>https://kother.top/read/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
         <pubDate>Thu, 12 Jan 2023 21:21:55 +0800</pubDate>
         
-        <guid>https://kother.top/post/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
-        <description>Kother&#39;s Blog https://kother.top/post/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;mysql是怎样运行的-读书笔记&#34;&gt;MySQL是怎样运行的-读书笔记&lt;/h1&gt;
+        <guid>https://kother.top/read/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+        <description>Kother&#39;s Blog https://kother.top/read/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;mysql是怎样运行的-读书笔记&#34;&gt;MySQL是怎样运行的-读书笔记&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;总结了一些关键或有趣的知识点&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -4077,18 +4077,18 @@
 &lt;li&gt;等待状态是一样的&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301122117997.png&#34; alt=&#34;image-20230112211703846&#34;&gt;&lt;/p&gt;
-- https://kother.top/post/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ - Kother.</description>
+- https://kother.top/read/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ - Kother.</description>
         </item>
     
     
     
         <item>
         <title>Java并发编程实战 读书笔记</title>
-        <link>https://kother.top/post/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+        <link>https://kother.top/read/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
         <pubDate>Wed, 11 Jan 2023 17:36:19 +0800</pubDate>
         
-        <guid>https://kother.top/post/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
-        <description>Kother&#39;s Blog https://kother.top/post/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;java并发编程实战-读书笔记&#34;&gt;Java并发编程实战-读书笔记&lt;/h1&gt;
+        <guid>https://kother.top/read/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+        <description>Kother&#39;s Blog https://kother.top/read/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;java并发编程实战-读书笔记&#34;&gt;Java并发编程实战-读书笔记&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;记录一些读Java并发编程实战的笔记和个人想法，基本围绕重点，会有一些面试内容的补充，可用作该书快速浏览（但还是推荐去看原书，质量很高，代码示例给的很清晰）或复习&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -7306,7 +7306,7 @@ UNIX系统的&lt;strong&gt;vmstat命令和Windows系统的perfmon工具&lt;/stro
 &lt;p&gt;final&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-- https://kother.top/post/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ - Kother.</description>
+- https://kother.top/read/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ - Kother.</description>
         </item>
     
     
@@ -8953,11 +8953,11 @@ UNIX系统的&lt;strong&gt;vmstat命令和Windows系统的perfmon工具&lt;/stro
     
         <item>
         <title>MySQL性能调优与架构设计 笔记</title>
-        <link>https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</link>
+        <link>https://kother.top/read/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</link>
         <pubDate>Tue, 03 Jan 2023 17:46:16 +0800</pubDate>
         
-        <guid>https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</guid>
-        <description>Kother&#39;s Blog https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;mysql性能调优与架构设计&#34;&gt;MySQL性能调优与架构设计&lt;/h1&gt;
+        <guid>https://kother.top/read/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/</guid>
+        <description>Kother&#39;s Blog https://kother.top/read/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;mysql性能调优与架构设计&#34;&gt;MySQL性能调优与架构设计&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;读者记&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;本文是读《MySQL性能调优与架构设计》时划的一些笔记，一些读后体会写在微信读书中了。读完确实是学到了很多，不管对于MySQL的架构和底层了解都增进了几分，很适合初学MySQL时研读（当然基础的SQL和数据库知识还是需要有的），但是有些内容可能比较过期，比如“查询缓存”等再在MySQL 8.0+就已经去除了（MySQL 查询不建议使用缓存，因为查询缓存失效在实际业务场景中可能会非常频繁，假如对一个表更新的话，这个表上的所有的查询缓存都会被清空），光看本书肯定是不够的，还需要辅以别的专业书籍/博客等自学。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;前言&lt;/strong&gt;&lt;/p&gt;
@@ -9158,7 +9158,7 @@ UNIX系统的&lt;strong&gt;vmstat命令和Windows系统的perfmon工具&lt;/stro
 &lt;p&gt;只要将我们数据库中被持久化下来的数据通过应用程序调用Lucene的相关API写入，并利用Lucene创建好索引，然后就可以通过调用Lucene所提供的数据检索API得到需要访问的数据，而且可以进行全模糊匹配。&lt;/p&gt;
 &lt;h3 id=&#34;高可用设计之mysql监控&#34;&gt;高可用设计之MySQL监控&lt;/h3&gt;
 &lt;p&gt;少数几台主机的监控在大多数时候可以通过几个简单的脚本（Shell或者Perl等）、发发邮件，或再高一点，发发手机报警短信，基本就搞定了。监控点少，发出的信息量也少。很多状态信息甚至都可以通过维护人员登录到主机上面来定时检查（Check）即可。但如果有上百台主机，仍然仅仅依靠在每台主机上面部署几个简单的脚本的方式来进行监控，后期的管理维护成本就会非常高了。&lt;/p&gt;
-- https://kother.top/post/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ - Kother.</description>
+- https://kother.top/read/mysql%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98%E4%B8%8E%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1-%E7%AC%94%E8%AE%B0/ - Kother.</description>
         </item>
     
     
