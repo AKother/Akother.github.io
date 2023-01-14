@@ -1,0 +1,7106 @@
+<!DOCTYPE html>
+<meta name="referrer" content="no-referrer" />
+<html><head>
+<title>KOTHER'S BLOG</title>
+
+
+
+
+<style> @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&display=swap'); </style>
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="深入理解Java虚拟机 读书笔记" />
+<meta property="og:description" content="深入理解Java虚拟机-读书笔记 书中默认以OpenJDK/OracleJDK中的HotSpot虚拟机来讲述 个人觉得如果要读该书至少具备：
+数据结构知识（必备） 基础的Java语法知识 基础的Java并发相关知识（推荐《Java并发编程实战》，如果对并发有所了解，全程都会看的很舒服） 基础的操作系统知识（线程、内存、CPU与缓存设计等） 带着对Java中“类？对象？垃圾回收？”的疑问来看 仅记录一些个人的学习笔记和书中重点，用于快速浏览或复习
+本书适合看很多遍，在Java不同学习情况下，每再看一次都会有不同收获。个人认为第一遍时，需要看的重点章节是第二、三、六、七、十二、十三章，可以多多细读。
+[TOC]
+第一章 走近Java Java Runtime Environment Java虚拟机 Java类库API中的Java SE API子集 Java Development Kit 是Java开发的本地最小环境
+Java程序设计语言 Java虚拟机 Java类库 JDK5中加入的新特性 自动装箱、泛型、动态注解、枚举、可变长参数、遍历循环 改进了Java内存模型 提供了java.util.concurrent JDK8的新特性 Lambda 新的时间、日期API 彻底移除HotSpot的永久代 HotSpot的热点代码探测 由于经过充分预热，热点代码会被HotSpot的探测机制准确定位捕 获，并将其编译为物理硬件可直接执行的机器码，在这类应用中Java的运行效率很大程度上取决于即时编译器所输出的代码质量。
+==第二章 Java内存区域与内存溢出异常== 对于Java程序员来说，在虚拟机自动内存管理机制的帮助下，不再需要为每一个new操作去写配对 的delet e/free代码，不容易出现内存泄漏和内存溢出问题，看起来由虚拟机管理内存一切都很美好。不 过，也正是因为Java程序员把控制内存的权力交给了Java虚拟机，一旦出现内存泄漏和溢出方面的问 题，如果不了解虚拟机是怎样使用内存的，那排查错误、修正问题将会成为一项异常艰难的工作。
+程序计数器、本底方法栈、虚拟机栈随线程而生，随线程而灭
+运行时数据区域 程序计数器 Program Counter Register
+通过PCR选取下一条要执行的指令。如果正在执行Java方法，PCR记录的是正在执行的虚拟机字节码地址；如果执行Native方法，计数器的值为空。 为了确保各自线程可以恢复到自己当时执行的位置，PCR是线程私有的 不会OOM Native Method:java调用非java代码的接口(比如C&#43;&#43;)
+Java虚拟机栈 描述的是Java方法执行的线程内存模型 每个方法被执行时，Java虚拟机会同步创建栈帧（Stack Frame），用于存储局部变量表、操作数栈、动态连接、方法出口&hellip;(方法执行-&gt;入栈，方法结束-&gt;出栈) 请求的深度过大会StackOverFlowError 无法申请到足够内存时会OOM（但由于HotSpot不支持动态扩展，因此只有可能在申请内存时溢出，不会在运行时溢出） 局部变量表 数据在局部变量表中以Slot（局部变量槽）的形式存储 空间大小在编译期间确定 线程请求的栈深度过大-&gt; StackOverFlow 容量不够 -&gt; OOM 线程私有 存：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kother.top/read/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="read" />
+<meta property="article:published_time" content="2023-01-14T19:51:38+08:00" />
+<meta property="article:modified_time" content="2023-01-14T19:51:38+08:00" /><meta property="og:site_name" content="My Blog" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="深入理解Java虚拟机 读书笔记"/>
+<meta name="twitter:description" content="深入理解Java虚拟机-读书笔记 书中默认以OpenJDK/OracleJDK中的HotSpot虚拟机来讲述 个人觉得如果要读该书至少具备：
+数据结构知识（必备） 基础的Java语法知识 基础的Java并发相关知识（推荐《Java并发编程实战》，如果对并发有所了解，全程都会看的很舒服） 基础的操作系统知识（线程、内存、CPU与缓存设计等） 带着对Java中“类？对象？垃圾回收？”的疑问来看 仅记录一些个人的学习笔记和书中重点，用于快速浏览或复习
+本书适合看很多遍，在Java不同学习情况下，每再看一次都会有不同收获。个人认为第一遍时，需要看的重点章节是第二、三、六、七、十二、十三章，可以多多细读。
+[TOC]
+第一章 走近Java Java Runtime Environment Java虚拟机 Java类库API中的Java SE API子集 Java Development Kit 是Java开发的本地最小环境
+Java程序设计语言 Java虚拟机 Java类库 JDK5中加入的新特性 自动装箱、泛型、动态注解、枚举、可变长参数、遍历循环 改进了Java内存模型 提供了java.util.concurrent JDK8的新特性 Lambda 新的时间、日期API 彻底移除HotSpot的永久代 HotSpot的热点代码探测 由于经过充分预热，热点代码会被HotSpot的探测机制准确定位捕 获，并将其编译为物理硬件可直接执行的机器码，在这类应用中Java的运行效率很大程度上取决于即时编译器所输出的代码质量。
+==第二章 Java内存区域与内存溢出异常== 对于Java程序员来说，在虚拟机自动内存管理机制的帮助下，不再需要为每一个new操作去写配对 的delet e/free代码，不容易出现内存泄漏和内存溢出问题，看起来由虚拟机管理内存一切都很美好。不 过，也正是因为Java程序员把控制内存的权力交给了Java虚拟机，一旦出现内存泄漏和溢出方面的问 题，如果不了解虚拟机是怎样使用内存的，那排查错误、修正问题将会成为一项异常艰难的工作。
+程序计数器、本底方法栈、虚拟机栈随线程而生，随线程而灭
+运行时数据区域 程序计数器 Program Counter Register
+通过PCR选取下一条要执行的指令。如果正在执行Java方法，PCR记录的是正在执行的虚拟机字节码地址；如果执行Native方法，计数器的值为空。 为了确保各自线程可以恢复到自己当时执行的位置，PCR是线程私有的 不会OOM Native Method:java调用非java代码的接口(比如C&#43;&#43;)
+Java虚拟机栈 描述的是Java方法执行的线程内存模型 每个方法被执行时，Java虚拟机会同步创建栈帧（Stack Frame），用于存储局部变量表、操作数栈、动态连接、方法出口&hellip;(方法执行-&gt;入栈，方法结束-&gt;出栈) 请求的深度过大会StackOverFlowError 无法申请到足够内存时会OOM（但由于HotSpot不支持动态扩展，因此只有可能在申请内存时溢出，不会在运行时溢出） 局部变量表 数据在局部变量表中以Slot（局部变量槽）的形式存储 空间大小在编译期间确定 线程请求的栈深度过大-&gt; StackOverFlow 容量不够 -&gt; OOM 线程私有 存："/>
+
+
+
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-123-45', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+
+
+
+  
+
+
+
+
+
+
+      <script src="/js/toc.js"></script>
+    
+    <link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<link rel="stylesheet" href="/scss/journal.min.66cf0f76f275d011531b27e244451df2f6155c714e54ce7ef938e51869bbdf64.css" integrity="sha256-Zs8PdvJ10BFTGyfiREUd8vYVXHFOVM5&#43;&#43;TjlGGm732Q=" media="screen">
+
+
+
+<link rel="stylesheet" href="/scss/dark-mode.min.31b4f7dd2c9db4bc1f5c9be4337b86ff309731dfbc886bcb23711efe353d1000.css" integrity="sha256-MbT33SydtLwfXJvkM3uG/zCXMd&#43;8iGvLI3Ee/jU9EAA=" media="screen">
+
+
+<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Material+Icons">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="/vendor/js/md5.min.js"></script><script>
+  var gitalk = new Gitalk({
+  clientID: 'ee22eaa3184cbf1df6d9',
+  clientSecret: '00bb1d24a9cfdc647db6e565549bc405f57c5dd1',
+  repo: 'Akother.github.io',
+  owner: 'Akother',
+  admin: ['Akother'],
+  id: md5(location.pathname),
+  distractionFreeMode: 'false'
+  });
+  window.onload = function () {
+        gitalk.render('gitalk-container')
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div id="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://kother.top">
+    
+        <div class="nav-title">
+            Kother&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            记录点喜欢的.
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/post">
+                博客
+            </a>
+            
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/read">
+                阅读
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+
+    </div>
+    
+</div><div id="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b7%b1%e5%85%a5%e7%90%86%e8%a7%a3java%e8%99%9a%e6%8b%9f%e6%9c%ba-%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#深入理解java虚拟机-读书笔记-nav`)" id="深入理解java虚拟机-读书笔记-nav">
+									深入理解Java虚拟机-读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e8%b5%b0%e8%bf%91java" onclick="onNavClick(`#第一章-走近java-nav`)" id="第一章-走近java-nav">
+									第一章 走近Java
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#java-runtime-environment" onclick="onNavClick(`#java-runtime-environment-nav`)" id="java-runtime-environment-nav">
+									Java Runtime Environment
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java-development-kit" onclick="onNavClick(`#java-development-kit-nav`)" id="java-development-kit-nav">
+									Java Development Kit
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jdk5%e4%b8%ad%e5%8a%a0%e5%85%a5%e7%9a%84%e6%96%b0%e7%89%b9%e6%80%a7" onclick="onNavClick(`#jdk5中加入的新特性-nav`)" id="jdk5中加入的新特性-nav">
+									JDK5中加入的新特性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jdk8%e7%9a%84%e6%96%b0%e7%89%b9%e6%80%a7" onclick="onNavClick(`#jdk8的新特性-nav`)" id="jdk8的新特性-nav">
+									JDK8的新特性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#hotspot%e7%9a%84%e7%83%ad%e7%82%b9%e4%bb%a3%e7%a0%81%e6%8e%a2%e6%b5%8b" onclick="onNavClick(`#hotspot的热点代码探测-nav`)" id="hotspot的热点代码探测-nav">
+									HotSpot的热点代码探测
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-java%e5%86%85%e5%ad%98%e5%8c%ba%e5%9f%9f%e4%b8%8e%e5%86%85%e5%ad%98%e6%ba%a2%e5%87%ba%e5%bc%82%e5%b8%b8" onclick="onNavClick(`#第二章-java内存区域与内存溢出异常-nav`)" id="第二章-java内存区域与内存溢出异常-nav">
+									==第二章 Java内存区域与内存溢出异常==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%bf%90%e8%a1%8c%e6%97%b6%e6%95%b0%e6%8d%ae%e5%8c%ba%e5%9f%9f" onclick="onNavClick(`#运行时数据区域-nav`)" id="运行时数据区域-nav">
+									运行时数据区域
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%a8%8b%e5%ba%8f%e8%ae%a1%e6%95%b0%e5%99%a8" onclick="onNavClick(`#程序计数器-nav`)" id="程序计数器-nav">
+									程序计数器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e8%99%9a%e6%8b%9f%e6%9c%ba%e6%a0%88" onclick="onNavClick(`#java虚拟机栈-nav`)" id="java虚拟机栈-nav">
+									Java虚拟机栈
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%ac%e5%9c%b0%e6%96%b9%e6%b3%95%e6%a0%88" onclick="onNavClick(`#本地方法栈-nav`)" id="本地方法栈-nav">
+									本地方法栈
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e5%a0%86" onclick="onNavClick(`#java堆-nav`)" id="java堆-nav">
+									Java堆
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e5%8c%ba" onclick="onNavClick(`#方法区-nav`)" id="方法区-nav">
+									方法区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%9b%b4%e6%8e%a5%e5%86%85%e5%ad%98" onclick="onNavClick(`#直接内存-nav`)" id="直接内存-nav">
+									直接内存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e5%88%9b%e5%bb%ba" onclick="onNavClick(`#对象的创建-nav`)" id="对象的创建-nav">
+									对象的创建
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1%e6%a3%80%e6%9f%a5%e6%98%af%e5%90%a6%e8%a2%ab%e7%b1%bb%e5%8a%a0%e8%bd%bd%e8%bf%87" onclick="onNavClick(`#1检查是否被类加载过-nav`)" id="1检查是否被类加载过-nav">
+									1.检查是否被类加载过
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#2%e4%b8%ba%e8%af%a5%e5%af%b9%e8%b1%a1%e5%9c%a8%e5%a0%86%e4%b8%ad%e5%88%86%e9%85%8d%e7%a1%ae%e5%ae%9a%e5%a4%a7%e5%b0%8f%e7%9a%84%e5%86%85%e5%ad%98" onclick="onNavClick(`#2为该对象在堆中分配确定大小的内存-nav`)" id="2为该对象在堆中分配确定大小的内存-nav">
+									2.为该对象在堆中分配确定大小的内存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#3%e5%b0%86%e5%88%86%e9%85%8d%e5%88%b0%e7%9a%84%e5%86%85%e5%ad%98%e7%a9%ba%e9%97%b4%e9%83%bd%e5%88%9d%e5%a7%8b%e5%8c%96%e4%b8%ba%e9%9b%b6%e5%80%bc" onclick="onNavClick(`#3将分配到的内存空间都初始化为零值-nav`)" id="3将分配到的内存空间都初始化为零值-nav">
+									3.将分配到的内存空间都初始化为零值
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#4%e8%ae%be%e7%bd%ae%e5%af%b9%e8%b1%a1%e5%a4%b4" onclick="onNavClick(`#4设置对象头-nav`)" id="4设置对象头-nav">
+									4.设置对象头
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#5%e6%89%a7%e8%a1%8cinit" onclick="onNavClick(`#5执行init-nav`)" id="5执行init-nav">
+									5.执行&lt;init&gt;
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e5%86%85%e5%ad%98%e5%b8%83%e5%b1%80" onclick="onNavClick(`#对象的内存布局-nav`)" id="对象的内存布局-nav">
+									对象的内存布局
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e8%ae%bf%e9%97%ae%e5%ae%9a%e4%bd%8d" onclick="onNavClick(`#对象的访问定位-nav`)" id="对象的访问定位-nav">
+									对象的访问定位
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%a5%e6%9f%84" onclick="onNavClick(`#句柄-nav`)" id="句柄-nav">
+									句柄
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%9b%b4%e6%8e%a5%e6%8c%87%e9%92%88" onclick="onNavClick(`#直接指针-nav`)" id="直接指针-nav">
+									直接指针
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e5%99%a8%e4%b8%8e%e5%86%85%e5%ad%98%e5%88%86%e9%85%8d%e7%ad%96%e7%95%a5" onclick="onNavClick(`#第三章-垃圾收集器与内存分配策略-nav`)" id="第三章-垃圾收集器与内存分配策略-nav">
+									==第三章 垃圾收集器与内存分配策略==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%88%a4%e6%96%ad%e5%af%b9%e8%b1%a1%e6%98%af%e5%90%a6%e5%ad%98%e6%b4%bb" onclick="onNavClick(`#判断对象是否存活-nav`)" id="判断对象是否存活-nav">
+									判断对象是否存活
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0%e6%b3%95" onclick="onNavClick(`#引用计数法-nav`)" id="引用计数法-nav">
+									引用计数法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e8%be%be%e6%80%a7%e5%88%86%e6%9e%90%e7%ae%97%e6%b3%95" onclick="onNavClick(`#可达性分析算法-nav`)" id="可达性分析算法-nav">
+									可达性分析算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%95%e7%94%a8%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#引用类型-nav`)" id="引用类型-nav">
+									引用类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%9e%e6%94%b6%e6%96%b9%e6%b3%95%e5%8c%ba" onclick="onNavClick(`#回收方法区-nav`)" id="回收方法区-nav">
+									回收方法区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%a4%e6%96%ad%e4%b8%80%e4%b8%aa%e7%b1%bb%e6%98%af%e5%90%a6%e6%98%af%e4%b8%8d%e5%86%8d%e8%a2%ab%e4%bd%bf%e7%94%a8%e7%9a%84%e7%b1%bb" onclick="onNavClick(`#判断一个类是否是不再被使用的类-nav`)" id="判断一个类是否是不再被使用的类-nav">
+									判断一个类是否是“不再被使用的类”
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%9e%83%e5%9c%be%e5%9b%9e%e6%94%b6%e7%ae%97%e6%b3%95" onclick="onNavClick(`#垃圾回收算法-nav`)" id="垃圾回收算法-nav">
+									垃圾回收算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%88%86%e4%bb%a3%e6%94%b6%e9%9b%86%e7%90%86%e8%ae%ba" onclick="onNavClick(`#分代收集理论-nav`)" id="分代收集理论-nav">
+									分代收集理论
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e4%bb%a3%e6%94%b6%e9%9b%86%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#分代收集类型-nav`)" id="分代收集类型-nav">
+									分代收集类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a0%87%e8%ae%b0-%e6%b8%85%e9%99%a4" onclick="onNavClick(`#标记-清除-nav`)" id="标记-清除-nav">
+									标记-清除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a0%87%e8%ae%b0-%e5%a4%8d%e5%88%b6" onclick="onNavClick(`#标记-复制-nav`)" id="标记-复制-nav">
+									标记-复制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a0%87%e8%ae%b0-%e6%95%b4%e7%90%86" onclick="onNavClick(`#标记-整理-nav`)" id="标记-整理-nav">
+									标记-整理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#hotspot%e7%9a%84%e7%ae%97%e6%b3%95%e5%85%b7%e4%bd%93%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#hotspot的算法具体实现-nav`)" id="hotspot的算法具体实现-nav">
+									HotSpot的算法具体实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%a0%b9%e8%8a%82%e7%82%b9%e6%9e%9a%e4%b8%be" onclick="onNavClick(`#根节点枚举-nav`)" id="根节点枚举-nav">
+									根节点枚举
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%89%e5%85%a8%e7%82%b9" onclick="onNavClick(`#安全点-nav`)" id="安全点-nav">
+									安全点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%89%e5%85%a8%e5%8c%ba%e5%9f%9f" onclick="onNavClick(`#安全区域-nav`)" id="安全区域-nav">
+									安全区域
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%b0%e5%bf%86%e9%9b%86%e4%b8%8e%e5%8d%a1%e8%a1%a8" onclick="onNavClick(`#记忆集与卡表-nav`)" id="记忆集与卡表-nav">
+									记忆集与卡表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%86%99%e5%b1%8f%e9%9a%9c" onclick="onNavClick(`#写屏障-nav`)" id="写屏障-nav">
+									写屏障
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b9%b6%e5%8f%91%e7%9a%84%e5%8f%af%e8%be%be%e6%80%a7%e5%88%86%e6%9e%90" onclick="onNavClick(`#并发的可达性分析-nav`)" id="并发的可达性分析-nav">
+									并发的可达性分析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%bb%8f%e5%85%b8%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e5%99%a8" onclick="onNavClick(`#经典垃圾收集器-nav`)" id="经典垃圾收集器-nav">
+									经典垃圾收集器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#serial" onclick="onNavClick(`#serial-nav`)" id="serial-nav">
+									Serial
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#serial-old" onclick="onNavClick(`#serial-old-nav`)" id="serial-old-nav">
+									Serial Old
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#parnew" onclick="onNavClick(`#parnew-nav`)" id="parnew-nav">
+									ParNew
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#parallel-scavenge" onclick="onNavClick(`#parallel-scavenge-nav`)" id="parallel-scavenge-nav">
+									Parallel Scavenge
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#parallel-old" onclick="onNavClick(`#parallel-old-nav`)" id="parallel-old-nav">
+									Parallel Old
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#cms%e6%94%b6%e9%9b%86%e5%99%a8" onclick="onNavClick(`#cms收集器-nav`)" id="cms收集器-nav">
+									CMS收集器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#garbage-firstg1" onclick="onNavClick(`#garbage-firstg1-nav`)" id="garbage-firstg1-nav">
+									Garbage First（G1）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%99%9a%e6%8b%9f%e6%9c%ba%e5%8f%8a%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e5%99%a8%e6%97%a5%e5%bf%97" onclick="onNavClick(`#虚拟机及垃圾收集器日志-nav`)" id="虚拟机及垃圾收集器日志-nav">
+									虚拟机及垃圾收集器日志
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%86%85%e5%ad%98%e5%88%86%e9%85%8d%e4%b8%8e%e5%9b%9e%e6%94%b6%e7%ad%96%e7%95%a5" onclick="onNavClick(`#内存分配与回收策略-nav`)" id="内存分配与回收策略-nav">
+									内存分配与回收策略
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e4%bc%98%e5%85%88%e5%9c%a8eden%e5%88%86%e9%85%8d" onclick="onNavClick(`#对象优先在eden分配-nav`)" id="对象优先在eden分配-nav">
+									对象优先在Eden分配
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%95%bf%e6%9c%9f%e5%ad%98%e6%b4%bb%e7%9a%84%e5%af%b9%e8%b1%a1%e8%bf%9b%e5%85%a5%e8%80%81%e5%b9%b4%e4%bb%a3" onclick="onNavClick(`#长期存活的对象进入老年代-nav`)" id="长期存活的对象进入老年代-nav">
+									长期存活的对象进入老年代
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%a7%e5%af%b9%e8%b1%a1%e7%9b%b4%e6%8e%a5%e8%bf%9b%e5%85%a5%e8%80%81%e5%b9%b4%e4%bb%a3" onclick="onNavClick(`#大对象直接进入老年代-nav`)" id="大对象直接进入老年代-nav">
+									大对象直接进入老年代
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81%e5%af%b9%e8%b1%a1%e5%b9%b4%e9%be%84%e5%88%a4%e5%ae%9a" onclick="onNavClick(`#动态对象年龄判定-nav`)" id="动态对象年龄判定-nav">
+									动态对象年龄判定
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a9%ba%e9%97%b4%e5%88%86%e9%85%8d%e6%8b%85%e4%bf%9d" onclick="onNavClick(`#空间分配担保-nav`)" id="空间分配担保-nav">
+									空间分配担保
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-%e8%99%9a%e6%8b%9f%e6%9c%ba%e6%80%a7%e8%83%bd%e7%9b%91%e6%8e%a7%e6%95%85%e9%9a%9c%e5%a4%84%e7%90%86%e5%b7%a5%e5%85%b7" onclick="onNavClick(`#第四章-虚拟机性能监控故障处理工具-nav`)" id="第四章-虚拟机性能监控故障处理工具-nav">
+									第四章 虚拟机性能监控、故障处理工具
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e8%b0%83%e4%bc%98%e6%a1%88%e4%be%8b%e5%88%86%e6%9e%90%e4%b8%8e%e5%ae%9e%e6%88%98" onclick="onNavClick(`#第五章-调优案例分析与实战-nav`)" id="第五章-调优案例分析与实战-nav">
+									第五章 调优案例分析与实战
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-%e8%99%9a%e6%8b%9f%e6%9c%ba%e6%89%a7%e8%a1%8c%e5%ad%90%e7%b3%bb%e7%bb%9f" onclick="onNavClick(`#第六章-虚拟机执行子系统-nav`)" id="第六章-虚拟机执行子系统-nav">
+									==第六章 虚拟机执行子系统==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#class%e7%b1%bb%e6%96%87%e4%bb%b6%e7%9a%84%e7%bb%93%e6%9e%84" onclick="onNavClick(`#class类文件的结构-nav`)" id="class类文件的结构-nav">
+									Class类文件的结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%ad%94%e6%95%b0%e4%b8%8eclass%e6%96%87%e4%bb%b6%e7%9a%84%e7%89%88%e6%9c%ac" onclick="onNavClick(`#魔数与class文件的版本-nav`)" id="魔数与class文件的版本-nav">
+									魔数与Class文件的版本
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e9%87%8f%e6%b1%a0" onclick="onNavClick(`#常量池-nav`)" id="常量池-nav">
+									常量池
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%bf%e9%97%ae%e6%a0%87%e5%bf%97" onclick="onNavClick(`#访问标志-nav`)" id="访问标志-nav">
+									访问标志
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e7%b4%a2%e5%bc%95%e7%88%b6%e7%b1%bb%e7%b4%a2%e5%bc%95%e4%b8%8e%e6%8e%a5%e5%8f%a3%e7%b4%a2%e5%bc%95%e9%9b%86%e5%90%88" onclick="onNavClick(`#类索引父类索引与接口索引集合-nav`)" id="类索引父类索引与接口索引集合-nav">
+									类索引、父类索引与接口索引集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ad%97%e6%ae%b5%e8%a1%a8%e9%9b%86%e5%90%88" onclick="onNavClick(`#字段表集合-nav`)" id="字段表集合-nav">
+									字段表集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e8%a1%a8%e9%9b%86%e5%90%88" onclick="onNavClick(`#方法表集合-nav`)" id="方法表集合-nav">
+									方法表集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b1%9e%e6%80%a7%e8%a1%a8%e9%9b%86%e5%90%88" onclick="onNavClick(`#属性表集合-nav`)" id="属性表集合-nav">
+									属性表集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ad%97%e8%8a%82%e7%a0%81%e6%8c%87%e4%bb%a4" onclick="onNavClick(`#字节码指令-nav`)" id="字节码指令-nav">
+									字节码指令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-%e8%99%9a%e6%8b%9f%e6%9c%ba%e7%b1%bb%e5%8a%a0%e8%bd%bd%e6%9c%ba%e5%88%b6" onclick="onNavClick(`#第七章-虚拟机类加载机制-nav`)" id="第七章-虚拟机类加载机制-nav">
+									==第七章 虚拟机类加载机制==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ab%8b%e5%8d%b3%e5%af%b9%e7%b1%bb%e5%88%9d%e5%a7%8b%e5%8c%96%e7%9a%84%e6%97%b6%e6%9c%ba" onclick="onNavClick(`#立即对类初始化的时机-nav`)" id="立即对类初始化的时机-nav">
+									立即对类初始化的时机
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%a2%ab%e5%8a%a8%e5%bc%95%e7%94%a8%e6%83%85%e5%86%b5" onclick="onNavClick(`#被动引用情况-nav`)" id="被动引用情况-nav">
+									被动引用情况
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%8a%a0%e8%bd%bd%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#类加载过程-nav`)" id="类加载过程-nav">
+									类加载过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%8a%a0%e8%bd%bd%e8%bf%87%e7%a8%8b%e6%a6%82%e8%a7%88" onclick="onNavClick(`#类加载过程概览-nav`)" id="类加载过程概览-nav">
+									类加载过程概览
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a0%e8%bd%bd" onclick="onNavClick(`#加载-nav`)" id="加载-nav">
+									加载
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%aa%8c%e8%af%81" onclick="onNavClick(`#验证-nav`)" id="验证-nav">
+									验证
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%87%86%e5%a4%87" onclick="onNavClick(`#准备-nav`)" id="准备-nav">
+									准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%a7%a3%e6%9e%90" onclick="onNavClick(`#解析-nav`)" id="解析-nav">
+									解析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%9d%e5%a7%8b%e5%8c%96" onclick="onNavClick(`#初始化-nav`)" id="初始化-nav">
+									初始化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%8a%a0%e8%bd%bd%e5%99%a8" onclick="onNavClick(`#类加载器-nav`)" id="类加载器-nav">
+									类加载器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%8c%e4%ba%b2%e5%a7%94%e6%b4%be%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#双亲委派模型-nav`)" id="双亲委派模型-nav">
+									双亲委派模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e8%99%9a%e6%8b%9f%e6%9c%ba%e5%ad%97%e8%8a%82%e7%a0%81%e6%89%a7%e8%a1%8c%e5%bc%95%e6%93%8e" onclick="onNavClick(`#第八章-虚拟机字节码执行引擎-nav`)" id="第八章-虚拟机字节码执行引擎-nav">
+									第八章 虚拟机字节码执行引擎
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%bf%90%e8%a1%8c%e6%97%b6%e6%a0%88%e5%b8%a7%e7%bb%93%e6%9e%84" onclick="onNavClick(`#运行时栈帧结构-nav`)" id="运行时栈帧结构-nav">
+									运行时栈帧结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%b1%80%e9%83%a8%e5%8f%98%e9%87%8f%e8%a1%a8-1" onclick="onNavClick(`#局部变量表-1-nav`)" id="局部变量表-1-nav">
+									局部变量表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%93%8d%e4%bd%9c%e6%95%b0%e6%a0%88" onclick="onNavClick(`#操作数栈-nav`)" id="操作数栈-nav">
+									操作数栈
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#动态连接-nav`)" id="动态连接-nav">
+									动态连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e8%bf%94%e5%9b%9e%e5%9c%b0%e5%9d%80" onclick="onNavClick(`#方法返回地址-nav`)" id="方法返回地址-nav">
+									方法返回地址
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e8%b0%83%e7%94%a8" onclick="onNavClick(`#方法调用-nav`)" id="方法调用-nav">
+									方法调用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%a7%a3%e6%9e%90-1" onclick="onNavClick(`#解析-1-nav`)" id="解析-1-nav">
+									解析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9d%9e%e8%99%9a%e6%96%b9%e6%b3%95" onclick="onNavClick(`#非虚方法-nav`)" id="非虚方法-nav">
+									非虚方法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e6%b4%be" onclick="onNavClick(`#分派-nav`)" id="分派-nav">
+									分派
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81%e7%b1%bb%e5%9e%8b%e8%af%ad%e8%a8%80%e6%94%af%e6%8c%81" onclick="onNavClick(`#动态类型语言支持-nav`)" id="动态类型语言支持-nav">
+									动态类型语言支持
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b9%9d%e7%ab%a0-%e7%b1%bb%e5%8a%a0%e8%bd%bd%e5%8f%8a%e6%89%a7%e8%a1%8c%e5%ad%90%e7%b3%bb%e7%bb%9f%e7%9a%84%e6%a1%88%e4%be%8b%e4%b8%8e%e5%ae%9e%e6%88%98" onclick="onNavClick(`#第九章-类加载及执行子系统的案例与实战-nav`)" id="第九章-类加载及执行子系统的案例与实战-nav">
+									第九章 类加载及执行子系统的案例与实战
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#tomcat%e6%ad%a3%e7%bb%9f%e7%9a%84%e7%b1%bb%e5%8a%a0%e8%bd%bd%e5%99%a8%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#tomcat正统的类加载器架构-nav`)" id="tomcat正统的类加载器架构-nav">
+									Tomcat:正统的类加载器架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-%e5%89%8d%e7%ab%af%e7%bc%96%e8%af%91%e4%b8%8e%e4%bc%98%e5%8c%96" onclick="onNavClick(`#第十章-前端编译与优化-nav`)" id="第十章-前端编译与优化-nav">
+									第十章 前端编译与优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%af%ad%e6%b3%95%e7%b3%96" onclick="onNavClick(`#语法糖-nav`)" id="语法糖-nav">
+									语法糖
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%b3%9b%e5%9e%8b" onclick="onNavClick(`#泛型-nav`)" id="泛型-nav">
+									泛型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e8%a3%85%e7%ae%b1%e6%8b%86%e7%ae%b1%e4%b8%8e%e9%81%8d%e5%8e%86%e5%be%aa%e7%8e%af" onclick="onNavClick(`#自动装箱拆箱与遍历循环-nav`)" id="自动装箱拆箱与遍历循环-nav">
+									自动装箱、拆箱与遍历循环
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%80%e7%ab%a0-%e5%90%8e%e7%ab%af%e7%bc%96%e8%af%91%e4%b8%8e%e4%bc%98%e5%8c%96" onclick="onNavClick(`#第十一章-后端编译与优化-nav`)" id="第十一章-后端编译与优化-nav">
+									第十一章 后端编译与优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%a7%a3%e9%87%8a%e5%99%a8%e4%b8%8e%e7%bc%96%e8%af%91%e5%99%a8" onclick="onNavClick(`#解释器与编译器-nav`)" id="解释器与编译器-nav">
+									解释器与编译器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e8%af%91%e5%af%b9%e8%b1%a1%e4%b8%8e%e8%a7%a6%e5%8f%91%e6%9d%a1%e4%bb%b6" onclick="onNavClick(`#编译对象与触发条件-nav`)" id="编译对象与触发条件-nav">
+									编译对象与触发条件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e8%af%91%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#编译过程-nav`)" id="编译过程-nav">
+									编译过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%ba%8c%e7%ab%a0-java%e5%86%85%e5%ad%98%e6%a8%a1%e5%9e%8b%e4%b8%8e%e7%ba%bf%e7%a8%8b" onclick="onNavClick(`#第十二章-java内存模型与线程-nav`)" id="第十二章-java内存模型与线程-nav">
+									==第十二章 Java内存模型与线程==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%a1%ac%e4%bb%b6%e7%9a%84%e6%95%88%e7%8e%87%e4%b8%8e%e4%b8%80%e8%87%b4%e6%80%a7" onclick="onNavClick(`#硬件的效率与一致性-nav`)" id="硬件的效率与一致性-nav">
+									硬件的效率与一致性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e5%86%85%e5%ad%98%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#java内存模型-nav`)" id="java内存模型-nav">
+									Java内存模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%bb%e5%86%85%e5%ad%98%e5%92%8c%e5%b7%a5%e4%bd%9c%e5%86%85%e5%ad%98" onclick="onNavClick(`#主内存和工作内存-nav`)" id="主内存和工作内存-nav">
+									主内存和工作内存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%86%85%e5%ad%98%e9%97%b4%e7%9b%b8%e4%ba%92%e6%93%8d%e4%bd%9c" onclick="onNavClick(`#内存间相互操作-nav`)" id="内存间相互操作-nav">
+									内存间相互操作
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e4%ba%8evolatile%e5%9e%8b%e5%8f%98%e9%87%8f%e7%9a%84%e7%89%b9%e6%ae%8a%e8%a7%84%e5%88%99" onclick="onNavClick(`#对于volatile型变量的特殊规则-nav`)" id="对于volatile型变量的特殊规则-nav">
+									对于volatile型变量的特殊规则
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%92%88%e5%af%b9long%e5%92%8cdouble%e5%9e%8b%e5%8f%98%e9%87%8f%e7%9a%84%e7%89%b9%e6%ae%8a%e8%a7%84%e5%88%99" onclick="onNavClick(`#针对long和double型变量的特殊规则-nav`)" id="针对long和double型变量的特殊规则-nav">
+									针对long和double型变量的特殊规则
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8e%9f%e5%ad%90%e6%80%a7%e5%8f%af%e8%a7%81%e6%80%a7%e4%b8%8e%e6%9c%89%e5%ba%8f%e6%80%a7" onclick="onNavClick(`#原子性可见性与有序性-nav`)" id="原子性可见性与有序性-nav">
+									原子性、可见性与有序性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#happens-before%e5%8e%9f%e5%88%99" onclick="onNavClick(`#happens-before原则-nav`)" id="happens-before原则-nav">
+									Happens-before原则
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#java%e4%b8%8e%e7%ba%bf%e7%a8%8b" onclick="onNavClick(`#java与线程-nav`)" id="java与线程-nav">
+									Java与线程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ba%bf%e7%a8%8b%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#线程的实现-nav`)" id="线程的实现-nav">
+									线程的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e7%ba%bf%e7%a8%8b%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#java线程的实现-nav`)" id="java线程的实现-nav">
+									Java线程的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e7%ba%bf%e7%a8%8b%e8%b0%83%e5%ba%a6" onclick="onNavClick(`#java线程调度-nav`)" id="java线程调度-nav">
+									Java线程调度
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ba%bf%e7%a8%8b%e7%8a%b6%e6%80%81%e8%bd%ac%e6%8d%a2" onclick="onNavClick(`#线程状态转换-nav`)" id="线程状态转换-nav">
+									线程状态转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%89%e7%ab%a0-%e7%ba%bf%e7%a8%8b%e5%ae%89%e5%85%a8%e4%b8%8e%e9%94%81%e4%bc%98%e5%8c%96" onclick="onNavClick(`#第十三章-线程安全与锁优化-nav`)" id="第十三章-线程安全与锁优化-nav">
+									==第十三章 线程安全与锁优化==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#java%e8%af%ad%e8%a8%80%e4%b8%ad%e7%9a%84%e7%ba%bf%e7%a8%8b%e5%ae%89%e5%85%a8" onclick="onNavClick(`#java语言中的线程安全-nav`)" id="java语言中的线程安全-nav">
+									Java语言中的线程安全
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ba%bf%e7%a8%8b%e5%ae%89%e5%85%a8%e7%9a%84%e5%ae%9e%e7%8e%b0%e6%96%b9%e6%b3%95" onclick="onNavClick(`#线程安全的实现方法-nav`)" id="线程安全的实现方法-nav">
+									线程安全的实现方法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%ba%92%e6%96%a5%e5%90%8c%e6%ad%a5" onclick="onNavClick(`#互斥同步-nav`)" id="互斥同步-nav">
+									互斥同步
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#synchronized%e5%ae%9e%e7%8e%b0%e5%8e%9f%e7%90%86" onclick="onNavClick(`#synchronized实现原理-nav`)" id="synchronized实现原理-nav">
+									synchronized实现原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e9%87%8d%e5%85%a5%e9%94%81" onclick="onNavClick(`#可重入锁-nav`)" id="可重入锁-nav">
+									可重入锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9d%9e%e9%98%bb%e5%a1%9e%e5%90%8c%e6%ad%a5" onclick="onNavClick(`#非阻塞同步-nav`)" id="非阻塞同步-nav">
+									非阻塞同步
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ba%bf%e7%a8%8b%e6%9c%ac%e5%9c%b0%e5%ad%98%e5%82%a8" onclick="onNavClick(`#线程本地存储-nav`)" id="线程本地存储-nav">
+									线程本地存储
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e9%94%81%e4%bc%98%e5%8c%96" onclick="onNavClick(`#锁优化-nav`)" id="锁优化-nav">
+									锁优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e6%97%8b%e9%94%81%e4%b8%8e%e8%87%aa%e9%80%82%e5%ba%94%e8%87%aa%e6%97%8b" onclick="onNavClick(`#自旋锁与自适应自旋-nav`)" id="自旋锁与自适应自旋-nav">
+									自旋锁与自适应自旋
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%94%81%e6%b6%88%e9%99%a4" onclick="onNavClick(`#锁消除-nav`)" id="锁消除-nav">
+									锁消除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%94%81%e7%b2%97%e5%8c%96" onclick="onNavClick(`#锁粗化-nav`)" id="锁粗化-nav">
+									锁粗化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bd%bb%e9%87%8f%e7%ba%a7%e9%94%81" onclick="onNavClick(`#轻量级锁-nav`)" id="轻量级锁-nav">
+									轻量级锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%81%8f%e5%90%91%e9%94%81" onclick="onNavClick(`#偏向锁-nav`)" id="偏向锁-nav">
+									偏向锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a type="button" class="pagination-action" id="darkModeToggleButton">
+            <span class="material-icons pagination-action-icon" id="darkModeToggleIcon">
+                dark_mode
+            </span>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" id="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/post">
+                    博客
+                </a>
+                
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/read">
+                    阅读
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b7%b1%e5%85%a5%e7%90%86%e8%a7%a3java%e8%99%9a%e6%8b%9f%e6%9c%ba-%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#深入理解java虚拟机-读书笔记-nav`)" id="深入理解java虚拟机-读书笔记-nav">
+									深入理解Java虚拟机-读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e8%b5%b0%e8%bf%91java" onclick="onNavClick(`#第一章-走近java-nav`)" id="第一章-走近java-nav">
+									第一章 走近Java
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#java-runtime-environment" onclick="onNavClick(`#java-runtime-environment-nav`)" id="java-runtime-environment-nav">
+									Java Runtime Environment
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java-development-kit" onclick="onNavClick(`#java-development-kit-nav`)" id="java-development-kit-nav">
+									Java Development Kit
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jdk5%e4%b8%ad%e5%8a%a0%e5%85%a5%e7%9a%84%e6%96%b0%e7%89%b9%e6%80%a7" onclick="onNavClick(`#jdk5中加入的新特性-nav`)" id="jdk5中加入的新特性-nav">
+									JDK5中加入的新特性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jdk8%e7%9a%84%e6%96%b0%e7%89%b9%e6%80%a7" onclick="onNavClick(`#jdk8的新特性-nav`)" id="jdk8的新特性-nav">
+									JDK8的新特性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#hotspot%e7%9a%84%e7%83%ad%e7%82%b9%e4%bb%a3%e7%a0%81%e6%8e%a2%e6%b5%8b" onclick="onNavClick(`#hotspot的热点代码探测-nav`)" id="hotspot的热点代码探测-nav">
+									HotSpot的热点代码探测
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-java%e5%86%85%e5%ad%98%e5%8c%ba%e5%9f%9f%e4%b8%8e%e5%86%85%e5%ad%98%e6%ba%a2%e5%87%ba%e5%bc%82%e5%b8%b8" onclick="onNavClick(`#第二章-java内存区域与内存溢出异常-nav`)" id="第二章-java内存区域与内存溢出异常-nav">
+									==第二章 Java内存区域与内存溢出异常==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%bf%90%e8%a1%8c%e6%97%b6%e6%95%b0%e6%8d%ae%e5%8c%ba%e5%9f%9f" onclick="onNavClick(`#运行时数据区域-nav`)" id="运行时数据区域-nav">
+									运行时数据区域
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%a8%8b%e5%ba%8f%e8%ae%a1%e6%95%b0%e5%99%a8" onclick="onNavClick(`#程序计数器-nav`)" id="程序计数器-nav">
+									程序计数器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e8%99%9a%e6%8b%9f%e6%9c%ba%e6%a0%88" onclick="onNavClick(`#java虚拟机栈-nav`)" id="java虚拟机栈-nav">
+									Java虚拟机栈
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%ac%e5%9c%b0%e6%96%b9%e6%b3%95%e6%a0%88" onclick="onNavClick(`#本地方法栈-nav`)" id="本地方法栈-nav">
+									本地方法栈
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e5%a0%86" onclick="onNavClick(`#java堆-nav`)" id="java堆-nav">
+									Java堆
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e5%8c%ba" onclick="onNavClick(`#方法区-nav`)" id="方法区-nav">
+									方法区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%9b%b4%e6%8e%a5%e5%86%85%e5%ad%98" onclick="onNavClick(`#直接内存-nav`)" id="直接内存-nav">
+									直接内存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e5%88%9b%e5%bb%ba" onclick="onNavClick(`#对象的创建-nav`)" id="对象的创建-nav">
+									对象的创建
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1%e6%a3%80%e6%9f%a5%e6%98%af%e5%90%a6%e8%a2%ab%e7%b1%bb%e5%8a%a0%e8%bd%bd%e8%bf%87" onclick="onNavClick(`#1检查是否被类加载过-nav`)" id="1检查是否被类加载过-nav">
+									1.检查是否被类加载过
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#2%e4%b8%ba%e8%af%a5%e5%af%b9%e8%b1%a1%e5%9c%a8%e5%a0%86%e4%b8%ad%e5%88%86%e9%85%8d%e7%a1%ae%e5%ae%9a%e5%a4%a7%e5%b0%8f%e7%9a%84%e5%86%85%e5%ad%98" onclick="onNavClick(`#2为该对象在堆中分配确定大小的内存-nav`)" id="2为该对象在堆中分配确定大小的内存-nav">
+									2.为该对象在堆中分配确定大小的内存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#3%e5%b0%86%e5%88%86%e9%85%8d%e5%88%b0%e7%9a%84%e5%86%85%e5%ad%98%e7%a9%ba%e9%97%b4%e9%83%bd%e5%88%9d%e5%a7%8b%e5%8c%96%e4%b8%ba%e9%9b%b6%e5%80%bc" onclick="onNavClick(`#3将分配到的内存空间都初始化为零值-nav`)" id="3将分配到的内存空间都初始化为零值-nav">
+									3.将分配到的内存空间都初始化为零值
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#4%e8%ae%be%e7%bd%ae%e5%af%b9%e8%b1%a1%e5%a4%b4" onclick="onNavClick(`#4设置对象头-nav`)" id="4设置对象头-nav">
+									4.设置对象头
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#5%e6%89%a7%e8%a1%8cinit" onclick="onNavClick(`#5执行init-nav`)" id="5执行init-nav">
+									5.执行&lt;init&gt;
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e5%86%85%e5%ad%98%e5%b8%83%e5%b1%80" onclick="onNavClick(`#对象的内存布局-nav`)" id="对象的内存布局-nav">
+									对象的内存布局
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e8%ae%bf%e9%97%ae%e5%ae%9a%e4%bd%8d" onclick="onNavClick(`#对象的访问定位-nav`)" id="对象的访问定位-nav">
+									对象的访问定位
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%a5%e6%9f%84" onclick="onNavClick(`#句柄-nav`)" id="句柄-nav">
+									句柄
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%9b%b4%e6%8e%a5%e6%8c%87%e9%92%88" onclick="onNavClick(`#直接指针-nav`)" id="直接指针-nav">
+									直接指针
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e5%99%a8%e4%b8%8e%e5%86%85%e5%ad%98%e5%88%86%e9%85%8d%e7%ad%96%e7%95%a5" onclick="onNavClick(`#第三章-垃圾收集器与内存分配策略-nav`)" id="第三章-垃圾收集器与内存分配策略-nav">
+									==第三章 垃圾收集器与内存分配策略==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%88%a4%e6%96%ad%e5%af%b9%e8%b1%a1%e6%98%af%e5%90%a6%e5%ad%98%e6%b4%bb" onclick="onNavClick(`#判断对象是否存活-nav`)" id="判断对象是否存活-nav">
+									判断对象是否存活
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0%e6%b3%95" onclick="onNavClick(`#引用计数法-nav`)" id="引用计数法-nav">
+									引用计数法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e8%be%be%e6%80%a7%e5%88%86%e6%9e%90%e7%ae%97%e6%b3%95" onclick="onNavClick(`#可达性分析算法-nav`)" id="可达性分析算法-nav">
+									可达性分析算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%95%e7%94%a8%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#引用类型-nav`)" id="引用类型-nav">
+									引用类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9b%9e%e6%94%b6%e6%96%b9%e6%b3%95%e5%8c%ba" onclick="onNavClick(`#回收方法区-nav`)" id="回收方法区-nav">
+									回收方法区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%a4%e6%96%ad%e4%b8%80%e4%b8%aa%e7%b1%bb%e6%98%af%e5%90%a6%e6%98%af%e4%b8%8d%e5%86%8d%e8%a2%ab%e4%bd%bf%e7%94%a8%e7%9a%84%e7%b1%bb" onclick="onNavClick(`#判断一个类是否是不再被使用的类-nav`)" id="判断一个类是否是不再被使用的类-nav">
+									判断一个类是否是“不再被使用的类”
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%9e%83%e5%9c%be%e5%9b%9e%e6%94%b6%e7%ae%97%e6%b3%95" onclick="onNavClick(`#垃圾回收算法-nav`)" id="垃圾回收算法-nav">
+									垃圾回收算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%88%86%e4%bb%a3%e6%94%b6%e9%9b%86%e7%90%86%e8%ae%ba" onclick="onNavClick(`#分代收集理论-nav`)" id="分代收集理论-nav">
+									分代收集理论
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e4%bb%a3%e6%94%b6%e9%9b%86%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#分代收集类型-nav`)" id="分代收集类型-nav">
+									分代收集类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a0%87%e8%ae%b0-%e6%b8%85%e9%99%a4" onclick="onNavClick(`#标记-清除-nav`)" id="标记-清除-nav">
+									标记-清除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a0%87%e8%ae%b0-%e5%a4%8d%e5%88%b6" onclick="onNavClick(`#标记-复制-nav`)" id="标记-复制-nav">
+									标记-复制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a0%87%e8%ae%b0-%e6%95%b4%e7%90%86" onclick="onNavClick(`#标记-整理-nav`)" id="标记-整理-nav">
+									标记-整理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#hotspot%e7%9a%84%e7%ae%97%e6%b3%95%e5%85%b7%e4%bd%93%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#hotspot的算法具体实现-nav`)" id="hotspot的算法具体实现-nav">
+									HotSpot的算法具体实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%a0%b9%e8%8a%82%e7%82%b9%e6%9e%9a%e4%b8%be" onclick="onNavClick(`#根节点枚举-nav`)" id="根节点枚举-nav">
+									根节点枚举
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%89%e5%85%a8%e7%82%b9" onclick="onNavClick(`#安全点-nav`)" id="安全点-nav">
+									安全点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%89%e5%85%a8%e5%8c%ba%e5%9f%9f" onclick="onNavClick(`#安全区域-nav`)" id="安全区域-nav">
+									安全区域
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%b0%e5%bf%86%e9%9b%86%e4%b8%8e%e5%8d%a1%e8%a1%a8" onclick="onNavClick(`#记忆集与卡表-nav`)" id="记忆集与卡表-nav">
+									记忆集与卡表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%86%99%e5%b1%8f%e9%9a%9c" onclick="onNavClick(`#写屏障-nav`)" id="写屏障-nav">
+									写屏障
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b9%b6%e5%8f%91%e7%9a%84%e5%8f%af%e8%be%be%e6%80%a7%e5%88%86%e6%9e%90" onclick="onNavClick(`#并发的可达性分析-nav`)" id="并发的可达性分析-nav">
+									并发的可达性分析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%bb%8f%e5%85%b8%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e5%99%a8" onclick="onNavClick(`#经典垃圾收集器-nav`)" id="经典垃圾收集器-nav">
+									经典垃圾收集器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#serial" onclick="onNavClick(`#serial-nav`)" id="serial-nav">
+									Serial
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#serial-old" onclick="onNavClick(`#serial-old-nav`)" id="serial-old-nav">
+									Serial Old
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#parnew" onclick="onNavClick(`#parnew-nav`)" id="parnew-nav">
+									ParNew
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#parallel-scavenge" onclick="onNavClick(`#parallel-scavenge-nav`)" id="parallel-scavenge-nav">
+									Parallel Scavenge
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#parallel-old" onclick="onNavClick(`#parallel-old-nav`)" id="parallel-old-nav">
+									Parallel Old
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#cms%e6%94%b6%e9%9b%86%e5%99%a8" onclick="onNavClick(`#cms收集器-nav`)" id="cms收集器-nav">
+									CMS收集器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#garbage-firstg1" onclick="onNavClick(`#garbage-firstg1-nav`)" id="garbage-firstg1-nav">
+									Garbage First（G1）
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%99%9a%e6%8b%9f%e6%9c%ba%e5%8f%8a%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e5%99%a8%e6%97%a5%e5%bf%97" onclick="onNavClick(`#虚拟机及垃圾收集器日志-nav`)" id="虚拟机及垃圾收集器日志-nav">
+									虚拟机及垃圾收集器日志
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%86%85%e5%ad%98%e5%88%86%e9%85%8d%e4%b8%8e%e5%9b%9e%e6%94%b6%e7%ad%96%e7%95%a5" onclick="onNavClick(`#内存分配与回收策略-nav`)" id="内存分配与回收策略-nav">
+									内存分配与回收策略
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e4%bc%98%e5%85%88%e5%9c%a8eden%e5%88%86%e9%85%8d" onclick="onNavClick(`#对象优先在eden分配-nav`)" id="对象优先在eden分配-nav">
+									对象优先在Eden分配
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%95%bf%e6%9c%9f%e5%ad%98%e6%b4%bb%e7%9a%84%e5%af%b9%e8%b1%a1%e8%bf%9b%e5%85%a5%e8%80%81%e5%b9%b4%e4%bb%a3" onclick="onNavClick(`#长期存活的对象进入老年代-nav`)" id="长期存活的对象进入老年代-nav">
+									长期存活的对象进入老年代
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%a7%e5%af%b9%e8%b1%a1%e7%9b%b4%e6%8e%a5%e8%bf%9b%e5%85%a5%e8%80%81%e5%b9%b4%e4%bb%a3" onclick="onNavClick(`#大对象直接进入老年代-nav`)" id="大对象直接进入老年代-nav">
+									大对象直接进入老年代
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81%e5%af%b9%e8%b1%a1%e5%b9%b4%e9%be%84%e5%88%a4%e5%ae%9a" onclick="onNavClick(`#动态对象年龄判定-nav`)" id="动态对象年龄判定-nav">
+									动态对象年龄判定
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a9%ba%e9%97%b4%e5%88%86%e9%85%8d%e6%8b%85%e4%bf%9d" onclick="onNavClick(`#空间分配担保-nav`)" id="空间分配担保-nav">
+									空间分配担保
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-%e8%99%9a%e6%8b%9f%e6%9c%ba%e6%80%a7%e8%83%bd%e7%9b%91%e6%8e%a7%e6%95%85%e9%9a%9c%e5%a4%84%e7%90%86%e5%b7%a5%e5%85%b7" onclick="onNavClick(`#第四章-虚拟机性能监控故障处理工具-nav`)" id="第四章-虚拟机性能监控故障处理工具-nav">
+									第四章 虚拟机性能监控、故障处理工具
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e8%b0%83%e4%bc%98%e6%a1%88%e4%be%8b%e5%88%86%e6%9e%90%e4%b8%8e%e5%ae%9e%e6%88%98" onclick="onNavClick(`#第五章-调优案例分析与实战-nav`)" id="第五章-调优案例分析与实战-nav">
+									第五章 调优案例分析与实战
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-%e8%99%9a%e6%8b%9f%e6%9c%ba%e6%89%a7%e8%a1%8c%e5%ad%90%e7%b3%bb%e7%bb%9f" onclick="onNavClick(`#第六章-虚拟机执行子系统-nav`)" id="第六章-虚拟机执行子系统-nav">
+									==第六章 虚拟机执行子系统==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#class%e7%b1%bb%e6%96%87%e4%bb%b6%e7%9a%84%e7%bb%93%e6%9e%84" onclick="onNavClick(`#class类文件的结构-nav`)" id="class类文件的结构-nav">
+									Class类文件的结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%ad%94%e6%95%b0%e4%b8%8eclass%e6%96%87%e4%bb%b6%e7%9a%84%e7%89%88%e6%9c%ac" onclick="onNavClick(`#魔数与class文件的版本-nav`)" id="魔数与class文件的版本-nav">
+									魔数与Class文件的版本
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e9%87%8f%e6%b1%a0" onclick="onNavClick(`#常量池-nav`)" id="常量池-nav">
+									常量池
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%bf%e9%97%ae%e6%a0%87%e5%bf%97" onclick="onNavClick(`#访问标志-nav`)" id="访问标志-nav">
+									访问标志
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e7%b4%a2%e5%bc%95%e7%88%b6%e7%b1%bb%e7%b4%a2%e5%bc%95%e4%b8%8e%e6%8e%a5%e5%8f%a3%e7%b4%a2%e5%bc%95%e9%9b%86%e5%90%88" onclick="onNavClick(`#类索引父类索引与接口索引集合-nav`)" id="类索引父类索引与接口索引集合-nav">
+									类索引、父类索引与接口索引集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ad%97%e6%ae%b5%e8%a1%a8%e9%9b%86%e5%90%88" onclick="onNavClick(`#字段表集合-nav`)" id="字段表集合-nav">
+									字段表集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e8%a1%a8%e9%9b%86%e5%90%88" onclick="onNavClick(`#方法表集合-nav`)" id="方法表集合-nav">
+									方法表集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b1%9e%e6%80%a7%e8%a1%a8%e9%9b%86%e5%90%88" onclick="onNavClick(`#属性表集合-nav`)" id="属性表集合-nav">
+									属性表集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ad%97%e8%8a%82%e7%a0%81%e6%8c%87%e4%bb%a4" onclick="onNavClick(`#字节码指令-nav`)" id="字节码指令-nav">
+									字节码指令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-%e8%99%9a%e6%8b%9f%e6%9c%ba%e7%b1%bb%e5%8a%a0%e8%bd%bd%e6%9c%ba%e5%88%b6" onclick="onNavClick(`#第七章-虚拟机类加载机制-nav`)" id="第七章-虚拟机类加载机制-nav">
+									==第七章 虚拟机类加载机制==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ab%8b%e5%8d%b3%e5%af%b9%e7%b1%bb%e5%88%9d%e5%a7%8b%e5%8c%96%e7%9a%84%e6%97%b6%e6%9c%ba" onclick="onNavClick(`#立即对类初始化的时机-nav`)" id="立即对类初始化的时机-nav">
+									立即对类初始化的时机
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%a2%ab%e5%8a%a8%e5%bc%95%e7%94%a8%e6%83%85%e5%86%b5" onclick="onNavClick(`#被动引用情况-nav`)" id="被动引用情况-nav">
+									被动引用情况
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%8a%a0%e8%bd%bd%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#类加载过程-nav`)" id="类加载过程-nav">
+									类加载过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%8a%a0%e8%bd%bd%e8%bf%87%e7%a8%8b%e6%a6%82%e8%a7%88" onclick="onNavClick(`#类加载过程概览-nav`)" id="类加载过程概览-nav">
+									类加载过程概览
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a0%e8%bd%bd" onclick="onNavClick(`#加载-nav`)" id="加载-nav">
+									加载
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%aa%8c%e8%af%81" onclick="onNavClick(`#验证-nav`)" id="验证-nav">
+									验证
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%87%86%e5%a4%87" onclick="onNavClick(`#准备-nav`)" id="准备-nav">
+									准备
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%a7%a3%e6%9e%90" onclick="onNavClick(`#解析-nav`)" id="解析-nav">
+									解析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%9d%e5%a7%8b%e5%8c%96" onclick="onNavClick(`#初始化-nav`)" id="初始化-nav">
+									初始化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%8a%a0%e8%bd%bd%e5%99%a8" onclick="onNavClick(`#类加载器-nav`)" id="类加载器-nav">
+									类加载器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%8c%e4%ba%b2%e5%a7%94%e6%b4%be%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#双亲委派模型-nav`)" id="双亲委派模型-nav">
+									双亲委派模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e8%99%9a%e6%8b%9f%e6%9c%ba%e5%ad%97%e8%8a%82%e7%a0%81%e6%89%a7%e8%a1%8c%e5%bc%95%e6%93%8e" onclick="onNavClick(`#第八章-虚拟机字节码执行引擎-nav`)" id="第八章-虚拟机字节码执行引擎-nav">
+									第八章 虚拟机字节码执行引擎
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%bf%90%e8%a1%8c%e6%97%b6%e6%a0%88%e5%b8%a7%e7%bb%93%e6%9e%84" onclick="onNavClick(`#运行时栈帧结构-nav`)" id="运行时栈帧结构-nav">
+									运行时栈帧结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%b1%80%e9%83%a8%e5%8f%98%e9%87%8f%e8%a1%a8-1" onclick="onNavClick(`#局部变量表-1-nav`)" id="局部变量表-1-nav">
+									局部变量表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%93%8d%e4%bd%9c%e6%95%b0%e6%a0%88" onclick="onNavClick(`#操作数栈-nav`)" id="操作数栈-nav">
+									操作数栈
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#动态连接-nav`)" id="动态连接-nav">
+									动态连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e8%bf%94%e5%9b%9e%e5%9c%b0%e5%9d%80" onclick="onNavClick(`#方法返回地址-nav`)" id="方法返回地址-nav">
+									方法返回地址
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e6%b3%95%e8%b0%83%e7%94%a8" onclick="onNavClick(`#方法调用-nav`)" id="方法调用-nav">
+									方法调用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%a7%a3%e6%9e%90-1" onclick="onNavClick(`#解析-1-nav`)" id="解析-1-nav">
+									解析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9d%9e%e8%99%9a%e6%96%b9%e6%b3%95" onclick="onNavClick(`#非虚方法-nav`)" id="非虚方法-nav">
+									非虚方法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e6%b4%be" onclick="onNavClick(`#分派-nav`)" id="分派-nav">
+									分派
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%8a%a8%e6%80%81%e7%b1%bb%e5%9e%8b%e8%af%ad%e8%a8%80%e6%94%af%e6%8c%81" onclick="onNavClick(`#动态类型语言支持-nav`)" id="动态类型语言支持-nav">
+									动态类型语言支持
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b9%9d%e7%ab%a0-%e7%b1%bb%e5%8a%a0%e8%bd%bd%e5%8f%8a%e6%89%a7%e8%a1%8c%e5%ad%90%e7%b3%bb%e7%bb%9f%e7%9a%84%e6%a1%88%e4%be%8b%e4%b8%8e%e5%ae%9e%e6%88%98" onclick="onNavClick(`#第九章-类加载及执行子系统的案例与实战-nav`)" id="第九章-类加载及执行子系统的案例与实战-nav">
+									第九章 类加载及执行子系统的案例与实战
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#tomcat%e6%ad%a3%e7%bb%9f%e7%9a%84%e7%b1%bb%e5%8a%a0%e8%bd%bd%e5%99%a8%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#tomcat正统的类加载器架构-nav`)" id="tomcat正统的类加载器架构-nav">
+									Tomcat:正统的类加载器架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-%e5%89%8d%e7%ab%af%e7%bc%96%e8%af%91%e4%b8%8e%e4%bc%98%e5%8c%96" onclick="onNavClick(`#第十章-前端编译与优化-nav`)" id="第十章-前端编译与优化-nav">
+									第十章 前端编译与优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%af%ad%e6%b3%95%e7%b3%96" onclick="onNavClick(`#语法糖-nav`)" id="语法糖-nav">
+									语法糖
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%b3%9b%e5%9e%8b" onclick="onNavClick(`#泛型-nav`)" id="泛型-nav">
+									泛型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e8%a3%85%e7%ae%b1%e6%8b%86%e7%ae%b1%e4%b8%8e%e9%81%8d%e5%8e%86%e5%be%aa%e7%8e%af" onclick="onNavClick(`#自动装箱拆箱与遍历循环-nav`)" id="自动装箱拆箱与遍历循环-nav">
+									自动装箱、拆箱与遍历循环
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%80%e7%ab%a0-%e5%90%8e%e7%ab%af%e7%bc%96%e8%af%91%e4%b8%8e%e4%bc%98%e5%8c%96" onclick="onNavClick(`#第十一章-后端编译与优化-nav`)" id="第十一章-后端编译与优化-nav">
+									第十一章 后端编译与优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%a7%a3%e9%87%8a%e5%99%a8%e4%b8%8e%e7%bc%96%e8%af%91%e5%99%a8" onclick="onNavClick(`#解释器与编译器-nav`)" id="解释器与编译器-nav">
+									解释器与编译器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e8%af%91%e5%af%b9%e8%b1%a1%e4%b8%8e%e8%a7%a6%e5%8f%91%e6%9d%a1%e4%bb%b6" onclick="onNavClick(`#编译对象与触发条件-nav`)" id="编译对象与触发条件-nav">
+									编译对象与触发条件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e8%af%91%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#编译过程-nav`)" id="编译过程-nav">
+									编译过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%ba%8c%e7%ab%a0-java%e5%86%85%e5%ad%98%e6%a8%a1%e5%9e%8b%e4%b8%8e%e7%ba%bf%e7%a8%8b" onclick="onNavClick(`#第十二章-java内存模型与线程-nav`)" id="第十二章-java内存模型与线程-nav">
+									==第十二章 Java内存模型与线程==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%a1%ac%e4%bb%b6%e7%9a%84%e6%95%88%e7%8e%87%e4%b8%8e%e4%b8%80%e8%87%b4%e6%80%a7" onclick="onNavClick(`#硬件的效率与一致性-nav`)" id="硬件的效率与一致性-nav">
+									硬件的效率与一致性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e5%86%85%e5%ad%98%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#java内存模型-nav`)" id="java内存模型-nav">
+									Java内存模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%bb%e5%86%85%e5%ad%98%e5%92%8c%e5%b7%a5%e4%bd%9c%e5%86%85%e5%ad%98" onclick="onNavClick(`#主内存和工作内存-nav`)" id="主内存和工作内存-nav">
+									主内存和工作内存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%86%85%e5%ad%98%e9%97%b4%e7%9b%b8%e4%ba%92%e6%93%8d%e4%bd%9c" onclick="onNavClick(`#内存间相互操作-nav`)" id="内存间相互操作-nav">
+									内存间相互操作
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e4%ba%8evolatile%e5%9e%8b%e5%8f%98%e9%87%8f%e7%9a%84%e7%89%b9%e6%ae%8a%e8%a7%84%e5%88%99" onclick="onNavClick(`#对于volatile型变量的特殊规则-nav`)" id="对于volatile型变量的特殊规则-nav">
+									对于volatile型变量的特殊规则
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%92%88%e5%af%b9long%e5%92%8cdouble%e5%9e%8b%e5%8f%98%e9%87%8f%e7%9a%84%e7%89%b9%e6%ae%8a%e8%a7%84%e5%88%99" onclick="onNavClick(`#针对long和double型变量的特殊规则-nav`)" id="针对long和double型变量的特殊规则-nav">
+									针对long和double型变量的特殊规则
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8e%9f%e5%ad%90%e6%80%a7%e5%8f%af%e8%a7%81%e6%80%a7%e4%b8%8e%e6%9c%89%e5%ba%8f%e6%80%a7" onclick="onNavClick(`#原子性可见性与有序性-nav`)" id="原子性可见性与有序性-nav">
+									原子性、可见性与有序性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#happens-before%e5%8e%9f%e5%88%99" onclick="onNavClick(`#happens-before原则-nav`)" id="happens-before原则-nav">
+									Happens-before原则
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#java%e4%b8%8e%e7%ba%bf%e7%a8%8b" onclick="onNavClick(`#java与线程-nav`)" id="java与线程-nav">
+									Java与线程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ba%bf%e7%a8%8b%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#线程的实现-nav`)" id="线程的实现-nav">
+									线程的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e7%ba%bf%e7%a8%8b%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#java线程的实现-nav`)" id="java线程的实现-nav">
+									Java线程的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#java%e7%ba%bf%e7%a8%8b%e8%b0%83%e5%ba%a6" onclick="onNavClick(`#java线程调度-nav`)" id="java线程调度-nav">
+									Java线程调度
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ba%bf%e7%a8%8b%e7%8a%b6%e6%80%81%e8%bd%ac%e6%8d%a2" onclick="onNavClick(`#线程状态转换-nav`)" id="线程状态转换-nav">
+									线程状态转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%89%e7%ab%a0-%e7%ba%bf%e7%a8%8b%e5%ae%89%e5%85%a8%e4%b8%8e%e9%94%81%e4%bc%98%e5%8c%96" onclick="onNavClick(`#第十三章-线程安全与锁优化-nav`)" id="第十三章-线程安全与锁优化-nav">
+									==第十三章 线程安全与锁优化==
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#java%e8%af%ad%e8%a8%80%e4%b8%ad%e7%9a%84%e7%ba%bf%e7%a8%8b%e5%ae%89%e5%85%a8" onclick="onNavClick(`#java语言中的线程安全-nav`)" id="java语言中的线程安全-nav">
+									Java语言中的线程安全
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ba%bf%e7%a8%8b%e5%ae%89%e5%85%a8%e7%9a%84%e5%ae%9e%e7%8e%b0%e6%96%b9%e6%b3%95" onclick="onNavClick(`#线程安全的实现方法-nav`)" id="线程安全的实现方法-nav">
+									线程安全的实现方法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%ba%92%e6%96%a5%e5%90%8c%e6%ad%a5" onclick="onNavClick(`#互斥同步-nav`)" id="互斥同步-nav">
+									互斥同步
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#synchronized%e5%ae%9e%e7%8e%b0%e5%8e%9f%e7%90%86" onclick="onNavClick(`#synchronized实现原理-nav`)" id="synchronized实现原理-nav">
+									synchronized实现原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e9%87%8d%e5%85%a5%e9%94%81" onclick="onNavClick(`#可重入锁-nav`)" id="可重入锁-nav">
+									可重入锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9d%9e%e9%98%bb%e5%a1%9e%e5%90%8c%e6%ad%a5" onclick="onNavClick(`#非阻塞同步-nav`)" id="非阻塞同步-nav">
+									非阻塞同步
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ba%bf%e7%a8%8b%e6%9c%ac%e5%9c%b0%e5%ad%98%e5%82%a8" onclick="onNavClick(`#线程本地存储-nav`)" id="线程本地存储-nav">
+									线程本地存储
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e9%94%81%e4%bc%98%e5%8c%96" onclick="onNavClick(`#锁优化-nav`)" id="锁优化-nav">
+									锁优化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e6%97%8b%e9%94%81%e4%b8%8e%e8%87%aa%e9%80%82%e5%ba%94%e8%87%aa%e6%97%8b" onclick="onNavClick(`#自旋锁与自适应自旋-nav`)" id="自旋锁与自适应自旋-nav">
+									自旋锁与自适应自旋
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%94%81%e6%b6%88%e9%99%a4" onclick="onNavClick(`#锁消除-nav`)" id="锁消除-nav">
+									锁消除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%94%81%e7%b2%97%e5%8c%96" onclick="onNavClick(`#锁粗化-nav`)" id="锁粗化-nav">
+									锁粗化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bd%bb%e9%87%8f%e7%ba%a7%e9%94%81" onclick="onNavClick(`#轻量级锁-nav`)" id="轻量级锁-nav">
+									轻量级锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%81%8f%e5%90%91%e9%94%81" onclick="onNavClick(`#偏向锁-nav`)" id="偏向锁-nav">
+									偏向锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div id="drawer-mask" v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav id="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div id="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a id="navTitle" class="navbar-brand" href="https://kother.top">
+            Kother&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" id="darkModeToggleButton2">
+            <i class="material-icons" id="darkModeToggleIcon2">
+                dark_mode
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" id="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://kother.top">
+        <div class="single-column-header-title">Kother&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">记录点喜欢的.</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+                <div id="streamContainer" class="stream-container">
+
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    深入理解Java虚拟机 读书笔记
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-01-14 19:51
+                        </time>
+                        
+
+                        
+
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="深入理解java虚拟机-读书笔记">深入理解Java虚拟机-读书笔记</h1>
+<blockquote>
+<ul>
+<li>书中默认以OpenJDK/OracleJDK中的HotSpot虚拟机来讲述</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>个人觉得如果要读该书至少具备：</p>
+<ul>
+<li>数据结构知识（必备）</li>
+<li>基础的Java语法知识</li>
+<li>基础的Java并发相关知识（推荐《Java并发编程实战》，如果对并发有所了解，全程都会看的很舒服）</li>
+<li>基础的操作系统知识（线程、内存、CPU与缓存设计等）</li>
+<li>带着对Java中“类？对象？垃圾回收？”的疑问来看</li>
+</ul>
+<p>仅记录一些个人的学习笔记和书中重点，用于快速浏览或复习</p>
+<p>本书适合看很多遍，在Java不同学习情况下，每再看一次都会有不同收获。个人认为第一遍时，需要看的重点章节是第二、三、六、七、十二、十三章，可以多多细读。</p>
+</blockquote>
+<p>[TOC]</p>
+<h2 id="第一章-走近java">第一章 走近Java</h2>
+<h3 id="java-runtime-environment">Java Runtime Environment</h3>
+<ul>
+<li>Java虚拟机</li>
+<li>Java类库API中的Java SE API子集</li>
+</ul>
+<h3 id="java-development-kit">Java Development Kit</h3>
+<p>是Java开发的本地最小环境</p>
+<ul>
+<li>Java程序设计语言</li>
+<li>Java虚拟机</li>
+<li>Java类库</li>
+</ul>
+<h3 id="jdk5中加入的新特性">JDK5中加入的新特性</h3>
+<ul>
+<li>自动装箱、泛型、动态注解、枚举、可变长参数、遍历循环</li>
+<li>改进了Java内存模型</li>
+<li>提供了java.util.concurrent</li>
+</ul>
+<h3 id="jdk8的新特性">JDK8的新特性</h3>
+<ul>
+<li>Lambda</li>
+<li>新的时间、日期API</li>
+<li>彻底移除HotSpot的永久代</li>
+</ul>
+<h3 id="hotspot的热点代码探测">HotSpot的热点代码探测</h3>
+<p>由于<strong>经过充分预热</strong>，热点代码会被HotSpot的探测机制准确定位捕 获，并将其编译为物理硬件可直接执行的机器码，在这类应用中Java的运行效率很大程度上取决于即时编译器所输出的代码质量。</p>
+<h2 id="第二章-java内存区域与内存溢出异常"><strong>==第二章 Java内存区域与内存溢出异常==</strong></h2>
+<blockquote>
+<p>对于Java程序员来说，在虚拟机自动内存管理机制的帮助下，不再需要为每一个new操作去写配对 的delet e/free代码，不容易出现内存泄漏和内存溢出问题，看起来由虚拟机管理内存一切都很美好。不 过，也正是因为Java程序员把控制内存的权力交给了Java虚拟机，一旦出现内存泄漏和溢出方面的问 题，如果不了解虚拟机是怎样使用内存的，那排查错误、修正问题将会成为一项异常艰难的工作。</p>
+<p>程序计数器、本底方法栈、虚拟机栈随线程而生，随线程而灭</p>
+</blockquote>
+<h3 id="运行时数据区域">运行时数据区域</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141946456.png" alt="image-20230113151829050"></p>
+<h4 id="程序计数器">程序计数器</h4>
+<p>Program Counter Register</p>
+<ul>
+<li>通过PCR选取下一条要执行的指令。如果正在执行Java方法，PCR记录的是正在执行的虚拟机字节码地址；如果执行Native方法，计数器的值为空。</li>
+<li>为了确保各自线程可以恢复到自己当时执行的位置，PCR是线程私有的</li>
+<li>不会OOM</li>
+</ul>
+<blockquote>
+<p>Native Method:java调用非java代码的接口(比如C++)</p>
+</blockquote>
+<h4 id="java虚拟机栈">Java虚拟机栈</h4>
+<ul>
+<li>描述的是Java方法执行的线程内存模型</li>
+<li>每个方法被执行时，Java虚拟机会同步创建栈帧（Stack Frame），用于存储局部变量表、操作数栈、动态连接、方法出口&hellip;(方法执行-&gt;入栈，方法结束-&gt;出栈)</li>
+<li>请求的深度过大会StackOverFlowError</li>
+<li>无法申请到足够内存时会OOM（但由于HotSpot不支持动态扩展，因此只有可能在申请内存时溢出，不会在运行时溢出）</li>
+</ul>
+<h5 id="局部变量表">局部变量表</h5>
+<ul>
+<li>数据在局部变量表中以Slot（局部变量槽）的形式存储</li>
+<li>空间大小在编译期间确定</li>
+<li>线程请求的栈深度过大-&gt; StackOverFlow</li>
+<li>容量不够 -&gt; OOM</li>
+<li>线程私有</li>
+</ul>
+<p><strong>存：</strong></p>
+<ul>
+<li>基本数据类型（八大）</li>
+<li><strong>对象引用（reference，指向对象）</strong></li>
+<li>returnAddress类型（指向字节码指令）</li>
+</ul>
+<h4 id="本地方法栈">本地方法栈</h4>
+<ul>
+<li>存虚拟机使用到的Native Method</li>
+<li>线程私有</li>
+</ul>
+<h4 id="java堆">Java堆</h4>
+<ul>
+<li>线程共享</li>
+<li>唯一作用：存放对象</li>
+<li>会OOM</li>
+</ul>
+<h4 id="方法区">方法区</h4>
+<ul>
+<li>线程共享</li>
+<li>存储已被虚拟机加载的<strong>类型信息（类名、访问修饰符、运行时常量池、字段描述、方法描述）</strong>、常量、静态变量、即时编译器编译后的代码</li>
+</ul>
+<h5 id="运行时常量池">运行时常量池</h5>
+<ul>
+<li>存放编译期生成的各种字面量和符号引用</li>
+<li>具备动态性</li>
+<li>会OOM</li>
+</ul>
+<blockquote>
+<p>String::intern()是一个本地方法，它的作用是如果字符串常量池中已经包含一个等于此String对象的字符串，则返回代表池中这个字符串的String对象的引用;否则，会将此String对象包含的字符串添加 到常量池中，并且返回此String对象的引用</p>
+</blockquote>
+<h3 id="直接内存">直接内存</h3>
+<ul>
+<li>NIO（New Input/Output，基于通道和缓冲区的I/O方式），可以使用Native函数库直接分配堆外内存，被在Java堆中的DirectByteBuffer所引用</li>
+<li>会OOM</li>
+</ul>
+<h3 id="对象的创建">对象的创建</h3>
+<h4 id="1检查是否被类加载过">1.检查是否被类加载过</h4>
+<p>检查这个指令的参数能否在常量池中定位到一个类的符号引用，并且检查类是否被加载、解析和初始化，如果没有的话，要先进行类加载</p>
+<h4 id="2为该对象在堆中分配确定大小的内存">2.为该对象在堆中分配确定大小的内存</h4>
+<p>分配方法：<strong>指针碰撞/空闲列表</strong>（根据Java堆是否规整决定 &ndash;&gt; 根据垃圾收集器决定）</p>
+<p><strong>对于指针碰撞的线程安全问题：</strong></p>
+<blockquote>
+<p>对象A可能没来得及修改指针，对象B又用了原来的指针进行分配</p>
+</blockquote>
+<p>1.CAS + 失败重试</p>
+<p>2.本地缓冲区：按线程不同，先在堆中给各个线程分块，然后线程在自己分配的块中给对象分配内存</p>
+<blockquote>
+<p>在CMS的实现里面，为了能在多数情况下分配得更快，设计了一个叫作Linear Allocat ion Buffer的分配缓冲区，通过空闲列表拿到一大块分配缓冲区之后，在它里面仍然可以使用指 针碰撞方式来分配。</p>
+</blockquote>
+<h4 id="3将分配到的内存空间都初始化为零值">3.将分配到的内存空间都初始化为零值</h4>
+<ul>
+<li>不包括对象头</li>
+<li>保证实例对象可以不赋值就用</li>
+</ul>
+<h4 id="4设置对象头">4.设置对象头</h4>
+<ul>
+<li>对象哈希码、分代年龄</li>
+<li>指向锁记录的指针</li>
+<li>指向重量级锁的指针</li>
+<li>偏向线程ID、偏向时间戳</li>
+<li>类型指针（确定该对象是哪个类的实例）</li>
+</ul>
+<h4 id="5执行init">5.执行&lt;init&gt;</h4>
+<ul>
+<li>此时虚拟机认为对象已经创建好了</li>
+<li>&lt;init&gt;就是构造函数，接下来按程序员意愿给对象初始化</li>
+</ul>
+<h3 id="对象的内存布局">对象的内存布局</h3>
+<ul>
+<li>对象头 Header</li>
+<li>实例数据 Instance Data</li>
+<li>对齐填充 Padding（保证对象<strong>起始地址</strong>是8字节整数倍）</li>
+</ul>
+<h3 id="对象的访问定位">对象的访问定位</h3>
+<ul>
+<li>通过局部变量表（在Java虚拟机栈）的reference操纵对象</li>
+</ul>
+<blockquote>
+<p>访问方式有两种：句柄和直接指针</p>
+</blockquote>
+<h4 id="句柄">句柄</h4>
+<ul>
+<li>reference存的是句柄地址</li>
+<li>句柄中包含：对象实例数据（堆），对象类型数据（方法区）</li>
+<li>对象被移动时改reference就好了，但是访问有点慢</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141946682.png" alt="image-20230113155821219"></p>
+<h4 id="直接指针">直接指针</h4>
+<ul>
+<li>reference存的是指向[对象实例数据，对象类型数据的指针]的地址</li>
+<li>速度很快，但是移动对象开销比较大</li>
+<li>是HotSpot的访问方式</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301131558495.png" alt="image-20230113155843468"></p>
+<h2 id="第三章-垃圾收集器与内存分配策略"><strong>==第三章 垃圾收集器与内存分配策略==</strong></h2>
+<blockquote>
+<p>只有处于运行期间，我们才 能知道程序究竟会创建哪些对象，创建多少个对象，这部分内存的分配和回收是动态的。垃圾收集器 所关注的正是这部分内存该如何管理。</p>
+<p>哪些内存要回收？</p>
+<p>什么时候回收？</p>
+<p>如何回收？</p>
+</blockquote>
+<h3 id="判断对象是否存活">判断对象是否存活</h3>
+<h4 id="引用计数法">引用计数法</h4>
+<p>为对象维护一个引用计数器，引用了则+1，引用失效则-1，当计数器=0时对象不可使用。</p>
+<p><strong>问题：循环引用。</strong></p>
+<h4 id="可达性分析算法">可达性分析算法</h4>
+<blockquote>
+<p>判断对象死亡需要两次标记</p>
+</blockquote>
+<ul>
+<li>1.通过GC Root系列的对象作为起始点，从该节点开始顺着引用关系往下搜索，搜索的路径称为引用链，如果某个对象到GC Roots之间没有任何引用链，说明它们不可能再被使用，此时被<strong>第一次标记</strong></li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141946754.png" alt="image-20230113162207483"></p>
+<ul>
+<li>
+<p>2.第二次筛选是：该对象是否有必要执行finalize()</p>
+<p>没必要执行：对象覆盖finalize() / finalize()已被虚拟机调用</p>
+<p>有必要执行：将对象放在F-Queue队列中，会有个优先级低的Finalizer线程执行它们的finalize()方法，加进队列后对象如果重新与某个引用链上对象进行关联，则它不会被回收，否则被回收。</p>
+</li>
+</ul>
+<blockquote>
+<p>并不推荐用finalize()，try-finally或者别的方式比它更好</p>
+</blockquote>
+<h5 id="gc-roots">GC Roots</h5>
+<ul>
+<li>在虚拟机栈(栈帧中的本地变量表)中引用的对象，譬如各个线程被调用的方法堆栈中使用到的 参数、局部变量、临时变量等。</li>
+<li>在方法区中类静态属性引用的对象，譬如Java类的引用类型静态变量</li>
+<li>在方法区中常量引用的对象，譬如字符串常量池(String Table)里的引用</li>
+<li>本底方法栈中Native方法引用的对象</li>
+<li>Java虚拟机内部的引用：基本数据类型的Class对象，常驻异常对象，系统类加载器</li>
+<li>被同步锁持有的对象</li>
+<li>反映Java虚拟机内部情况的JM XBean、JVM TI中注册的回调、本地代码缓存等。</li>
+</ul>
+<h4 id="引用类型">引用类型</h4>
+<blockquote>
+<p>一个对象在 如果只有“被引用”或者“未被引用”两种状态，对于描述一些“食之无味，弃之可惜”的对象就显 得无能为力。譬如我们希望能描述一类对象:<strong>当内存空间还足够时，能保留在内存之中，如果内存空 间在进行垃圾收集后仍然非常紧张，那就可以抛弃这些对象。</strong></p>
+</blockquote>
+<h5 id="强引用">强引用</h5>
+<p>绝对不可以被回收</p>
+<h5 id="软引用">软引用</h5>
+<p>扫描到了，内存快溢出时，会把这些对象列进回收范围内进行第二次回收，如果这次回收还没有获得足够内存，就会报OOM</p>
+<h5 id="弱引用">弱引用</h5>
+<p>扫描到了，不管内存够不够都会回收</p>
+<h5 id="虚引用">虚引用</h5>
+<p>没有用的对象，告知垃圾回收器要回收</p>
+<h4 id="回收方法区">回收方法区</h4>
+<ul>
+<li>废弃的常量</li>
+<li>不再使用的类型</li>
+</ul>
+<h4 id="判断一个类是否是不再被使用的类">判断一个类是否是“不再被使用的类”</h4>
+<p>1.不存在该类及其派生类的实例</p>
+<p>2.类加载器已被回收</p>
+<p>3.该类的java.lang.Class对象没有被引用</p>
+<h3 id="垃圾回收算法">垃圾回收算法</h3>
+<blockquote>
+<p>本节介绍的所有算法均属于追踪式垃圾收集的范畴（还有一种直接垃圾收集）</p>
+</blockquote>
+<h4 id="分代收集理论">分代收集理论</h4>
+<ul>
+<li>
+<p>弱分代假说(Weak Generational Hypothesis):绝大多数对象都是朝生夕灭的</p>
+</li>
+<li>
+<p>强分代假说(Strong Generational Hypothesis):熬过越多次垃圾收集过程的对象就越难以消亡</p>
+</li>
+<li>
+<p>跨代引用假说(Intergenerational Reference Hypothesis):跨代引用相对于同代引用来说仅占极少数。</p>
+<blockquote>
+<p>依据这条假说，我们就不应再为了少量的跨代引用去扫描整个老年代，也不必浪费空间专门记录 每一个对象是否存在及存在哪些跨代引用，只需在新生代上建立一个全局的数据结构(该结构被称 为“记忆集”，Remembered Set)，这个结构把老年代划分成若干小块，标识出老年代的哪一块内存会存在跨代引用。此后当发生Minor GC时，只有包含了跨代引用的小块内存里的对象才会被加入到GC Roots进行扫描。</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>这三个分代假说共同奠定了多款常用的垃圾收集器的一致的设计原则:收集器应该将Java堆划分出不同的区域，然后将回收对象依据其年龄(年龄即对象熬过垃圾收集过程的次数)分配到不同的区域之中存储。</p>
+<p>第三个假说基于前两个而提出，倾向于“存在互相引用的对象，最好同生同死”</p>
+</blockquote>
+<h4 id="分代收集类型">分代收集类型</h4>
+<ul>
+<li>新生代收集</li>
+<li>老生代收集</li>
+<li>混合收集（目前只有G1有这种方式）</li>
+<li>整堆收集</li>
+</ul>
+<h4 id="标记-清除">标记-清除</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141946176.png" alt="image-20230113164252601"></p>
+<ul>
+<li>效率不稳定</li>
+<li>碎片化问题</li>
+</ul>
+<h4 id="标记-复制">标记-复制</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141946563.png" alt="image-20230113164331558"></p>
+<ul>
+<li>可用空间小了一半</li>
+<li>如果很多对象都是存活的，那么开销比较大</li>
+<li>大多用这种方式来回收新生代</li>
+</ul>
+<h5 id="appel式回收">Appel式回收</h5>
+<blockquote>
+<p>只有10%大小被浪费，比单纯的标记-复制好多了</p>
+</blockquote>
+<ul>
+<li><strong>继续划分新生代，分为一块Eden和两块Survivor</strong>，每次只使用一块Eden和一块Survivor，发送垃圾收集时，这两块的存活对象一次性全部复制到另外一块Survivor中，然后都清理</li>
+<li>Eden:Survivor:Survivor = 8:1:1</li>
+<li>Survivor空间不足以容纳一次Minor GC之后存活的对象时，就需要依赖其他内存区域(大多是老年代)进行分配担保(Handle Promotion)。</li>
+</ul>
+<blockquote>
+<p>分配担保：如果那块Survivor空间没有足够空间存放上一次新生代收集下来的存活对象，这些对象便将通过分配担保机制直接进入老年代。</p>
+</blockquote>
+<h4 id="标记-整理">标记-整理</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141946925.png" alt="image-20230113164859381"></p>
+<ul>
+<li>将存活对象向内存空间一端移动，然后直接清理其他地方内存</li>
+<li>用该方法时需要暂停用户线程（不能一边整一边给对象分配内存）</li>
+<li>对于存活对象多的区域（老年代），负担很重</li>
+</ul>
+<h3 id="hotspot的算法具体实现">HotSpot的算法具体实现</h3>
+<blockquote>
+<p>如果一段Java方法被调用次数到达一定程度，就会被判定为热代码交给即时编译器即 时编译为本地代码，提高运行速度(这就是HotSpot虚拟机名字的来由)</p>
+</blockquote>
+<h4 id="根节点枚举">根节点枚举</h4>
+<blockquote>
+<p>如果找Gc Roots，会导致垃圾收集过程必须暂停用户线程，不能一边找而引用关系还在一边变化</p>
+</blockquote>
+<p>HotSpot解决方法：用OopMap数据结构，在类加载完成时就把对象内xx偏移量上是xx类型记录下来，即时编译时也会记录下栈和寄存器中哪些位置是引用，这样扫描时就不需要从方法区等Gc Roots开始查找，直接从OopMap中取就可以了</p>
+<h4 id="安全点">安全点</h4>
+<ul>
+<li>导致OopMap内容变化的指令太多了</li>
+<li>如果都存，空间成本很高</li>
+</ul>
+<p>HotSpot解决方法：只在特定位置记录，这些位置就是安全点</p>
+<ul>
+<li>用户程序必须到达安全点后才能执行垃圾收集</li>
+<li>安全点不能太少，也不能过于频繁</li>
+<li>目前一般采用“主动式中断”，即设置标识位，线程轮询询问标志，如果标识位为true则在离自己最近的安全点上挂起</li>
+</ul>
+<h4 id="安全区域">安全区域</h4>
+<ul>
+<li>某一段代码片段中，引用关系不变，这个区域中任何地方都可以开始收集</li>
+<li>是为了避免上诉安全点主动式中断中，线程轮询的问题：线程可能sleep或者blocked，此时是无法询问的，总不能一直卡着吧</li>
+</ul>
+<h4 id="记忆集与卡表">记忆集与卡表</h4>
+<blockquote>
+<p>为解决对象跨代引用所带来的问题，垃圾收集器在新生代中建 立了名为记忆集(Remembered Set)的数据结构，用以避免把整个老年代加进GC Roots扫描范围</p>
+</blockquote>
+<ul>
+<li>**记忆集（数据结构）：**非收集区域指向收集区域的指针集合</li>
+<li>**记忆集的实现方式 -&gt; 卡表：**每个记录精确到一块内存区域，区域内有对象含有跨代指针</li>
+</ul>
+<blockquote>
+<p>一个卡页的内存中通常包含不止一个对象，只要卡页内有一个(或更多)对象的字段存在着跨代指针，那就将对应卡表的数组元素的值标识为1，称为这个元素变脏(Dirty)，没有则标识为0。在垃 圾收集发生时，只要筛选出卡表中变脏的元素，就能轻易得出哪些卡页内存块中包含跨代指针，把它 们加入GC Roots中一并扫描。</p>
+</blockquote>
+<h4 id="写屏障">写屏障</h4>
+<p>通过写屏障维护卡表状态（可以看作AOP）</p>
+<h4 id="并发的可达性分析">并发的可达性分析</h4>
+<ul>
+<li>增量更新：插入新引用情况，将新引用记录下来</li>
+<li>原始快照：删除引用或间接引用情况，记录根</li>
+</ul>
+<h3 id="经典垃圾收集器">经典垃圾收集器</h3>
+<blockquote>
+<p>谈的都是HotSpot中出现的垃圾收集器</p>
+</blockquote>
+<h4 id="serial">Serial</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141946385.png" alt="image-20230113171347686"></p>
+<ul>
+<li>收集过程中所有用户线程暂停，并且是虚拟机控制</li>
+<li>新生代：标记-复制，老年代：标记-整理</li>
+<li>是HotSpot的默认新生代收集器</li>
+<li><strong>简单高效</strong></li>
+</ul>
+<h4 id="serial-old">Serial Old</h4>
+<ul>
+<li>Serial的老年代版本</li>
+<li>单线程 + 新生代标记复制 - 老年代标记整理</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301131720360.png" alt="image-20230113172002309"></p>
+<h4 id="parnew">ParNew</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301131715618.png" alt="image-20230113171546569"></p>
+<ul>
+<li>Serial多线程版本 + 新生代标记复制 + 老生代标记整理</li>
+<li>有线程开销，单核环境下逼比Serial差</li>
+</ul>
+<h4 id="parallel-scavenge">Parallel Scavenge</h4>
+<ul>
+<li>标记-复制+多线程</li>
+<li>关注吞吐量（垃圾收集时间占比率越少越好），也被称为吞吐量优先收集器</li>
+</ul>
+<h4 id="parallel-old">Parallel Old</h4>
+<ul>
+<li>Parallel Scavenge的老年代版本</li>
+<li>标记整理 + 多线程收集</li>
+</ul>
+<h4 id="cms收集器">CMS收集器</h4>
+<p>Concurrent Mark Sweep</p>
+<ul>
+<li>基于标记清除算法</li>
+</ul>
+<h5 id="运作过程"><strong>运作过程</strong></h5>
+<blockquote>
+<p>三次标记，总体上来说是并发的</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947329.png" alt="image-20230113172421017"></p>
+<ul>
+<li>初始标记（会暂停用户线程｜仅标记OC Roots直接关联的对象）</li>
+<li>并发标记（并发｜从初始标记的对象开始遍历引用链）</li>
+<li>重新标记（会暂停用户线程｜修正用户线程导致的引用变动）</li>
+<li>并发清除（并发｜清除死亡对象）</li>
+</ul>
+<h5 id="存在问题">存在问题</h5>
+<ul>
+<li>多线程会占用线程，导致应用程序变慢</li>
+<li>无法处理浮动垃圾，可能会导致Full GC</li>
+<li>标记清除算法会导致碎片问题</li>
+</ul>
+<h4 id="garbage-firstg1">Garbage First（G1）</h4>
+<ul>
+<li>使用Region</li>
+<li>原始快照方式</li>
+<li>可以自己制定停顿时间</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301131730028.png" alt="image-20230113173051998"></p>
+<blockquote>
+<p>垃圾收集的目标范围要么是整个新生代(Minor GC)，要么就是整个老 年代(M ajor GC)，再要么就是整个Java堆(Full GC)。而G1跳出了这个樊笼，它可以面向堆内存任 何部分来组成回收集(Collection Set，一般简称CSet)进行回收，衡量标准不再是它属于哪个分代，而 是哪块内存中存放的垃圾数量最多，回收收益最大，这就是G1收集器的Mixed GC模式。</p>
+<p>G1不再坚持固定大小以及固定数量的 分代区域划分，而是把连续的Java堆划分为多个大小相等的独立区域(Region)，每一个Region都可以根据需要，扮演新生代的Eden空间、Survivor空间，或者老年代空间。收集器能够对扮演不同角色的 Region采用不同的策略去处理，这样无论是新创建的对象还是已经存活了一段时间、熬过多次收集的 旧对象都能获取很好的收集效果。</p>
+<p>虽然G1仍然保留新生代和老年代的概念，但新生代和老年代不再是固定的了，它们都是一系列区 域(不需要连续)的动态集合。</p>
+</blockquote>
+<h5 id="运行过程"><strong>运行过程</strong></h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947976.png" alt="image-20230113173314450"></p>
+<ul>
+<li>初始标记</li>
+<li>并发标记</li>
+<li>最终标记</li>
+<li>筛选回收（和CMS区别：这里会暂停用户线程）</li>
+</ul>
+<h4 id="虚拟机及垃圾收集器日志">虚拟机及垃圾收集器日志</h4>
+<blockquote>
+<p>记录的是JDK9之前的指令(常用)</p>
+</blockquote>
+<ul>
+<li>查看GC基本信息：-XX: +PrintGC</li>
+<li>查看GC详细信息：-XX: +PrintGCDetails</li>
+<li>查看GC前后的堆、方法区可用容量变化: -XX:+PrintHeapAtGC</li>
+<li>查看GC过程中用户线程并发时间以及停顿的时间: -XX:+Print- GCApplicationConcurrentTime</li>
+<li>查看收集器Ergonomics机制(自动设置堆空间各分代区域大小、收集目标等内容: -XX:+PrintAdaptive-SizePolicy</li>
+<li>查看熬过收集后剩余对象的年龄分布信息，:-XX:+PrintTenuring-Distribution</li>
+</ul>
+<h3 id="内存分配与回收策略">内存分配与回收策略</h3>
+<blockquote>
+<p>Java技术体系的自动内存管理，最根本的目标是自动化地解决两个问题:自动给对象分配内存以及自动回收分配给对象的内存</p>
+</blockquote>
+<h4 id="对象优先在eden分配">对象优先在Eden分配</h4>
+<p>大多数情况下对象先在Eden区分配，当Eden区空间不足时，虚拟机会发起一次Minor GC</p>
+<h4 id="长期存活的对象进入老年代">长期存活的对象进入老年代</h4>
+<ul>
+<li>为每个对象定义对象年龄计数器，放在对象头中</li>
+<li>如果对象经过第一次Minor GC后还存活，并且Survivor空间充足，则被移动到Survivor空间中（且将年龄设为1）</li>
+<li>熬一次Minor GC年龄就加一，年龄增加达到某个值时（默认为15），对象晋升到老年代中</li>
+</ul>
+<blockquote>
+<p>可以通过参数-XX:MaxTenuringThreshold设置阙值</p>
+</blockquote>
+<h4 id="大对象直接进入老年代">大对象直接进入老年代</h4>
+<blockquote>
+<p>在Java虚拟机中要避免大对象的原因是，在分配空间时，它容易导致内存明明还有不少空间时就提前触发垃圾收集，以获取足够的连续空间才能安置好它们，而当复制对象时，大对象就意味着高额的内存复制开销。</p>
+</blockquote>
+<p>需要大量连续内存空间的Java对象直接分配到老年代</p>
+<ul>
+<li>比如很长的字符串</li>
+<li>元素数量很多的大数组</li>
+</ul>
+<h4 id="动态对象年龄判定">动态对象年龄判定</h4>
+<blockquote>
+<p>为了能更好地适应不同程序的内存状况，HotSpot虚拟机并不是永远要求对象的年龄必须达到阙值才能晋升老年代</p>
+</blockquote>
+<p>如果在Survivor空间中<strong>相同年龄所有对象大小的总和大于Survivor空间的一半</strong>，年龄<strong>大于或等于</strong>该年龄的对象就可以直接进入老年代，无须等到阙值中要求的年龄。</p>
+<h4 id="空间分配担保">空间分配担保</h4>
+<ul>
+<li>Minor GC前检查<strong>老年代最大可用连续空间</strong>是否大于<strong>新生代所有对象总空间</strong></li>
+<li>如果是，本次Minor GC安全</li>
+<li>如果不是
+<ul>
+<li>如果允许担保失败，就检查老年代目前可用空间是否大于历次晋升到老年代的对象的平均大小
+<ul>
+<li>如果大于，执行Minor GC</li>
+<li>如果小于，执行Full GC</li>
+</ul>
+</li>
+<li>如果不允许担保失败，则Full GC</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>如果担保失败，就需要Full GC</p>
+</blockquote>
+<h2 id="第四章-虚拟机性能监控故障处理工具">第四章 虚拟机性能监控、故障处理工具</h2>
+<blockquote>
+<p>给一个系统定位问题的时候，知识、经验是关键基础，数据是依据，工具是运用知识处理数据的手段。这里说的数据包括但不限于异常堆栈、虚拟机运行日志、垃圾收集器日志、线程快照
+(threaddump /javacore文件)、堆转储快照(heap dump /hp rof文件)等。恰当地使用虚拟机故障处理、 分析的工具可以提升我们分析数据、定位并解决问题的效率</p>
+</blockquote>
+<blockquote>
+<p>第四章和第五章都只是粗略看了一遍，笔记后续补上</p>
+</blockquote>
+<h2 id="第五章-调优案例分析与实战">第五章 调优案例分析与实战</h2>
+<blockquote>
+<p>也是后续补上</p>
+</blockquote>
+<h2 id="第六章-虚拟机执行子系统"><strong>==第六章 虚拟机执行子系统==</strong></h2>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301131852601.png" alt="image-20230113185210507"></p>
+<blockquote>
+<p>与平台无关。Java是一次编译，到处运行</p>
+</blockquote>
+<h3 id="class类文件的结构">Class类文件的结构</h3>
+<blockquote>
+<p>Class文件是一组以8个字节为基础单位的二进制流，各个数据项目严格按照顺序紧凑地排列在文件之中，<strong>中间没有添加任何分隔符</strong>，这使得整个Class文件中存储的内容几乎全部是程序运行的必要数据，没有空隙存在。当遇到需要占用8个字节以上空间的数据项时，则会按照高位在前的方式分割 成若干个8个字节进行存储。</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>ClassFile {
+</span></span><span style="display:flex;"><span>    u4             magic;
+</span></span><span style="display:flex;"><span>    u2             minor_version;
+</span></span><span style="display:flex;"><span>    u2             major_version;
+</span></span><span style="display:flex;"><span>    u2             constant_pool_count;
+</span></span><span style="display:flex;"><span>    cp_info        constant_pool[constant_pool_count-1];
+</span></span><span style="display:flex;"><span>    u2             access_flags;
+</span></span><span style="display:flex;"><span>    u2             this_class;
+</span></span><span style="display:flex;"><span>    u2             super_class;
+</span></span><span style="display:flex;"><span>    u2             interfaces_count;
+</span></span><span style="display:flex;"><span>    u2             interfaces[interfaces_count];
+</span></span><span style="display:flex;"><span>    u2             fields_count;
+</span></span><span style="display:flex;"><span>    field_info     fields[fields_count];
+</span></span><span style="display:flex;"><span>    u2             methods_count;
+</span></span><span style="display:flex;"><span>    method_info    methods[methods_count];
+</span></span><span style="display:flex;"><span>    u2             attributes_count;
+</span></span><span style="display:flex;"><span>    attribute_info attributes[attributes_count];
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="魔数与class文件的版本">魔数与Class文件的版本</h4>
+<p>Magic Number：每个Class文件的头4个字节，<strong>唯一作用是确定这个Class文件是否能被虚拟机接收</strong></p>
+<p>Minor Version：第5、6个字节，次版本号</p>
+<p>Major Version：第7、8个字节，主版本号</p>
+<h4 id="常量池">常量池</h4>
+<blockquote>
+<p>在Class文件中不会保存各个方法、字段最终在内存中的布局信息，这些字段、方法的符号引用不经过虚拟机在运行期转换的话是无法得到真正的内存入口地址，也就无法直接被虚拟机使用的。当虚拟机做类加载时，将会从常量池获得对应的符号引用，再在类创建时或运行时解析、翻译到具体的内存地址之中。</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947544.png" alt="image-20230113195545225"></p>
+<p>其中的CONSTANT_Utf8_info：</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301131959314.png" alt="image-20230113195918240"></p>
+<blockquote>
+<p>由于Class文件中方法、字段等都<strong>需要引用CONSTANT_Utf8_info型常量来描述名称</strong>，所以CONSTANT_Utf8_info型常量的最大长度也就是Java中方法、字段名的最大长度。而这里的最大长度就是length的最大值,即u2 类型可以表达的最大长度是65535，所以Java程序中如果定义了超过64KB英文字符的变量或方法名，即使规则和全部字符都是合法的，也会无法编译。</p>
+</blockquote>
+<ul>
+<li>constant_pool_count, constant_pool[constant_pool_count - 1]</li>
+<li>资源仓库，占用Class空间最大的数据项之一</li>
+<li>用constant_pool_count先标记常量池大小（从1开始计数，只有这个）</li>
+<li>存放字面量和符号引用</li>
+<li>常量池中的每一项常量都是一个表，有17种不同类型的常量</li>
+</ul>
+<h5 id="字面量">字面量</h5>
+<ul>
+<li>文本字符串</li>
+<li>声明为final的常量</li>
+</ul>
+<h5 id="符号引用">符号引用</h5>
+<ul>
+<li>被模块导出或者开放的包</li>
+<li>类和接口的全限定名</li>
+<li>字段的名称和描述符</li>
+<li>方法的名称和描述符</li>
+<li>方法句柄和方法类型</li>
+<li>动态调用点和动态常量</li>
+</ul>
+<h4 id="访问标志">访问标志</h4>
+<ul>
+<li>access_flag 常量池的后2个字节表示访问标志</li>
+<li>用于标识类或者接口层次的访问信息</li>
+<li>可以使用16个标识位，但只定义了9个，没访问到的一律为0</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301132001924.png" alt="image-20230113200104857"></p>
+<h4 id="类索引父类索引与接口索引集合">类索引、父类索引与接口索引集合</h4>
+<ul>
+<li>
+<p>this_class | super_class | interface_count | interfaces[interfact_count]</p>
+</li>
+<li>
+<p>确定该类的全限定名｜父类全限定名｜实现了哪些接口</p>
+<blockquote>
+<p>除了java.lang.Object之外，所有的Java类都有父类，因此除了 java.lang.Object外，所有Java类的父类索引都不为0。</p>
+</blockquote>
+</li>
+<li>
+<p>类索引和父类索引存的是索引值，指向CONSTANT_Class_info的类描述符常量，通过该常量可以找到定义在CONSTANT_Utf8_info的全限定名字符串</p>
+</li>
+</ul>
+<h4 id="字段表集合">字段表集合</h4>
+<ul>
+<li>fields_count, fields[fields_count]</li>
+<li>用于描述类或者接口中声明的变量</li>
+<li>只包括类级变量(public/protected/private)和实例级变量(static)</li>
+<li>会记录的：作用域/static/final/volatile/transient/基本数据类型/名称/enum&hellip;..</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301132008595.png" alt="image-20230113200835526"></p>
+<h4 id="方法表集合">方法表集合</h4>
+<ul>
+<li>methods_count，methods[methods_count]</li>
+<li>会记录的：<strong>访问标志</strong>/名称索引/描述索引/<strong>属性表索引</strong></li>
+<li><strong>此处不记录方法中的代码</strong>：方法中的代码会经编译后变为字节码指令，存放在方法属性表集合中的“Code&quot;属性中(可以根据属性表索引找到)</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301132011358.png" alt="image-20230113201118297"></p>
+<h4 id="属性表集合">属性表集合</h4>
+<ul>
+<li>attribute_count, attributes[attribute_count]</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301132023437.png" alt="image-20230113202351365"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947053.png" alt="image-20230113202357871"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301132024399.png" alt="image-20230113202409329"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947525.png" alt="image-20230113202424324"></p>
+<h5 id="code">Code</h5>
+<blockquote>
+<p>Java程序方法体里面的代码经过Javac编译器处理之后，最终变为字节码指令存储在Code属性内。 Code属性出现在方法表的属性集合之中，但并非所有的方法表都必须存在这个属性，譬如接口或者抽 象类中的方法就不存在Code属性</p>
+<p>Code属性是Class文件中最重要的一个属性，如果把一个Java程序中的信息分为代码(Code，方法 体里面的Java代码)和元数据(M etadata，包括类、字段、方法定义及其他信息)两部分，<strong>那么在整个Class文件里，Code属性用于描述代码</strong>，所有的其他数据项目都用于描述元数据。</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301132015000.png" alt="image-20230113201525924"></p>
+<h5 id="exceptions">Exceptions</h5>
+<ul>
+<li>列出方法中可能包括的Checked Exceptions（thow后面的）</li>
+</ul>
+<h4 id="字节码指令">字节码指令</h4>
+<blockquote>
+<p>阅读字节码作为了解Java 虚拟机的基础技能，是一项应当熟练掌握的能力。</p>
+<p>由于时间原因这里跳过了..后续如果有用上会重读本书并补上笔记</p>
+</blockquote>
+<h2 id="第七章-虚拟机类加载机制"><strong>==第七章 虚拟机类加载机制==</strong></h2>
+<blockquote>
+<p>上一章我们学习了Class文件存储格式的具体细节，在Class文件中描述的各类信息，最终都需要加载到虚拟机中之后才能被运行和使用。而虚拟机如何加载这些Class文件，Class文件中的信息进入到虚拟机后会发生什么变化，这些都是本章将要讲解的内容。</p>
+<p>Java虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最 终形成可以被虚拟机直接使用的Java类型，这个过程被称作虚拟机的类加载机制。与那些在编译时需 要进行连接的语言不同，在Java语言里面，类型的加载、连接和初始化过程都是在程序运行期间完成 的，这种策略让Java语言进行提前编译会面临额外的困难，也会让类加载时稍微增加一些性能开销， 但是却为Java应用提供了极高的扩展性和灵活性，Java天生可以动态扩展的语言特性就是依赖运行期动 态加载和动态连接这个特点实现的。</p>
+</blockquote>
+<h3 id="立即对类初始化的时机">立即对类初始化的时机</h3>
+<ul>
+<li>new / 读取或设置一个类型的静态字段 / 调用静态方法</li>
+<li>java.lang.reflect反射调用</li>
+<li>初始化类时发现父类还未初始化，此时先初始化父类</li>
+<li>main()方法主类</li>
+<li>当使用JDK 7新加入的动态语言支持时，如果一个java.lang.invoke.MethodHandle实例最后的解 析结果为REF_getStatic、REF_p utStatic、REF_invokeStatic、REF_newInvokeSp ecial四种类型的方法句 柄，并且这个方法句柄对应的类没有进行过初始化，则需要先触发其初始化。</li>
+<li>如果有default接口方法，在对接口实例初始化前先对接口初始化</li>
+</ul>
+<blockquote>
+<p>这六种场景中的行为称为对一个类型进行主动引用。除此之外，所有引用类型的方式都不会触发初始化，称为被动引用。</p>
+<p>接口也有初始化过程， 这点与类是一致的，接口中不能使用“static{}”语句块，但编译器仍然会为接口生成“&lt;clinit&gt;()”类构造器[2]，用于初始化接口中所定义的 成员变量。接口与类真正有所区别的是前面讲述的六种“有且仅有”需要触发初始化场景中的第三种: 当一个类在初始化时，要求其父类全部都已经初始化过了，<strong>但是一个接口在初始化时，并不要求其父接口全部都完成了初始化，只有在真正使用到父接口的时候(如引用接口中定义的常量)才会初始化。</strong></p>
+</blockquote>
+<h3 id="被动引用情况">被动引用情况</h3>
+<p>此时不会对类进行初始化</p>
+<ul>
+<li>
+<p>通过子类调用父类的static方法，不会对子类初始化</p>
+</li>
+<li>
+<p>通过数组定义引用类，不会触发此类初始化</p>
+</li>
+<li>
+<p>常量在编译阶段会存入调用类的常量池中，本质上没有直接引用到定义常量的类，因此不会触发定义常量的类的初始化</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">ConstClass</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 如果有初始化，会打印1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">static</span>{
+</span></span><span style="display:flex;"><span>        System.<span style="color:#658b00">out</span>.<span style="color:#658b00">println</span>(<span style="color:#cd5555">&#34;1&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#8b008b;font-weight:bold">final</span> String HELLO = <span style="color:#cd5555">&#34;hello&#34;</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">test</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">main</span>(String[] args){
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// 实际上只打印了hello, 因为HELLO是直接从常量池中获得的
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        System.<span style="color:#658b00">out</span>.<span style="color:#658b00">println</span>(ConstantClass.<span style="color:#658b00">HELLO</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<h3 id="类加载过程">类加载过程</h3>
+<h4 id="类加载过程概览">类加载过程概览</h4>
+<p>一个类从加载到虚拟机内存，到卸载出内存，会经历：</p>
+<ul>
+<li>加载 Loading</li>
+<li>验证 Verification</li>
+<li>准备 Preparation</li>
+<li>解析 Resolution</li>
+<li>初始化 Initialization</li>
+<li>使用 Using</li>
+<li>卸载 UnLoading</li>
+</ul>
+<p>（其中：[验证-准备-解析] 合并称为连接）</p>
+<blockquote>
+<p>加载、验证、准备、初始化和卸载这五个阶段的顺序是确定的，类型的加载过程必须按 照这种顺序按部就班地开始，而<strong>解析阶段则不一定:它在某些情况下可以在初始化阶段之后再开始，</strong> 这是为了支持Java语言的运行时绑定特性(也称为动态绑定或晚期绑定)。</p>
+</blockquote>
+<h4 id="加载">加载</h4>
+<ul>
+<li>通过类的全限定名来获取此类的二进制字节流</li>
+<li>将这个字节流所代表的静态结构转化为方法区的运行时数据结构</li>
+<li>在内存中生成类的java.lang.Class对象，作为方法区这个类的访<strong>问入口</strong></li>
+</ul>
+<blockquote>
+<p>开发人员通过定义自己的类加载器去控制字节 流的获取方式(重写一个类加载器的findClass()或loadClass()方法)，实现根据自己的想法来赋予应用 程序获取运行代码的动态性。</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301132046721.png" alt="image-20230113204653639"></p>
+<h4 id="验证">验证</h4>
+<ul>
+<li>
+<p>确保Class文件的字节流中包含的信息符合《Java虚拟机规范》的全部约束要求，保证这些信息被当作代码运行后不会危害虚拟机自身的安全。</p>
+</li>
+<li>
+<p>会验证什么内容：</p>
+<ul>
+<li>文件格式</li>
+<li>元数据</li>
+<li>字节码</li>
+<li>符号引用</li>
+</ul>
+</li>
+</ul>
+<h4 id="准备">准备</h4>
+<ul>
+<li>正式为类中定义的静态变量分配内存并设置初始值（全是零值）</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947192.png" alt="image-20230113205120712"></p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">int</span> value = 123; <span style="color:#228b22">// 准备阶段会赋予0
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#8b008b;font-weight:bold">final</span> <span style="color:#00688b;font-weight:bold">int</span> value = 123; <span style="color:#228b22">// 准备阶段会赋予123
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="解析">解析</h4>
+<ul>
+<li>Java虚拟机将常量池内的符号引用替换为直接引用（直接指向目标的指针/句柄）的过程</li>
+<li>解析动作主要针对类或接口、字段、类方法、接口方法、方法类型、方法句柄和调用点限定符（会做权限验证）</li>
+</ul>
+<h4 id="初始化">初始化</h4>
+<blockquote>
+<p>进行准备阶段时，变量已经赋过一次系统要求的初始零值，而在初始化阶段，则会根据程序员通过程序编码制定的主观计划去初始化类变量和其他资源。</p>
+</blockquote>
+<ul>
+<li>会执行系统自动生成的&lt;cliend&gt;()类构造器</li>
+<li>&lt;client&gt;()：收集赋值语句和静态语句块产生</li>
+<li>虚拟机会保证父类的&lt;client&gt;()都执行完，因此第一个执行&lt;client&gt;()的肯定是java.lang.Object（接口就不需要了）</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301132101484.png" alt="image-20230113210146387"></p>
+<h3 id="类加载器">类加载器</h3>
+<blockquote>
+<p>Java虚拟机设计团队有意把类加载阶段中的“通过一个类的全限定名来获取描述该类的二进制字节流”这个动作放到Java虚拟机外部去实现，以便让应用程序自己决定如何去获取所需的类。实现这个动 作的代码被称为“<strong>类加载器”(Class Loader)</strong></p>
+</blockquote>
+<ul>
+<li>只有加载两个类的类加载器是相同的，才可以继续比较这两个类是否相同（相同 = equals(), isAssignableFrom(), isInstance() 的结果是否相同）</li>
+</ul>
+<h3 id="双亲委派模型">双亲委派模型</h3>
+<p>默认有三种类加载器：</p>
+<ul>
+<li>
+<p>Bootstrap ClassLoader 启动类加载器</p>
+<blockquote>
+<p>这个类加载器负责加载存放在 &lt;JAVA_HOME&gt;\lib目录，或者被-Xbootclasspath参数所指定的路径中存放的，而且是Java虚拟机能够识别的(按照文件名识别，如rt .jar、t ools.jar，名字不符合的类库即使放在lib目录中也不会被加载)类加载到虚拟机的内存中。启动类加载器无法被Java程序直接引用，用户在编写自定义类加载器时， 如果需要把加载请求委派给引导类加载器去处理，那直接使用null代替即可</p>
+</blockquote>
+</li>
+<li>
+<p>Extension Class Loader 扩展类加载器</p>
+<blockquote>
+<p>这个类加载器是在类sun.misc.Launcher$ExtClassLoader 中以Java代码的形式实现的。它负责加载&lt;JAVA_HOM E&gt;\lib\ext目录中，或者被java.ext.dirs系统变量所 指定的路径中所有的类库。根据“扩展类加载器”这个名称，就可以推断出这是一种Java系统类库的扩 展机制，JDK的开发团队允许用户将具有通用性的类库放置在ext目录里以扩展Java SE的功能，在JDK 9之后，这种扩展机制被模块化带来的天然的扩展能力所取代。由于扩展类加载器是由Java代码实现 的，开发者可以直接在程序中使用扩展类加载器来加载Class文件。</p>
+</blockquote>
+</li>
+<li>
+<p>Application Class Loader 应用程序类加载器</p>
+<blockquote>
+<p>这个类加载器由sun.misc.Launcher$Ap p ClassLoader来实现。由于应用程序类加载器是ClassLoader类中的getSy stem- ClassLoader()方法的返回值，所以有些场合中也称它为“系统类加载器”。它负责加载用户类路径 (ClassPath)上所有的类库，开发者同样可以直接在代码中使用这个类加载器。如果应用程序中没有 自定义过自己的类加载器，一般情况下这个就是程序中默认的类加载器。</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>JDK 9之前的Java应用都是由这三种类加载器互相配合来完成加载的，如果用户认为有必要，还可以加入自定义的类加载器来进行拓展，如下</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947385.png" alt="image-20230113211429138"></p>
+<ul>
+<li>这个层次关系被称为双亲委派模型（Parents Delegation Model）</li>
+<li>除了启动类加载器之外，其余的类都要有父加载器（组合关系而不是继承关系）</li>
+<li><strong>工作流程：</strong>
+<ul>
+<li>如果一个类加载器收到类加载请求，会将该请求发给父类加载器去完成，直到传到顶层。只有父类加载器说自己无法完成这个请求（搜索范围中没有指定的类），再自顶向下由子类尝试加载</li>
+</ul>
+</li>
+<li>好处：
+<ul>
+<li>防止类的重复加载</li>
+</ul>
+</li>
+</ul>
+<p>代码：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">protected</span> <span style="color:#8b008b;font-weight:bold">synchronized</span> Class&lt;?&gt; loadClass(String name, <span style="color:#00688b;font-weight:bold">boolean</span> resolve) <span style="color:#8b008b;font-weight:bold">throws</span> ClassNotFoundException {
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// 首先，检查请求的类是否已经被加载过了 
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    Class c = findLoadedClass(name); 
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (c == <span style="color:#8b008b;font-weight:bold">null</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">if</span> (parent != <span style="color:#8b008b;font-weight:bold">null</span>) {
+</span></span><span style="display:flex;"><span>            c = parent.<span style="color:#658b00">loadClass</span>(name, <span style="color:#8b008b;font-weight:bold">false</span>);
+</span></span><span style="display:flex;"><span>        } <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>            c = findBootstrapClassOrNull(name); 
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#8b008b;font-weight:bold">catch</span> (ClassNotFoundException e) {
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 如果父类加载器抛出ClassNotFoundException 
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#228b22">// 说明父类加载器无法完成加载请求
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> (c == <span style="color:#8b008b;font-weight:bold">null</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#228b22">// 在父类加载器无法加载时
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            <span style="color:#228b22">// 再调用本身的findClass方法来进行类加载 c = findClass(name);
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>            c = findClass(name);
+</span></span><span style="display:flex;"><span>        } 
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">if</span> (resolve) { resolveClass(c)<span style="color:#a61717;background-color:#e3d2d2">；</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> c;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="第八章-虚拟机字节码执行引擎">第八章 虚拟机字节码执行引擎</h2>
+<blockquote>
+<p>执行引擎是Java虚拟机核心的组成部分之一。“虚拟机”是一个相对于“物理机”的概念，这两种机器都有代码执行能力，其区别是物理机的执行引擎是直接建立在处理器、缓存、指令集和操作系统层面上的，而虚拟机的执行引擎则是由软件自行实现的，因此可以不受物理条件制约地定制指令集与执行引擎的结构体系，能够执行那些不被硬件直接支持的指令集格式。</p>
+</blockquote>
+<h3 id="运行时栈帧结构">运行时栈帧结构</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301132304431.png" alt="image-20230113230406323"></p>
+<ul>
+<li>Java虚拟机的最基本执行单元是方法，而“栈帧”用于支持方法调用</li>
+<li>栈帧存储了局部变量表、操作数栈、动态连接、方法返回地址以及一些额外信息</li>
+<li>Java可能认为栈里面的方法都是运行状态，但是对于执行引擎来说，只有栈顶的方法在活动，称为“当前栈帧”，所关联的方法称为“当前方法”</li>
+</ul>
+<h4 id="局部变量表-1">局部变量表</h4>
+<ul>
+<li>存放方法参数和方法内部定义的局部变量</li>
+<li>被编译时大小就确定了</li>
+<li>如果是局部变量的long和double，不存在线程安全问题，因为是线程私有的</li>
+<li>局部变量槽可能会被复用，原槽中的值就算脱离范围可以被GC，由于局部变量表还和这个废值有所关联，因此不会GC回收（因<strong>此会推荐将不使用的变量手动=null帮助GC</strong>）</li>
+<li>局部变量必须赋予初始值</li>
+</ul>
+<h4 id="操作数栈">操作数栈</h4>
+<blockquote>
+<p>Java虚拟机的解释执行引擎被称为“基于栈的执行引擎”，里面的“栈”就是操作数栈。</p>
+</blockquote>
+<ul>
+<li>方法开始执行时就会有各种入栈和出栈操作</li>
+</ul>
+<h4 id="动态连接">动态连接</h4>
+<ul>
+<li>指向运行时常量池该栈帧所属方法的引用（每一次运行期间转变为直接引用）</li>
+</ul>
+<h4 id="方法返回地址">方法返回地址</h4>
+<ul>
+<li>方法有两种返回方式：正常返回 / 异常返回，不管怎么返回都必须回到最初调用方法的位置</li>
+<li>方法正常退出时，主调方法的PC计数器的值就可以作为返回地址，栈帧中很可能会保存这个计数器值</li>
+<li>而方法异常退出时，返回地址要从异常处理表中找，栈帧中一般不会保存这类信息</li>
+</ul>
+<h3 id="方法调用">方法调用</h3>
+<blockquote>
+<p>唯一目的就是确定调用哪一个方法，和执行方法内部的代码没有关系</p>
+</blockquote>
+<h4 id="解析-1">解析</h4>
+<p>类加载解析阶段，会将一部分符号引用（Class文件中的常量池）转换为直接引用，解析成立的原因是该方法在编译时就完全确定了（非虚方法）。这类方法的调用称为解析</p>
+<h4 id="非虚方法">非虚方法</h4>
+<p>类加载时可以直接把符号引用变为直接引用，包括如下五种：</p>
+<ul>
+<li>final修饰的方法</li>
+<li>static修饰的方法</li>
+<li>private方法</li>
+<li>构造函数</li>
+<li>父类方法</li>
+</ul>
+<h4 id="分派">分派</h4>
+<blockquote>
+<p>分派调用过程将会揭示多态性特征的一些最基本的体现，如“重载”和“重写”在 Java虚拟机之中是如何实现的</p>
+</blockquote>
+<ul>
+<li>Java是静态多分派，动态单分派语言</li>
+</ul>
+<h5 id="静态分派">静态分派</h5>
+<ul>
+<li>
+<p>虚拟机在重载时根据参数的<strong>静态类型</strong>作为判断条件</p>
+<blockquote>
+<p>对象human的实际类型是可变的，编译期间它完全是个“薛定谔的人”，到底是Man还是Woman，必须等到程序运行到这行的时候才能确定。而<strong>human的静态类型是Human。</strong></p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947620.png" alt="image-20230114162733981"></p>
+</li>
+<li>
+<p>所有根据静态类型来决定执行哪个方法的动作，都称为静态分派。最典型的代表是重载</p>
+</li>
+<li>
+<p>静态分派编译期就已经决定了</p>
+</li>
+</ul>
+<h5 id="动态分派">动态分派</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947144.png" alt="image-20230114163254968"></p>
+<ul>
+<li>运行期间根据实际类型确定执行方法版本的分派过程称为动态分派</li>
+</ul>
+<p>一个Demo：</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141637060.png" alt="image-20230114163701959"></p>
+<ul>
+<li>Son创建时，调用父类构造函数，但是父类构造函数实际执行的是虚方法调用，因此调用Son::showMeTheMoney，此时访问子类的money字段，为0</li>
+<li>而后执行到子类初始化阶段，设置money为4</li>
+<li>最后通过静态类型访问到了父类的money，值为2</li>
+</ul>
+<h3 id="动态类型语言支持">动态类型语言支持</h3>
+<ul>
+<li>Java是静态类型语言，编译器确定一切（而动态语言是变量无类型，变量值才有类型）</li>
+<li></li>
+</ul>
+<h2 id="第九章-类加载及执行子系统的案例与实战">第九章 类加载及执行子系统的案例与实战</h2>
+<blockquote>
+<p>后续补上</p>
+</blockquote>
+<h3 id="tomcat正统的类加载器架构">Tomcat:正统的类加载器架构</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141651466.png" alt="image-20230114165137369"></p>
+<ul>
+<li>
+<p>CommonClassLoader: /common/*</p>
+</li>
+<li>
+<p>SharedClassLoader: /server/*</p>
+</li>
+<li>
+<p>WebAppClassLoader: /shared/*和/WebApp/WEB-INF/*</p>
+<blockquote>
+<p>一个Web应用程序对应一个WebAppClassLoader</p>
+<p>一个JSP文件对应一个JasperLoader</p>
+<p>意思就是会有多个类加载器的实例</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="第十章-前端编译与优化">第十章 前端编译与优化</h2>
+<h3 id="语法糖">语法糖</h3>
+<blockquote>
+<p>除了本节中介绍的泛型、自动装箱、自动拆箱、遍历循环、变长参数和条件编译之外，Java语言 还有不少其他的语法糖，如内部类、枚举类、断言语句、数值字面量、对枚举和字符串的switch支 持、try语句中定义和关闭资源(这3个从JDK 7开始支持)、Lambda表达式(从JDK 8开始支持， Lambda不能算是单纯的语法糖，但在前端编译器中做了大量的转换工作)，等等</p>
+</blockquote>
+<h4 id="泛型">泛型</h4>
+<blockquote>
+<p>泛型的本质是参数化类型(Parameterized Type)或者参数化多态(Parametric Polymorphism)的 应用，即可以将操作的数据类型指定为方法签名中的一种特殊参数，这种参数类型能够用在类、接口 和方法的创建中，分别构成泛型类、泛型接口和泛型方法。</p>
+</blockquote>
+<ul>
+<li>
+<p>Java中的泛型是“类型擦除式泛型”（比如ArrayList&lt;int&gt;和ArrayList&lt;String&gt;是同一个类型</p>
+</li>
+<li>
+<p>无法对泛型进行类型判断</p>
+</li>
+<li>
+<p>无法创建泛型的实例对象</p>
+</li>
+<li>
+<p>无法使用泛型创建数组</p>
+</li>
+<li>
+<p>泛型无法用基本数据类型，装箱拆箱是Java泛型慢的重要原因</p>
+</li>
+<li>
+<p>运行期Java无法取得泛型类型</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141707072.png" alt="image-20230114170755921"></p>
+</li>
+<li>
+<p>擦去泛型后如果方法入参一致，也不能重载（但如果返回值不同就可以）</p>
+</li>
+</ul>
+<h4 id="自动装箱拆箱与遍历循环">自动装箱、拆箱与遍历循环</h4>
+<blockquote>
+<p>根据布尔常量值的真假，编译器将会把分支中不成立的代码块消除掉，这一工作将在编译器解除语法糖阶段(com.sun.tools.javac.comp .Lower 类中)完成</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141712839.png" alt="image-20230114171208732"></p>
+<h2 id="第十一章-后端编译与优化">第十一章 后端编译与优化</h2>
+<blockquote>
+<p>目前主流的两款商用Java虚拟机(HotSpot、OpenJ9)里，Java程序最初都是通过解释器进行解释执行的，当虚拟机发现某个方法或代码块的运行特别频繁，就会把这些代码认定为“热点代码”(Hot Spot Code)，为了提高热点代码的执行效率，在运行时，虚拟机将会把这些代码编译成本地机器码，并以各种手段尽可能地进行代码优化，运行时完成这个任务的后端编译器被称为即时编译器。本节我们将会了解HotSpot虚拟机内的即时编译器的运作过程，此外，我们还将解决以下几个问题:</p>
+<ul>
+<li>为何HotSpot虚拟机要使用解释器与即时编译器并存的架构?</li>
+<li>为何HotSpot虚拟机要实现两个(或三个)不同的即时编译器?</li>
+<li>程序何时使用解释器执行?何时使用编译器执行?</li>
+<li>哪些程序代码会被编译为本地代码?如何编译本地代码?</li>
+<li>如何从外部观察到即时编译器的编译过程和编译结果?</li>
+</ul>
+</blockquote>
+<h3 id="解释器与编译器">解释器与编译器</h3>
+<blockquote>
+<p>HotSpot是解释器与编译器共存</p>
+<p>HotSpot虚拟机中内置了两个(或三个)即时编译器，其中有两个编译器存在已久，分别被称 为“客户端编译器”(Client Compiler)和“服务端编译器”(Server Compiler)，或者简称为C1编译器和 C2编译器</p>
+</blockquote>
+<ul>
+<li>程序启动执行时，<strong>解释器</strong>先发挥作用，省去编译时间，立刻运行</li>
+<li>程序启动后，随时间消耗，<strong>编译器</strong>将越来越多代码编译为本地代码，减少解释器的中间损耗，提高效率</li>
+<li>内存少则用解释器节约内存，内存多则用编译器提高效率</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141716510.png" alt="image-20230114171613403"></p>
+<h3 id="编译对象与触发条件">编译对象与触发条件</h3>
+<p>会被即时编译器编译的目标是热点代码，包括</p>
+<ul>
+<li>被多次调用的方法</li>
+<li>被多次执行的循环体</li>
+</ul>
+<blockquote>
+<p>对于这两种情况，编译的目标对象都是整个方法体，而不会是单独的循环体。</p>
+</blockquote>
+<p>判断“多次”的方法：热点探测：</p>
+<ul>
+<li>基于采样的热点探测：周期性看看哪个方法经常出现在栈顶，就是热点</li>
+<li>基于计数器的热点探测：要维护计数器，比较麻烦，但是更精确</li>
+</ul>
+<h5 id="hotpot实现方法">HotPot实现方法</h5>
+<ul>
+<li>方法调用计数器</li>
+<li>回边计数器（回边：在循环边界往回跳转）</li>
+<li>两个计数器都有一个阙值</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947064.png" alt="image-20230114172149801"></p>
+<h3 id="编译过程">编译过程</h3>
+<p>在默认条件下，无论是方法调用产生的标准编译请求，还是栈上替换编译请求，虚拟机在编译器 还未完成编译之前，都仍然将按照解释方式继续执行代码，而编译动作则在后台的编译线程中进行。</p>
+<h2 id="第十二章-java内存模型与线程"><strong>==第十二章 Java内存模型与线程==</strong></h2>
+<blockquote>
+<p>Java语言和虚拟机提供了许多工具，把并发编程的门槛降低了不少。各种中间件服务器、各类框架也都努力地替程序员隐藏尽可能多的线程并发细节，使得程序员在编码时 能更关注业务逻辑，而不是花费大部分时间去关注此服务会同时被多少人调用、如何处理数据争用、 协调硬件资源。但是无论语言、中间件和框架再如何先进，开发人员都不应期望它们能独立完成所有 并发处理的事情，了解并发的内幕仍然是成为一个高级程序员不可缺少的课程。</p>
+</blockquote>
+<h3 id="硬件的效率与一致性">硬件的效率与一致性</h3>
+<ul>
+<li>任务大多都需要靠CPU与内存交互实现</li>
+<li>加入缓存可以提高效率，但会带来“缓存一致性”问题</li>
+</ul>
+<h3 id="java内存模型">Java内存模型</h3>
+<p>Java Memory Model - JMM</p>
+<blockquote>
+<p>用于屏蔽各种硬件和操作系统的内存访问差异，以实现Java在各种平台下都可以达到一致性的访问效果</p>
+<p>Java内存模型定义程序中各种变量的访问细节，如：虚拟机把变量值存储到内存，或从内存中取出变量值的底层细节</p>
+<p>此处变量范围：实例字段、静态字段、构成数组对象的元素（不包括线程私有的局部变量和方法参数等）</p>
+<p>如果局部变量是一个reference类型，它引用的对象在Java堆中可被各个线程共享，但是reference本身在Java栈的局部变量表中是线程私有的</p>
+</blockquote>
+<h4 id="主内存和工作内存">主内存和工作内存</h4>
+<ul>
+<li>所有变量都存储在主内存中（主内存是虚拟机的一部分）</li>
+<li>每条线程有自己的工作内存，仅保留该线程使用的变量的主内存副本</li>
+<li>线程只能对自己的工作内存做读写，不可以访问主内存</li>
+<li>不同线程无法访问各自工作内存，值传递需要通过主内存</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947497.png" alt="image-20230114181553526"></p>
+<blockquote>
+<p>这里所讲的主内存、工作内存与第2章所讲的Java内存区域中的Java堆、栈、方法区等并不是同一个层次的对内存的划分，这两者基本上是没有任何关系的。</p>
+</blockquote>
+<h4 id="内存间相互操作">内存间相互操作</h4>
+<p>Java虚拟机保证每一种操作都是原子的（long,double可能有例外）</p>
+<p><strong>作用于主内存：</strong></p>
+<ul>
+<li>lock 锁定</li>
+<li>unlock 解锁</li>
+<li>read 读取</li>
+<li>write 写入</li>
+</ul>
+<p><strong>作用于工作内存：</strong></p>
+<ul>
+<li>载入 load</li>
+<li>使用 use</li>
+<li>赋值 assign</li>
+<li>存储 store</li>
+</ul>
+<p><strong>八种操作规则：</strong></p>
+<ul>
+<li>不允许read和load、store和write操作之一单独出现，即不允许一个变量从主内存读取了但工作内存不接受，或者工作内存发起回写了但主内存不接受的情况出现。</li>
+<li>不允许一个线程丢弃它最近的assign操作，即变量在工作内存中改变了之后必须把该变化同步回主内存。</li>
+<li>不允许一个线程无原因地(没有发生过任何assign操作)把数据从线程的工作内存同步回主内存 中。</li>
+<li>一个新的变量只能在主内存中“诞生”，不允许在工作内存中直接使用一个未被初始化(load或assign) 的 变 量</li>
+<li>一个变量在同一个时刻只允许一条线程对其进行lock操作，但lock操作可以被同一条线程重复执行多次，多次执行lock后，只有执行相同次数的unlock操作，变量才会被解锁。</li>
+<li>如果对一个变量执行lock操作，那将会清空工作内存中此变量的值，在执行引擎使用这个变量前，需要重新执行load或assign操作以初始化变量的值。</li>
+<li>如果一个变量事先没有被lock操作锁定，那就不允许对它执行unlock操作，也不允许去unlock一个 被其他线程锁定的变量。</li>
+<li>对一个变量执行unlock操作之前，必须先把此变量同步回主内存中(执行store、write操作)。</li>
+</ul>
+<h4 id="对于volatile型变量的特殊规则">对于volatile型变量的特殊规则</h4>
+<blockquote>
+<p>关键字volatile可以说是Java虚拟机提供的最轻量级的同步机制</p>
+</blockquote>
+<ul>
+<li>
+<p>volatile变量的值对于所有线程可见（原理：每次读都先从主内存刷新最新值，改了以后要立刻写回）</p>
+</li>
+<li>
+<p>volatile无原子性，不是线程安全</p>
+</li>
+<li>
+<p>volatile会禁止指令重排序（原理：<strong>内存屏障</strong>）</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#228b22">// 禁止重排序例子：单例模式
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">Singleton</span>{
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 使得instance对其他线程立刻可见
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">private</span> <span style="color:#8b008b;font-weight:bold">volatile</span> <span style="color:#8b008b;font-weight:bold">static</span> Singleton instance;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">static</span> Singleton <span style="color:#008b45">getInstance</span>(){
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span>(instance == <span style="color:#8b008b;font-weight:bold">null</span>){
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">synchronized</span>(Singleton.<span style="color:#658b00">class</span>){
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span>(instance == <span style="color:#8b008b;font-weight:bold">null</span>){
+</span></span><span style="display:flex;"><span>                    instance = <span style="color:#8b008b;font-weight:bold">new</span> Singleton();
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> <span style="color:#008b45">Singleton</span>() { }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<h4 id="针对long和double型变量的特殊规则">针对long和double型变量的特殊规则</h4>
+<blockquote>
+<p>long和double的非原子性协定</p>
+<p>如果有多个线程共享一个并未声明为volat ile的long或double类型的变量，并且同时对它们进行读取 和修改操作，那么某些线程可能会读取到一个既不是原值，也不是其他线程修改值的代表了“半个变量”的数值。不过这种读取到“半个变量”的情况是非常罕见的</p>
+</blockquote>
+<p>对于long和double（64位），允许虚拟机将<strong>没有被volatile修饰</strong>的64位数据的读写操作划分为<strong>两次</strong>32位的操作来进行</p>
+<h4 id="原子性可见性与有序性">原子性、可见性与有序性</h4>
+<ul>
+<li>原子性：基本类型访问原子性操作</li>
+<li>可见性：共享变量的值被修改可立刻被别的线程得知（volatile, synchronized, final）</li>
+<li>有序性：volatile和synchronized都可以保证</li>
+</ul>
+<h4 id="happens-before原则">Happens-before原则</h4>
+<ul>
+<li>程序次序：按控制流顺序（分支、循环）而不是代码顺序</li>
+<li>管程锁定：unlock发生在lock前（同一个锁）</li>
+<li>volatile变量：写发生于读之前</li>
+<li>线程启动：start()发生于此线程之后的每一个动作前</li>
+<li>线程终止：所有操作都发生在线程的终止前</li>
+<li>线程中断：对线程interrupt()方法的调用发生在被中断线程的代码检测到中断事件发生</li>
+<li>对象终结：构造函数发生在finalize()方法前</li>
+<li>传递性：A先于B，B先于C，则A先于C</li>
+</ul>
+<h3 id="java与线程">Java与线程</h3>
+<blockquote>
+<p>线程是Java里面处理机资源调度的最基本单位</p>
+<p>现线程主要有三种方式:使用内核线程实现(1:1实现)，使用用户线程实现(1:N实现)， 使用用户线程加轻量级进程混合实现(N:M 实现)。</p>
+<p>纯纯的操作系统知识</p>
+</blockquote>
+<h4 id="线程的实现">线程的实现</h4>
+<ul>
+<li>内核线程</li>
+<li>用户线程</li>
+</ul>
+<h4 id="java线程的实现">Java线程的实现</h4>
+<p>以HotSpot为例，它的每一个Java线程都是直接映射到一个操作系统原生线程来实现的，而且中间 没有额外的间接结构，所以HotSpot自己是不会去干涉线程调度的</p>
+<p>1:1的内核线程模型是如今Java虚拟机线程实现的主流选择，但是这种映射到操作系统上的线程天然的缺陷是切换、调度成本高昂，系统 能容纳的线程数量也很有限</p>
+<blockquote>
+<p>内核线程的调度成本主要来自于用户态与核心态之间的状态转换，而这两种状态转换的开销主要来自于响应中断、保护和恢复执行现场的成本。</p>
+</blockquote>
+<blockquote>
+<p>Java中的线程可以分配优先级，但其实没多大作用，最后决定权还是在操作系统上</p>
+</blockquote>
+<h4 id="java线程调度">Java线程调度</h4>
+<blockquote>
+<p>线程调度：CPU为线程分配处理器使用权限</p>
+</blockquote>
+<ul>
+<li>协同式：线程执行时间自己控制</li>
+<li><strong>抢占式（Java）：系统分配</strong></li>
+</ul>
+<h4 id="线程状态转换">线程状态转换</h4>
+<ul>
+<li>新建</li>
+<li>运行</li>
+<li>无限期等待（wait(), join(), park())</li>
+<li>有限期等待（sleep(time), wait(time), join(time), parkNanos(time), parkUntil(time)）</li>
+<li>阻塞</li>
+<li>结束</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141846685.png" alt="image-20230114184615568"></p>
+<h2 id="第十三章-线程安全与锁优化"><strong>==第十三章 线程安全与锁优化==</strong></h2>
+<blockquote>
+<p>《Java并发编程实战》的作者Brian Goetz为“线程安全”做 出了一个比较恰当的定义:<strong>“当多个线程同时访问一个对象时，如果不用考虑这些线程在运行时环境下的调度和交替执行，也不需要进行额外的同步，或者在调用方进行任何其他的协调操作，调用这个对象的行为都可以获得正确的结果，那就称这个对象是线程安全的。”</strong></p>
+</blockquote>
+<h3 id="java语言中的线程安全">Java语言中的线程安全</h3>
+<p>将Java中的操作数据分成五类：</p>
+<ul>
+<li>不可变：final定义的基本数据类型，或者String这样的不可变对象</li>
+<li>绝对线程安全</li>
+<li>相对线程安全：大部分线程安全的类</li>
+<li>线程兼容</li>
+<li>线程对立</li>
+</ul>
+<h3 id="线程安全的实现方法">线程安全的实现方法</h3>
+<h4 id="互斥同步">互斥同步</h4>
+<ul>
+<li>互斥：保证共享数据只被一个线程使用</li>
+<li>同步：临界区、互斥量、信号量</li>
+</ul>
+<blockquote>
+<p>最常见的是synchronized</p>
+</blockquote>
+<h4 id="synchronized实现原理">synchronized实现原理</h4>
+<ul>
+<li>
+<p>synchronized关键字编译后，会生成monitorenter和monitorexit这两个字节码指令｜会维护一个计数器（可重入锁）</p>
+</li>
+<li>
+<p>这两个字节码指令都有一个reference参数指明要锁定和解锁的东西</p>
+<ul>
+<li>如果指的是对象，则以对象引用作为reference</li>
+<li>如果指的是实例方法，则对象实例为锁</li>
+<li>如果指的是类方法，则以Class对象为锁</li>
+</ul>
+</li>
+</ul>
+<h4 id="可重入锁">可重入锁</h4>
+<ul>
+<li>等待可中断</li>
+<li>公平锁</li>
+<li>锁绑定多个条件（Condition）</li>
+</ul>
+<h4 id="非阻塞同步">非阻塞同步</h4>
+<ul>
+<li>比较并设置 Compare and Set</li>
+<li>获取并增加 Compare and Increment</li>
+<li>比较并交换 Compare and Swap</li>
+<li>&hellip;</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#228b22">// AtomicInteger中的incrementAndGey
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">final</span> <span style="color:#00688b;font-weight:bold">int</span> <span style="color:#008b45">incrementAndGet</span>(){
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span>(;;){
+</span></span><span style="display:flex;"><span>        <span style="color:#00688b;font-weight:bold">int</span> current = get();
+</span></span><span style="display:flex;"><span>        <span style="color:#00688b;font-weight:bold">int</span> next = current + 1;
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span>(compareAndSet(current, next)){
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">return</span> next;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>} 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>ABA问题：版本号解决（AtomicStampedReference，通过控制变量值的版本也可以解决，但不常用）</p>
+<h4 id="线程本地存储">线程本地存储</h4>
+<p>ThreadLoacl</p>
+<ul>
+<li>每一个Thread对象中都有一个ThreadLocalMap</li>
+<li>ThreadLocalMap的key是<strong>ThreadLocal.threadLocalHashCode（每一个线程都独一无二）</strong>，value是本地变量值</li>
+</ul>
+<h3 id="锁优化">锁优化</h3>
+<blockquote>
+<p>高效并发是从JDK 5升级到JDK 6后一项重要的改进项，HotSpot虚拟机开发团队在这个版本上花费了大量的资源去实现各种锁优化技术，如适应性自旋(Adaptive Spinning)、锁消除(Lock Elimination)、锁膨胀(Lock Coarsening)、轻量级锁(Lightweight Locking)、偏向锁(Biased Locking)等，这些技术都是为了在线程之间更高效地共享数据及解决竞争问题，从而提高程序的执行效率。</p>
+</blockquote>
+<h4 id="自旋锁与自适应自旋">自旋锁与自适应自旋</h4>
+<blockquote>
+<p>也是一种根据经验判断的感觉</p>
+</blockquote>
+<ul>
+<li>
+<p>原本的自旋锁：一直忙等</p>
+</li>
+<li>
+<p>自适应自旋锁（JDK6优化）：</p>
+<ul>
+<li>对于相同锁对象，如果自旋等待刚刚成功拿过锁并且有锁的线程在运行，那么允许等待久一点</li>
+<li>如果很少有自旋拿到过锁，则不自旋了</li>
+</ul>
+</li>
+</ul>
+<h4 id="锁消除">锁消除</h4>
+<p>编译器会对不存在竞争但却加了锁的代码块进行“优化”，也就是删去锁</p>
+<h4 id="锁粗化">锁粗化</h4>
+<blockquote>
+<p>原因是频繁加锁解锁也会有性能损耗</p>
+</blockquote>
+<p>如果对同个对象反复加锁解锁，编译器可能会把这些零碎的加锁操作合成一块。</p>
+<h4 id="轻量级锁">轻量级锁</h4>
+<blockquote>
+<p>轻量级锁能提升程序同步性能的依据是“对于绝大部分的锁，在整个同步周期内都是不存在竞争 的”这一经验法则。如果没有竞争，轻量级锁便通过CAS操作成功避免了使用互斥量的开销;但如果确 实存在锁竞争，除了互斥量的本身开销外，还额外发生了CAS操作的开销。因此在有竞争的情况下， 轻量级锁反而会比传统的重量级锁更慢。</p>
+</blockquote>
+<p>回看对象头：</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301141947636.png" alt="image-20230114193229869"></p>
+<blockquote>
+<p>轻量级锁加锁解锁操作都是CAS</p>
+</blockquote>
+<ul>
+<li>如果锁标志位为01（未被锁定），在线程层的栈帧中创建Lock Record空间，存储Mark Word拷贝</li>
+<li>加锁：尝试将对象的Mark Word用CAS操作更新为指向Lock Record的指针
+<ul>
+<li>如果成功，锁标志位设为00，表示轻量锁定</li>
+<li>如果失败，看看是不是自己的锁，如果是就进入代码块，如果不是则转为重量级锁&ndash;&gt;10&ndash;&gt;Mark Word中存重量级锁的指针</li>
+</ul>
+</li>
+<li>解锁：CAS操作，如果对象的Mark Word仍然指向线程的锁记录，那就用CAS操作把对象当前的Mark Word和线程中复制的Displaced Mark Word替换回来。假如能够成功替换，那整个同步过程就顺利完成了;如果替换失败，则说明有 其他线程尝试过获取该锁，就要在释放锁的同时，唤醒被挂起的线程。</li>
+</ul>
+<h4 id="偏向锁">偏向锁</h4>
+<blockquote>
+<p>实现原理是做了一次CAS，标记对象的Mark Word</p>
+</blockquote>
+<ul>
+<li>偏向锁就是在运行过程中，对象的锁偏向某个线程</li>
+<li>即在开启偏向锁机制的情况下，某个线程获得锁，当该线程下次再想要获得锁时，不需要重新申请获得锁（即忽略synchronized关键词），直接就可以执行同步代码，比较适合竞争较少的情况。</li>
+</ul>
+
+                    
+                    <HR width="100%" id="EOF">
+		    <p style="color:#777;">上次修改於 2023-01-14</p>
+                    
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			下回<br>已經到底啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="/read/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
+			上回<br>MySQL是怎样运行的 读书笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+<div id="gitalk-container"></div>
+
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+
+
+                    </div>
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+</div>
+            </div>
+    
+    <script src="/js/journal.js"></script></body>
+</html>
