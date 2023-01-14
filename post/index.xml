@@ -7,25 +7,7 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Kother.</copyright>
-    <lastBuildDate>Fri, 13 Jan 2023 21:27:15 +0800</lastBuildDate><atom:link href="https://kother.top/post/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>深入理解Java虚拟机 读书笔记</title>
-      <link>https://kother.top/post/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
-      <pubDate>Fri, 13 Jan 2023 21:27:15 +0800</pubDate>
-      
-      <guid>https://kother.top/post/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
-      <description>深入理解Java虚拟机-读书笔记 书中默认以OpenJDK/OracleJDK中的HotSpot虚拟机来讲述 仅记录一些个人的学习笔记和书中重点，用于快速浏览或复习
-[TOC]
-第一章 走近Java Java Runtime Environment Java虚拟机 Java类库API中的Java SE API子集 Java Development Kit 是Java开发的本地最小环境
-Java程序设计语言 Java虚拟机 Java类库 JDK5中加入的新特性 自动装箱、泛型、动态注解、枚举、可变长参数、遍历循环 改进了Java内存模型 提供了java.util.concurrent JDK8的新特性 Lambda 新的时间、日期API 彻底移除HotSpot的永久代 HotSpot的热点代码探测 由于经过充分预热，热点代码会被HotSpot的探测机制准确定位捕 获，并将其编译为物理硬件可直接执行的机器码，在这类应用中Java的运行效率很大程度上取决于即时编译器所输出的代码质量。
-==第二章 Java内存区域与内存溢出异常== 对于Java程序员来说，在虚拟机自动内存管理机制的帮助下，不再需要为每一个new操作去写配对 的delet e/free代码，不容易出现内存泄漏和内存溢出问题，看起来由虚拟机管理内存一切都很美好。不 过，也正是因为Java程序员把控制内存的权力交给了Java虚拟机，一旦出现内存泄漏和溢出方面的问 题，如果不了解虚拟机是怎样使用内存的，那排查错误、修正问题将会成为一项异常艰难的工作。
-程序计数器、本底方法栈、虚拟机栈随线程而生，随线程而灭
-运行时数据区域 程序计数器 Program Counter Register
-通过PCR选取下一条要执行的指令。如果正在执行Java方法，PCR记录的是正在执行的虚拟机字节码地址；如果执行Native方法，计数器的值为空。 为了确保各自线程可以恢复到自己当时执行的位置，PCR是线程私有的 不会OOM Native Method:java调用非java代码的接口(比如C++)
-Java虚拟机栈 描述的是Java方法执行的线程内存模型 每个方法被执行时，Java虚拟机会同步创建栈帧（Stack Frame），用于存储局部变量表、操作数栈、动态连接、方法出口&amp;hellip;(方法执行-&amp;gt;入栈，方法结束-&amp;gt;出栈) 请求的深度过大会StackOverFlowError 无法申请到足够内存时会OOM（但由于HotSpot不支持动态扩展，因此只有可能在申请内存时溢出，不会在运行时溢出） 局部变量表 数据在局部变量表中以Slot（局部变量槽）的形式存储 空间大小在编译期间确定 线程请求的栈深度过大-&amp;gt; StackOverFlow 容量不够 -&amp;gt; OOM 线程私有 存：
-基本数据类型（八大） 对象引用（reference，指向对象） returnAddress类型（指向字节码指令） 本地方法栈 存虚拟机使用到的Native Method 线程私有 Java堆 线程共享 唯一作用：存放对象 会OOM 方法区 线程共享 存储已被虚拟机加载的类型信息（类名、访问修饰符、运行时常量池、字段描述、方法描述）、常量、静态变量、即时编译器编译后的代码 运行时常量池 存放编译期生成的各种字面量和符号引用 具备动态性 会OOM String::intern()是一个本地方法，它的作用是如果字符串常量池中已经包含一个等于此String对象的字符串，则返回代表池中这个字符串的String对象的引用;否则，会将此String对象包含的字符串添加 到常量池中，并且返回此String对象的引用</description>
-    </item>
-    
+    <lastBuildDate>Thu, 12 Jan 2023 21:21:55 +0800</lastBuildDate><atom:link href="https://kother.top/post/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>MySQL是怎样运行的 读书笔记</title>
       <link>https://kother.top/post/mysql%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%90%E8%A1%8C%E7%9A%84-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
@@ -110,6 +92,7 @@ InnoDB对主键的生成策略 如果用户有自定义主键，选这个
       
       <guid>https://kother.top/post/acm%E6%A8%A1%E5%BC%8F-java/</guid>
       <description>记一些ACM模式下Java的输入输出
+牛客练习平台
 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 import java.io.*; import java.util.*; // 类名称必须采用public class Main方式命名 public class Main { public static void main(String[] args) { Scanner scanner = new Scanner(new BufferedInputStream(System.</description>
     </item>
     
@@ -200,6 +183,25 @@ JWT组成 实际的 JWT 大概就像下面这样。
 JWT 的三个部分依次如下。
 Header（头部） Payload（负载） Signature（签名） 写成一行，就是下面的样子。
 1 Header.Payload.Signature JWT特点 （1）JWT 默认是不加密，但也是可以加密的。生成原始 Token 以后，可以用密钥再加密一次。</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://kother.top/post/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kother.top/post/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+      <description>深入理解Java虚拟机-读书笔记 书中默认以OpenJDK/OracleJDK中的HotSpot虚拟机来讲述 个人觉得如果要读该书至少具备：
+数据结构知识（必备） 基础的Java语法知识 基础的Java并发相关知识（推荐《Java并发编程实战》，如果对并发有所了解，全程都会看的很舒服） 基础的操作系统知识（线程、内存、CPU与缓存设计等） 带着对Java中“类？对象？垃圾回收？”的疑问来看 仅记录一些个人的学习笔记和书中重点，用于快速浏览或复习
+本书适合看很多遍，在Java不同学习情况下，每再看一次都会有不同收获。个人认为第一遍时，需要看的重点章节是第二、三、六、七、十二、十三章，可以多多细读。
+[TOC]
+第一章 走近Java Java Runtime Environment Java虚拟机 Java类库API中的Java SE API子集 Java Development Kit 是Java开发的本地最小环境
+Java程序设计语言 Java虚拟机 Java类库 JDK5中加入的新特性 自动装箱、泛型、动态注解、枚举、可变长参数、遍历循环 改进了Java内存模型 提供了java.util.concurrent JDK8的新特性 Lambda 新的时间、日期API 彻底移除HotSpot的永久代 HotSpot的热点代码探测 由于经过充分预热，热点代码会被HotSpot的探测机制准确定位捕 获，并将其编译为物理硬件可直接执行的机器码，在这类应用中Java的运行效率很大程度上取决于即时编译器所输出的代码质量。
+==第二章 Java内存区域与内存溢出异常== 对于Java程序员来说，在虚拟机自动内存管理机制的帮助下，不再需要为每一个new操作去写配对 的delet e/free代码，不容易出现内存泄漏和内存溢出问题，看起来由虚拟机管理内存一切都很美好。不 过，也正是因为Java程序员把控制内存的权力交给了Java虚拟机，一旦出现内存泄漏和溢出方面的问 题，如果不了解虚拟机是怎样使用内存的，那排查错误、修正问题将会成为一项异常艰难的工作。
+程序计数器、本底方法栈、虚拟机栈随线程而生，随线程而灭
+运行时数据区域 程序计数器 Program Counter Register
+通过PCR选取下一条要执行的指令。如果正在执行Java方法，PCR记录的是正在执行的虚拟机字节码地址；如果执行Native方法，计数器的值为空。 为了确保各自线程可以恢复到自己当时执行的位置，PCR是线程私有的 不会OOM Native Method:java调用非java代码的接口(比如C++)
+Java虚拟机栈 描述的是Java方法执行的线程内存模型 每个方法被执行时，Java虚拟机会同步创建栈帧（Stack Frame），用于存储局部变量表、操作数栈、动态连接、方法出口&amp;hellip;(方法执行-&amp;gt;入栈，方法结束-&amp;gt;出栈) 请求的深度过大会StackOverFlowError 无法申请到足够内存时会OOM（但由于HotSpot不支持动态扩展，因此只有可能在申请内存时溢出，不会在运行时溢出） 局部变量表 数据在局部变量表中以Slot（局部变量槽）的形式存储 空间大小在编译期间确定 线程请求的栈深度过大-&amp;gt; StackOverFlow 容量不够 -&amp;gt; OOM 线程私有 存：</description>
     </item>
     
   </channel>
