@@ -7,9 +7,1393 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Kother.</copyright>
-    <lastBuildDate>Thu, 12 Jan 2023 21:21:55 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 14 Jan 2023 19:51:38 +0800</lastBuildDate>
     
         <atom:link href="https://kother.top/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>深入理解Java虚拟机 读书笔记</title>
+        <link>https://kother.top/post/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+        <pubDate>Sat, 14 Jan 2023 19:51:38 +0800</pubDate>
+        
+        <guid>https://kother.top/post/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+        <description>Kother&#39;s Blog https://kother.top/post/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;深入理解java虚拟机-读书笔记&#34;&gt;深入理解Java虚拟机-读书笔记&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;书中默认以OpenJDK/OracleJDK中的HotSpot虚拟机来讲述&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;个人觉得如果要读该书至少具备：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;数据结构知识（必备）&lt;/li&gt;
+&lt;li&gt;基础的Java语法知识&lt;/li&gt;
+&lt;li&gt;基础的Java并发相关知识（推荐《Java并发编程实战》，如果对并发有所了解，全程都会看的很舒服）&lt;/li&gt;
+&lt;li&gt;基础的操作系统知识（线程、内存、CPU与缓存设计等）&lt;/li&gt;
+&lt;li&gt;带着对Java中“类？对象？垃圾回收？”的疑问来看&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;仅记录一些个人的学习笔记和书中重点，用于快速浏览或复习&lt;/p&gt;
+&lt;p&gt;本书适合看很多遍，在Java不同学习情况下，每再看一次都会有不同收获。个人认为第一遍时，需要看的重点章节是第二、三、六、七、十二、十三章，可以多多细读。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;[TOC]&lt;/p&gt;
+&lt;h2 id=&#34;第一章-走近java&#34;&gt;第一章 走近Java&lt;/h2&gt;
+&lt;h3 id=&#34;java-runtime-environment&#34;&gt;Java Runtime Environment&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Java虚拟机&lt;/li&gt;
+&lt;li&gt;Java类库API中的Java SE API子集&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;java-development-kit&#34;&gt;Java Development Kit&lt;/h3&gt;
+&lt;p&gt;是Java开发的本地最小环境&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Java程序设计语言&lt;/li&gt;
+&lt;li&gt;Java虚拟机&lt;/li&gt;
+&lt;li&gt;Java类库&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;jdk5中加入的新特性&#34;&gt;JDK5中加入的新特性&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;自动装箱、泛型、动态注解、枚举、可变长参数、遍历循环&lt;/li&gt;
+&lt;li&gt;改进了Java内存模型&lt;/li&gt;
+&lt;li&gt;提供了java.util.concurrent&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;jdk8的新特性&#34;&gt;JDK8的新特性&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Lambda&lt;/li&gt;
+&lt;li&gt;新的时间、日期API&lt;/li&gt;
+&lt;li&gt;彻底移除HotSpot的永久代&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;hotspot的热点代码探测&#34;&gt;HotSpot的热点代码探测&lt;/h3&gt;
+&lt;p&gt;由于&lt;strong&gt;经过充分预热&lt;/strong&gt;，热点代码会被HotSpot的探测机制准确定位捕 获，并将其编译为物理硬件可直接执行的机器码，在这类应用中Java的运行效率很大程度上取决于即时编译器所输出的代码质量。&lt;/p&gt;
+&lt;h2 id=&#34;第二章-java内存区域与内存溢出异常&#34;&gt;&lt;strong&gt;==第二章 Java内存区域与内存溢出异常==&lt;/strong&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;对于Java程序员来说，在虚拟机自动内存管理机制的帮助下，不再需要为每一个new操作去写配对 的delet e/free代码，不容易出现内存泄漏和内存溢出问题，看起来由虚拟机管理内存一切都很美好。不 过，也正是因为Java程序员把控制内存的权力交给了Java虚拟机，一旦出现内存泄漏和溢出方面的问 题，如果不了解虚拟机是怎样使用内存的，那排查错误、修正问题将会成为一项异常艰难的工作。&lt;/p&gt;
+&lt;p&gt;程序计数器、本底方法栈、虚拟机栈随线程而生，随线程而灭&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;运行时数据区域&#34;&gt;运行时数据区域&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141946456.png&#34; alt=&#34;image-20230113151829050&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;程序计数器&#34;&gt;程序计数器&lt;/h4&gt;
+&lt;p&gt;Program Counter Register&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;通过PCR选取下一条要执行的指令。如果正在执行Java方法，PCR记录的是正在执行的虚拟机字节码地址；如果执行Native方法，计数器的值为空。&lt;/li&gt;
+&lt;li&gt;为了确保各自线程可以恢复到自己当时执行的位置，PCR是线程私有的&lt;/li&gt;
+&lt;li&gt;不会OOM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Native Method:java调用非java代码的接口(比如C++)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;java虚拟机栈&#34;&gt;Java虚拟机栈&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;描述的是Java方法执行的线程内存模型&lt;/li&gt;
+&lt;li&gt;每个方法被执行时，Java虚拟机会同步创建栈帧（Stack Frame），用于存储局部变量表、操作数栈、动态连接、方法出口&amp;hellip;(方法执行-&amp;gt;入栈，方法结束-&amp;gt;出栈)&lt;/li&gt;
+&lt;li&gt;请求的深度过大会StackOverFlowError&lt;/li&gt;
+&lt;li&gt;无法申请到足够内存时会OOM（但由于HotSpot不支持动态扩展，因此只有可能在申请内存时溢出，不会在运行时溢出）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;局部变量表&#34;&gt;局部变量表&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;数据在局部变量表中以Slot（局部变量槽）的形式存储&lt;/li&gt;
+&lt;li&gt;空间大小在编译期间确定&lt;/li&gt;
+&lt;li&gt;线程请求的栈深度过大-&amp;gt; StackOverFlow&lt;/li&gt;
+&lt;li&gt;容量不够 -&amp;gt; OOM&lt;/li&gt;
+&lt;li&gt;线程私有&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;存：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基本数据类型（八大）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;对象引用（reference，指向对象）&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;returnAddress类型（指向字节码指令）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;本地方法栈&#34;&gt;本地方法栈&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;存虚拟机使用到的Native Method&lt;/li&gt;
+&lt;li&gt;线程私有&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;java堆&#34;&gt;Java堆&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;线程共享&lt;/li&gt;
+&lt;li&gt;唯一作用：存放对象&lt;/li&gt;
+&lt;li&gt;会OOM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;方法区&#34;&gt;方法区&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;线程共享&lt;/li&gt;
+&lt;li&gt;存储已被虚拟机加载的&lt;strong&gt;类型信息（类名、访问修饰符、运行时常量池、字段描述、方法描述）&lt;/strong&gt;、常量、静态变量、即时编译器编译后的代码&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;运行时常量池&#34;&gt;运行时常量池&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;存放编译期生成的各种字面量和符号引用&lt;/li&gt;
+&lt;li&gt;具备动态性&lt;/li&gt;
+&lt;li&gt;会OOM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;String::intern()是一个本地方法，它的作用是如果字符串常量池中已经包含一个等于此String对象的字符串，则返回代表池中这个字符串的String对象的引用;否则，会将此String对象包含的字符串添加 到常量池中，并且返回此String对象的引用&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;直接内存&#34;&gt;直接内存&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;NIO（New Input/Output，基于通道和缓冲区的I/O方式），可以使用Native函数库直接分配堆外内存，被在Java堆中的DirectByteBuffer所引用&lt;/li&gt;
+&lt;li&gt;会OOM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;对象的创建&#34;&gt;对象的创建&lt;/h3&gt;
+&lt;h4 id=&#34;1检查是否被类加载过&#34;&gt;1.检查是否被类加载过&lt;/h4&gt;
+&lt;p&gt;检查这个指令的参数能否在常量池中定位到一个类的符号引用，并且检查类是否被加载、解析和初始化，如果没有的话，要先进行类加载&lt;/p&gt;
+&lt;h4 id=&#34;2为该对象在堆中分配确定大小的内存&#34;&gt;2.为该对象在堆中分配确定大小的内存&lt;/h4&gt;
+&lt;p&gt;分配方法：&lt;strong&gt;指针碰撞/空闲列表&lt;/strong&gt;（根据Java堆是否规整决定 &amp;ndash;&amp;gt; 根据垃圾收集器决定）&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;对于指针碰撞的线程安全问题：&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;对象A可能没来得及修改指针，对象B又用了原来的指针进行分配&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;1.CAS + 失败重试&lt;/p&gt;
+&lt;p&gt;2.本地缓冲区：按线程不同，先在堆中给各个线程分块，然后线程在自己分配的块中给对象分配内存&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;在CMS的实现里面，为了能在多数情况下分配得更快，设计了一个叫作Linear Allocat ion Buffer的分配缓冲区，通过空闲列表拿到一大块分配缓冲区之后，在它里面仍然可以使用指 针碰撞方式来分配。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;3将分配到的内存空间都初始化为零值&#34;&gt;3.将分配到的内存空间都初始化为零值&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;不包括对象头&lt;/li&gt;
+&lt;li&gt;保证实例对象可以不赋值就用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;4设置对象头&#34;&gt;4.设置对象头&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;对象哈希码、分代年龄&lt;/li&gt;
+&lt;li&gt;指向锁记录的指针&lt;/li&gt;
+&lt;li&gt;指向重量级锁的指针&lt;/li&gt;
+&lt;li&gt;偏向线程ID、偏向时间戳&lt;/li&gt;
+&lt;li&gt;类型指针（确定该对象是哪个类的实例）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;5执行init&#34;&gt;5.执行&amp;lt;init&amp;gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;此时虚拟机认为对象已经创建好了&lt;/li&gt;
+&lt;li&gt;&amp;lt;init&amp;gt;就是构造函数，接下来按程序员意愿给对象初始化&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;对象的内存布局&#34;&gt;对象的内存布局&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;对象头 Header&lt;/li&gt;
+&lt;li&gt;实例数据 Instance Data&lt;/li&gt;
+&lt;li&gt;对齐填充 Padding（保证对象&lt;strong&gt;起始地址&lt;/strong&gt;是8字节整数倍）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;对象的访问定位&#34;&gt;对象的访问定位&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;通过局部变量表（在Java虚拟机栈）的reference操纵对象&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;访问方式有两种：句柄和直接指针&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;句柄&#34;&gt;句柄&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;reference存的是句柄地址&lt;/li&gt;
+&lt;li&gt;句柄中包含：对象实例数据（堆），对象类型数据（方法区）&lt;/li&gt;
+&lt;li&gt;对象被移动时改reference就好了，但是访问有点慢&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141946682.png&#34; alt=&#34;image-20230113155821219&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;直接指针&#34;&gt;直接指针&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;reference存的是指向[对象实例数据，对象类型数据的指针]的地址&lt;/li&gt;
+&lt;li&gt;速度很快，但是移动对象开销比较大&lt;/li&gt;
+&lt;li&gt;是HotSpot的访问方式&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301131558495.png&#34; alt=&#34;image-20230113155843468&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第三章-垃圾收集器与内存分配策略&#34;&gt;&lt;strong&gt;==第三章 垃圾收集器与内存分配策略==&lt;/strong&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;只有处于运行期间，我们才 能知道程序究竟会创建哪些对象，创建多少个对象，这部分内存的分配和回收是动态的。垃圾收集器 所关注的正是这部分内存该如何管理。&lt;/p&gt;
+&lt;p&gt;哪些内存要回收？&lt;/p&gt;
+&lt;p&gt;什么时候回收？&lt;/p&gt;
+&lt;p&gt;如何回收？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;判断对象是否存活&#34;&gt;判断对象是否存活&lt;/h3&gt;
+&lt;h4 id=&#34;引用计数法&#34;&gt;引用计数法&lt;/h4&gt;
+&lt;p&gt;为对象维护一个引用计数器，引用了则+1，引用失效则-1，当计数器=0时对象不可使用。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;问题：循环引用。&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;可达性分析算法&#34;&gt;可达性分析算法&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;判断对象死亡需要两次标记&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;1.通过GC Root系列的对象作为起始点，从该节点开始顺着引用关系往下搜索，搜索的路径称为引用链，如果某个对象到GC Roots之间没有任何引用链，说明它们不可能再被使用，此时被&lt;strong&gt;第一次标记&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141946754.png&#34; alt=&#34;image-20230113162207483&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;2.第二次筛选是：该对象是否有必要执行finalize()&lt;/p&gt;
+&lt;p&gt;没必要执行：对象覆盖finalize() / finalize()已被虚拟机调用&lt;/p&gt;
+&lt;p&gt;有必要执行：将对象放在F-Queue队列中，会有个优先级低的Finalizer线程执行它们的finalize()方法，加进队列后对象如果重新与某个引用链上对象进行关联，则它不会被回收，否则被回收。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;并不推荐用finalize()，try-finally或者别的方式比它更好&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h5 id=&#34;gc-roots&#34;&gt;GC Roots&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;在虚拟机栈(栈帧中的本地变量表)中引用的对象，譬如各个线程被调用的方法堆栈中使用到的 参数、局部变量、临时变量等。&lt;/li&gt;
+&lt;li&gt;在方法区中类静态属性引用的对象，譬如Java类的引用类型静态变量&lt;/li&gt;
+&lt;li&gt;在方法区中常量引用的对象，譬如字符串常量池(String Table)里的引用&lt;/li&gt;
+&lt;li&gt;本底方法栈中Native方法引用的对象&lt;/li&gt;
+&lt;li&gt;Java虚拟机内部的引用：基本数据类型的Class对象，常驻异常对象，系统类加载器&lt;/li&gt;
+&lt;li&gt;被同步锁持有的对象&lt;/li&gt;
+&lt;li&gt;反映Java虚拟机内部情况的JM XBean、JVM TI中注册的回调、本地代码缓存等。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;引用类型&#34;&gt;引用类型&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;一个对象在 如果只有“被引用”或者“未被引用”两种状态，对于描述一些“食之无味，弃之可惜”的对象就显 得无能为力。譬如我们希望能描述一类对象:&lt;strong&gt;当内存空间还足够时，能保留在内存之中，如果内存空 间在进行垃圾收集后仍然非常紧张，那就可以抛弃这些对象。&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h5 id=&#34;强引用&#34;&gt;强引用&lt;/h5&gt;
+&lt;p&gt;绝对不可以被回收&lt;/p&gt;
+&lt;h5 id=&#34;软引用&#34;&gt;软引用&lt;/h5&gt;
+&lt;p&gt;扫描到了，内存快溢出时，会把这些对象列进回收范围内进行第二次回收，如果这次回收还没有获得足够内存，就会报OOM&lt;/p&gt;
+&lt;h5 id=&#34;弱引用&#34;&gt;弱引用&lt;/h5&gt;
+&lt;p&gt;扫描到了，不管内存够不够都会回收&lt;/p&gt;
+&lt;h5 id=&#34;虚引用&#34;&gt;虚引用&lt;/h5&gt;
+&lt;p&gt;没有用的对象，告知垃圾回收器要回收&lt;/p&gt;
+&lt;h4 id=&#34;回收方法区&#34;&gt;回收方法区&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;废弃的常量&lt;/li&gt;
+&lt;li&gt;不再使用的类型&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;判断一个类是否是不再被使用的类&#34;&gt;判断一个类是否是“不再被使用的类”&lt;/h4&gt;
+&lt;p&gt;1.不存在该类及其派生类的实例&lt;/p&gt;
+&lt;p&gt;2.类加载器已被回收&lt;/p&gt;
+&lt;p&gt;3.该类的java.lang.Class对象没有被引用&lt;/p&gt;
+&lt;h3 id=&#34;垃圾回收算法&#34;&gt;垃圾回收算法&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;本节介绍的所有算法均属于追踪式垃圾收集的范畴（还有一种直接垃圾收集）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;分代收集理论&#34;&gt;分代收集理论&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;弱分代假说(Weak Generational Hypothesis):绝大多数对象都是朝生夕灭的&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;强分代假说(Strong Generational Hypothesis):熬过越多次垃圾收集过程的对象就越难以消亡&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;跨代引用假说(Intergenerational Reference Hypothesis):跨代引用相对于同代引用来说仅占极少数。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;依据这条假说，我们就不应再为了少量的跨代引用去扫描整个老年代，也不必浪费空间专门记录 每一个对象是否存在及存在哪些跨代引用，只需在新生代上建立一个全局的数据结构(该结构被称 为“记忆集”，Remembered Set)，这个结构把老年代划分成若干小块，标识出老年代的哪一块内存会存在跨代引用。此后当发生Minor GC时，只有包含了跨代引用的小块内存里的对象才会被加入到GC Roots进行扫描。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;这三个分代假说共同奠定了多款常用的垃圾收集器的一致的设计原则:收集器应该将Java堆划分出不同的区域，然后将回收对象依据其年龄(年龄即对象熬过垃圾收集过程的次数)分配到不同的区域之中存储。&lt;/p&gt;
+&lt;p&gt;第三个假说基于前两个而提出，倾向于“存在互相引用的对象，最好同生同死”&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;分代收集类型&#34;&gt;分代收集类型&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;新生代收集&lt;/li&gt;
+&lt;li&gt;老生代收集&lt;/li&gt;
+&lt;li&gt;混合收集（目前只有G1有这种方式）&lt;/li&gt;
+&lt;li&gt;整堆收集&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;标记-清除&#34;&gt;标记-清除&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141946176.png&#34; alt=&#34;image-20230113164252601&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;效率不稳定&lt;/li&gt;
+&lt;li&gt;碎片化问题&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;标记-复制&#34;&gt;标记-复制&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141946563.png&#34; alt=&#34;image-20230113164331558&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;可用空间小了一半&lt;/li&gt;
+&lt;li&gt;如果很多对象都是存活的，那么开销比较大&lt;/li&gt;
+&lt;li&gt;大多用这种方式来回收新生代&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;appel式回收&#34;&gt;Appel式回收&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;只有10%大小被浪费，比单纯的标记-复制好多了&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继续划分新生代，分为一块Eden和两块Survivor&lt;/strong&gt;，每次只使用一块Eden和一块Survivor，发送垃圾收集时，这两块的存活对象一次性全部复制到另外一块Survivor中，然后都清理&lt;/li&gt;
+&lt;li&gt;Eden:Survivor:Survivor = 8:1:1&lt;/li&gt;
+&lt;li&gt;Survivor空间不足以容纳一次Minor GC之后存活的对象时，就需要依赖其他内存区域(大多是老年代)进行分配担保(Handle Promotion)。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;分配担保：如果那块Survivor空间没有足够空间存放上一次新生代收集下来的存活对象，这些对象便将通过分配担保机制直接进入老年代。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;标记-整理&#34;&gt;标记-整理&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141946925.png&#34; alt=&#34;image-20230113164859381&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;将存活对象向内存空间一端移动，然后直接清理其他地方内存&lt;/li&gt;
+&lt;li&gt;用该方法时需要暂停用户线程（不能一边整一边给对象分配内存）&lt;/li&gt;
+&lt;li&gt;对于存活对象多的区域（老年代），负担很重&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;hotspot的算法具体实现&#34;&gt;HotSpot的算法具体实现&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;如果一段Java方法被调用次数到达一定程度，就会被判定为热代码交给即时编译器即 时编译为本地代码，提高运行速度(这就是HotSpot虚拟机名字的来由)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;根节点枚举&#34;&gt;根节点枚举&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;如果找Gc Roots，会导致垃圾收集过程必须暂停用户线程，不能一边找而引用关系还在一边变化&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;HotSpot解决方法：用OopMap数据结构，在类加载完成时就把对象内xx偏移量上是xx类型记录下来，即时编译时也会记录下栈和寄存器中哪些位置是引用，这样扫描时就不需要从方法区等Gc Roots开始查找，直接从OopMap中取就可以了&lt;/p&gt;
+&lt;h4 id=&#34;安全点&#34;&gt;安全点&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;导致OopMap内容变化的指令太多了&lt;/li&gt;
+&lt;li&gt;如果都存，空间成本很高&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;HotSpot解决方法：只在特定位置记录，这些位置就是安全点&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用户程序必须到达安全点后才能执行垃圾收集&lt;/li&gt;
+&lt;li&gt;安全点不能太少，也不能过于频繁&lt;/li&gt;
+&lt;li&gt;目前一般采用“主动式中断”，即设置标识位，线程轮询询问标志，如果标识位为true则在离自己最近的安全点上挂起&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;安全区域&#34;&gt;安全区域&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;某一段代码片段中，引用关系不变，这个区域中任何地方都可以开始收集&lt;/li&gt;
+&lt;li&gt;是为了避免上诉安全点主动式中断中，线程轮询的问题：线程可能sleep或者blocked，此时是无法询问的，总不能一直卡着吧&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;记忆集与卡表&#34;&gt;记忆集与卡表&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;为解决对象跨代引用所带来的问题，垃圾收集器在新生代中建 立了名为记忆集(Remembered Set)的数据结构，用以避免把整个老年代加进GC Roots扫描范围&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;**记忆集（数据结构）：**非收集区域指向收集区域的指针集合&lt;/li&gt;
+&lt;li&gt;**记忆集的实现方式 -&amp;gt; 卡表：**每个记录精确到一块内存区域，区域内有对象含有跨代指针&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;一个卡页的内存中通常包含不止一个对象，只要卡页内有一个(或更多)对象的字段存在着跨代指针，那就将对应卡表的数组元素的值标识为1，称为这个元素变脏(Dirty)，没有则标识为0。在垃 圾收集发生时，只要筛选出卡表中变脏的元素，就能轻易得出哪些卡页内存块中包含跨代指针，把它 们加入GC Roots中一并扫描。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;写屏障&#34;&gt;写屏障&lt;/h4&gt;
+&lt;p&gt;通过写屏障维护卡表状态（可以看作AOP）&lt;/p&gt;
+&lt;h4 id=&#34;并发的可达性分析&#34;&gt;并发的可达性分析&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;增量更新：插入新引用情况，将新引用记录下来&lt;/li&gt;
+&lt;li&gt;原始快照：删除引用或间接引用情况，记录根&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;经典垃圾收集器&#34;&gt;经典垃圾收集器&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;谈的都是HotSpot中出现的垃圾收集器&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;serial&#34;&gt;Serial&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141946385.png&#34; alt=&#34;image-20230113171347686&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;收集过程中所有用户线程暂停，并且是虚拟机控制&lt;/li&gt;
+&lt;li&gt;新生代：标记-复制，老年代：标记-整理&lt;/li&gt;
+&lt;li&gt;是HotSpot的默认新生代收集器&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;简单高效&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;serial-old&#34;&gt;Serial Old&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Serial的老年代版本&lt;/li&gt;
+&lt;li&gt;单线程 + 新生代标记复制 - 老年代标记整理&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301131720360.png&#34; alt=&#34;image-20230113172002309&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;parnew&#34;&gt;ParNew&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301131715618.png&#34; alt=&#34;image-20230113171546569&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Serial多线程版本 + 新生代标记复制 + 老生代标记整理&lt;/li&gt;
+&lt;li&gt;有线程开销，单核环境下逼比Serial差&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;parallel-scavenge&#34;&gt;Parallel Scavenge&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;标记-复制+多线程&lt;/li&gt;
+&lt;li&gt;关注吞吐量（垃圾收集时间占比率越少越好），也被称为吞吐量优先收集器&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;parallel-old&#34;&gt;Parallel Old&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Parallel Scavenge的老年代版本&lt;/li&gt;
+&lt;li&gt;标记整理 + 多线程收集&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;cms收集器&#34;&gt;CMS收集器&lt;/h4&gt;
+&lt;p&gt;Concurrent Mark Sweep&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基于标记清除算法&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;运作过程&#34;&gt;&lt;strong&gt;运作过程&lt;/strong&gt;&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;三次标记，总体上来说是并发的&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947329.png&#34; alt=&#34;image-20230113172421017&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;初始标记（会暂停用户线程｜仅标记OC Roots直接关联的对象）&lt;/li&gt;
+&lt;li&gt;并发标记（并发｜从初始标记的对象开始遍历引用链）&lt;/li&gt;
+&lt;li&gt;重新标记（会暂停用户线程｜修正用户线程导致的引用变动）&lt;/li&gt;
+&lt;li&gt;并发清除（并发｜清除死亡对象）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;存在问题&#34;&gt;存在问题&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;多线程会占用线程，导致应用程序变慢&lt;/li&gt;
+&lt;li&gt;无法处理浮动垃圾，可能会导致Full GC&lt;/li&gt;
+&lt;li&gt;标记清除算法会导致碎片问题&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;garbage-firstg1&#34;&gt;Garbage First（G1）&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;使用Region&lt;/li&gt;
+&lt;li&gt;原始快照方式&lt;/li&gt;
+&lt;li&gt;可以自己制定停顿时间&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301131730028.png&#34; alt=&#34;image-20230113173051998&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;垃圾收集的目标范围要么是整个新生代(Minor GC)，要么就是整个老 年代(M ajor GC)，再要么就是整个Java堆(Full GC)。而G1跳出了这个樊笼，它可以面向堆内存任 何部分来组成回收集(Collection Set，一般简称CSet)进行回收，衡量标准不再是它属于哪个分代，而 是哪块内存中存放的垃圾数量最多，回收收益最大，这就是G1收集器的Mixed GC模式。&lt;/p&gt;
+&lt;p&gt;G1不再坚持固定大小以及固定数量的 分代区域划分，而是把连续的Java堆划分为多个大小相等的独立区域(Region)，每一个Region都可以根据需要，扮演新生代的Eden空间、Survivor空间，或者老年代空间。收集器能够对扮演不同角色的 Region采用不同的策略去处理，这样无论是新创建的对象还是已经存活了一段时间、熬过多次收集的 旧对象都能获取很好的收集效果。&lt;/p&gt;
+&lt;p&gt;虽然G1仍然保留新生代和老年代的概念，但新生代和老年代不再是固定的了，它们都是一系列区 域(不需要连续)的动态集合。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h5 id=&#34;运行过程&#34;&gt;&lt;strong&gt;运行过程&lt;/strong&gt;&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947976.png&#34; alt=&#34;image-20230113173314450&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;初始标记&lt;/li&gt;
+&lt;li&gt;并发标记&lt;/li&gt;
+&lt;li&gt;最终标记&lt;/li&gt;
+&lt;li&gt;筛选回收（和CMS区别：这里会暂停用户线程）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;虚拟机及垃圾收集器日志&#34;&gt;虚拟机及垃圾收集器日志&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;记录的是JDK9之前的指令(常用)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;查看GC基本信息：-XX: +PrintGC&lt;/li&gt;
+&lt;li&gt;查看GC详细信息：-XX: +PrintGCDetails&lt;/li&gt;
+&lt;li&gt;查看GC前后的堆、方法区可用容量变化: -XX:+PrintHeapAtGC&lt;/li&gt;
+&lt;li&gt;查看GC过程中用户线程并发时间以及停顿的时间: -XX:+Print- GCApplicationConcurrentTime&lt;/li&gt;
+&lt;li&gt;查看收集器Ergonomics机制(自动设置堆空间各分代区域大小、收集目标等内容: -XX:+PrintAdaptive-SizePolicy&lt;/li&gt;
+&lt;li&gt;查看熬过收集后剩余对象的年龄分布信息，:-XX:+PrintTenuring-Distribution&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;内存分配与回收策略&#34;&gt;内存分配与回收策略&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Java技术体系的自动内存管理，最根本的目标是自动化地解决两个问题:自动给对象分配内存以及自动回收分配给对象的内存&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;对象优先在eden分配&#34;&gt;对象优先在Eden分配&lt;/h4&gt;
+&lt;p&gt;大多数情况下对象先在Eden区分配，当Eden区空间不足时，虚拟机会发起一次Minor GC&lt;/p&gt;
+&lt;h4 id=&#34;长期存活的对象进入老年代&#34;&gt;长期存活的对象进入老年代&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;为每个对象定义对象年龄计数器，放在对象头中&lt;/li&gt;
+&lt;li&gt;如果对象经过第一次Minor GC后还存活，并且Survivor空间充足，则被移动到Survivor空间中（且将年龄设为1）&lt;/li&gt;
+&lt;li&gt;熬一次Minor GC年龄就加一，年龄增加达到某个值时（默认为15），对象晋升到老年代中&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;可以通过参数-XX:MaxTenuringThreshold设置阙值&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;大对象直接进入老年代&#34;&gt;大对象直接进入老年代&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;在Java虚拟机中要避免大对象的原因是，在分配空间时，它容易导致内存明明还有不少空间时就提前触发垃圾收集，以获取足够的连续空间才能安置好它们，而当复制对象时，大对象就意味着高额的内存复制开销。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;需要大量连续内存空间的Java对象直接分配到老年代&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;比如很长的字符串&lt;/li&gt;
+&lt;li&gt;元素数量很多的大数组&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;动态对象年龄判定&#34;&gt;动态对象年龄判定&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;为了能更好地适应不同程序的内存状况，HotSpot虚拟机并不是永远要求对象的年龄必须达到阙值才能晋升老年代&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如果在Survivor空间中&lt;strong&gt;相同年龄所有对象大小的总和大于Survivor空间的一半&lt;/strong&gt;，年龄&lt;strong&gt;大于或等于&lt;/strong&gt;该年龄的对象就可以直接进入老年代，无须等到阙值中要求的年龄。&lt;/p&gt;
+&lt;h4 id=&#34;空间分配担保&#34;&gt;空间分配担保&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Minor GC前检查&lt;strong&gt;老年代最大可用连续空间&lt;/strong&gt;是否大于&lt;strong&gt;新生代所有对象总空间&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;如果是，本次Minor GC安全&lt;/li&gt;
+&lt;li&gt;如果不是
+&lt;ul&gt;
+&lt;li&gt;如果允许担保失败，就检查老年代目前可用空间是否大于历次晋升到老年代的对象的平均大小
+&lt;ul&gt;
+&lt;li&gt;如果大于，执行Minor GC&lt;/li&gt;
+&lt;li&gt;如果小于，执行Full GC&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;如果不允许担保失败，则Full GC&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;如果担保失败，就需要Full GC&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;第四章-虚拟机性能监控故障处理工具&#34;&gt;第四章 虚拟机性能监控、故障处理工具&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;给一个系统定位问题的时候，知识、经验是关键基础，数据是依据，工具是运用知识处理数据的手段。这里说的数据包括但不限于异常堆栈、虚拟机运行日志、垃圾收集器日志、线程快照
+(threaddump /javacore文件)、堆转储快照(heap dump /hp rof文件)等。恰当地使用虚拟机故障处理、 分析的工具可以提升我们分析数据、定位并解决问题的效率&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;第四章和第五章都只是粗略看了一遍，笔记后续补上&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;第五章-调优案例分析与实战&#34;&gt;第五章 调优案例分析与实战&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;也是后续补上&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;第六章-虚拟机执行子系统&#34;&gt;&lt;strong&gt;==第六章 虚拟机执行子系统==&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301131852601.png&#34; alt=&#34;image-20230113185210507&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;与平台无关。Java是一次编译，到处运行&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;class类文件的结构&#34;&gt;Class类文件的结构&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Class文件是一组以8个字节为基础单位的二进制流，各个数据项目严格按照顺序紧凑地排列在文件之中，&lt;strong&gt;中间没有添加任何分隔符&lt;/strong&gt;，这使得整个Class文件中存储的内容几乎全部是程序运行的必要数据，没有空隙存在。当遇到需要占用8个字节以上空间的数据项时，则会按照高位在前的方式分割 成若干个8个字节进行存储。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ClassFile {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u4             magic;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             minor_version;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             major_version;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             constant_pool_count;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cp_info        constant_pool[constant_pool_count-1];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             access_flags;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             this_class;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             super_class;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             interfaces_count;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             interfaces[interfaces_count];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             fields_count;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    field_info     fields[fields_count];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             methods_count;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    method_info    methods[methods_count];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    u2             attributes_count;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    attribute_info attributes[attributes_count];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h4 id=&#34;魔数与class文件的版本&#34;&gt;魔数与Class文件的版本&lt;/h4&gt;
+&lt;p&gt;Magic Number：每个Class文件的头4个字节，&lt;strong&gt;唯一作用是确定这个Class文件是否能被虚拟机接收&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Minor Version：第5、6个字节，次版本号&lt;/p&gt;
+&lt;p&gt;Major Version：第7、8个字节，主版本号&lt;/p&gt;
+&lt;h4 id=&#34;常量池&#34;&gt;常量池&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;在Class文件中不会保存各个方法、字段最终在内存中的布局信息，这些字段、方法的符号引用不经过虚拟机在运行期转换的话是无法得到真正的内存入口地址，也就无法直接被虚拟机使用的。当虚拟机做类加载时，将会从常量池获得对应的符号引用，再在类创建时或运行时解析、翻译到具体的内存地址之中。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947544.png&#34; alt=&#34;image-20230113195545225&#34;&gt;&lt;/p&gt;
+&lt;p&gt;其中的CONSTANT_Utf8_info：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301131959314.png&#34; alt=&#34;image-20230113195918240&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;由于Class文件中方法、字段等都&lt;strong&gt;需要引用CONSTANT_Utf8_info型常量来描述名称&lt;/strong&gt;，所以CONSTANT_Utf8_info型常量的最大长度也就是Java中方法、字段名的最大长度。而这里的最大长度就是length的最大值,即u2 类型可以表达的最大长度是65535，所以Java程序中如果定义了超过64KB英文字符的变量或方法名，即使规则和全部字符都是合法的，也会无法编译。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;constant_pool_count, constant_pool[constant_pool_count - 1]&lt;/li&gt;
+&lt;li&gt;资源仓库，占用Class空间最大的数据项之一&lt;/li&gt;
+&lt;li&gt;用constant_pool_count先标记常量池大小（从1开始计数，只有这个）&lt;/li&gt;
+&lt;li&gt;存放字面量和符号引用&lt;/li&gt;
+&lt;li&gt;常量池中的每一项常量都是一个表，有17种不同类型的常量&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;字面量&#34;&gt;字面量&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;文本字符串&lt;/li&gt;
+&lt;li&gt;声明为final的常量&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;符号引用&#34;&gt;符号引用&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;被模块导出或者开放的包&lt;/li&gt;
+&lt;li&gt;类和接口的全限定名&lt;/li&gt;
+&lt;li&gt;字段的名称和描述符&lt;/li&gt;
+&lt;li&gt;方法的名称和描述符&lt;/li&gt;
+&lt;li&gt;方法句柄和方法类型&lt;/li&gt;
+&lt;li&gt;动态调用点和动态常量&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;访问标志&#34;&gt;访问标志&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;access_flag 常量池的后2个字节表示访问标志&lt;/li&gt;
+&lt;li&gt;用于标识类或者接口层次的访问信息&lt;/li&gt;
+&lt;li&gt;可以使用16个标识位，但只定义了9个，没访问到的一律为0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301132001924.png&#34; alt=&#34;image-20230113200104857&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;类索引父类索引与接口索引集合&#34;&gt;类索引、父类索引与接口索引集合&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;this_class | super_class | interface_count | interfaces[interfact_count]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;确定该类的全限定名｜父类全限定名｜实现了哪些接口&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;除了java.lang.Object之外，所有的Java类都有父类，因此除了 java.lang.Object外，所有Java类的父类索引都不为0。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;类索引和父类索引存的是索引值，指向CONSTANT_Class_info的类描述符常量，通过该常量可以找到定义在CONSTANT_Utf8_info的全限定名字符串&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;字段表集合&#34;&gt;字段表集合&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;fields_count, fields[fields_count]&lt;/li&gt;
+&lt;li&gt;用于描述类或者接口中声明的变量&lt;/li&gt;
+&lt;li&gt;只包括类级变量(public/protected/private)和实例级变量(static)&lt;/li&gt;
+&lt;li&gt;会记录的：作用域/static/final/volatile/transient/基本数据类型/名称/enum&amp;hellip;..&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301132008595.png&#34; alt=&#34;image-20230113200835526&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;方法表集合&#34;&gt;方法表集合&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;methods_count，methods[methods_count]&lt;/li&gt;
+&lt;li&gt;会记录的：&lt;strong&gt;访问标志&lt;/strong&gt;/名称索引/描述索引/&lt;strong&gt;属性表索引&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;此处不记录方法中的代码&lt;/strong&gt;：方法中的代码会经编译后变为字节码指令，存放在方法属性表集合中的“Code&amp;quot;属性中(可以根据属性表索引找到)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301132011358.png&#34; alt=&#34;image-20230113201118297&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;属性表集合&#34;&gt;属性表集合&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;attribute_count, attributes[attribute_count]&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301132023437.png&#34; alt=&#34;image-20230113202351365&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947053.png&#34; alt=&#34;image-20230113202357871&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301132024399.png&#34; alt=&#34;image-20230113202409329&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947525.png&#34; alt=&#34;image-20230113202424324&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;code&#34;&gt;Code&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Java程序方法体里面的代码经过Javac编译器处理之后，最终变为字节码指令存储在Code属性内。 Code属性出现在方法表的属性集合之中，但并非所有的方法表都必须存在这个属性，譬如接口或者抽 象类中的方法就不存在Code属性&lt;/p&gt;
+&lt;p&gt;Code属性是Class文件中最重要的一个属性，如果把一个Java程序中的信息分为代码(Code，方法 体里面的Java代码)和元数据(M etadata，包括类、字段、方法定义及其他信息)两部分，&lt;strong&gt;那么在整个Class文件里，Code属性用于描述代码&lt;/strong&gt;，所有的其他数据项目都用于描述元数据。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301132015000.png&#34; alt=&#34;image-20230113201525924&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;exceptions&#34;&gt;Exceptions&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;列出方法中可能包括的Checked Exceptions（thow后面的）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;字节码指令&#34;&gt;字节码指令&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;阅读字节码作为了解Java 虚拟机的基础技能，是一项应当熟练掌握的能力。&lt;/p&gt;
+&lt;p&gt;由于时间原因这里跳过了..后续如果有用上会重读本书并补上笔记&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;第七章-虚拟机类加载机制&#34;&gt;&lt;strong&gt;==第七章 虚拟机类加载机制==&lt;/strong&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;上一章我们学习了Class文件存储格式的具体细节，在Class文件中描述的各类信息，最终都需要加载到虚拟机中之后才能被运行和使用。而虚拟机如何加载这些Class文件，Class文件中的信息进入到虚拟机后会发生什么变化，这些都是本章将要讲解的内容。&lt;/p&gt;
+&lt;p&gt;Java虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最 终形成可以被虚拟机直接使用的Java类型，这个过程被称作虚拟机的类加载机制。与那些在编译时需 要进行连接的语言不同，在Java语言里面，类型的加载、连接和初始化过程都是在程序运行期间完成 的，这种策略让Java语言进行提前编译会面临额外的困难，也会让类加载时稍微增加一些性能开销， 但是却为Java应用提供了极高的扩展性和灵活性，Java天生可以动态扩展的语言特性就是依赖运行期动 态加载和动态连接这个特点实现的。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;立即对类初始化的时机&#34;&gt;立即对类初始化的时机&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;new / 读取或设置一个类型的静态字段 / 调用静态方法&lt;/li&gt;
+&lt;li&gt;java.lang.reflect反射调用&lt;/li&gt;
+&lt;li&gt;初始化类时发现父类还未初始化，此时先初始化父类&lt;/li&gt;
+&lt;li&gt;main()方法主类&lt;/li&gt;
+&lt;li&gt;当使用JDK 7新加入的动态语言支持时，如果一个java.lang.invoke.MethodHandle实例最后的解 析结果为REF_getStatic、REF_p utStatic、REF_invokeStatic、REF_newInvokeSp ecial四种类型的方法句 柄，并且这个方法句柄对应的类没有进行过初始化，则需要先触发其初始化。&lt;/li&gt;
+&lt;li&gt;如果有default接口方法，在对接口实例初始化前先对接口初始化&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;这六种场景中的行为称为对一个类型进行主动引用。除此之外，所有引用类型的方式都不会触发初始化，称为被动引用。&lt;/p&gt;
+&lt;p&gt;接口也有初始化过程， 这点与类是一致的，接口中不能使用“static{}”语句块，但编译器仍然会为接口生成“&amp;lt;clinit&amp;gt;()”类构造器[2]，用于初始化接口中所定义的 成员变量。接口与类真正有所区别的是前面讲述的六种“有且仅有”需要触发初始化场景中的第三种: 当一个类在初始化时，要求其父类全部都已经初始化过了，&lt;strong&gt;但是一个接口在初始化时，并不要求其父接口全部都完成了初始化，只有在真正使用到父接口的时候(如引用接口中定义的常量)才会初始化。&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;被动引用情况&#34;&gt;被动引用情况&lt;/h3&gt;
+&lt;p&gt;此时不会对类进行初始化&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;通过子类调用父类的static方法，不会对子类初始化&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;通过数组定义引用类，不会触发此类初始化&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;常量在编译阶段会存入调用类的常量池中，本质上没有直接引用到定义常量的类，因此不会触发定义常量的类的初始化&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;ConstClass&lt;/span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 如果有初始化，会打印1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        System.&lt;span style=&#34;color:#658b00&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;println&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;1&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;final&lt;/span&gt; String HELLO = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;test&lt;/span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;(String[] args){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 实际上只打印了hello, 因为HELLO是直接从常量池中获得的
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        System.&lt;span style=&#34;color:#658b00&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;println&lt;/span&gt;(ConstantClass.&lt;span style=&#34;color:#658b00&#34;&gt;HELLO&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;类加载过程&#34;&gt;类加载过程&lt;/h3&gt;
+&lt;h4 id=&#34;类加载过程概览&#34;&gt;类加载过程概览&lt;/h4&gt;
+&lt;p&gt;一个类从加载到虚拟机内存，到卸载出内存，会经历：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;加载 Loading&lt;/li&gt;
+&lt;li&gt;验证 Verification&lt;/li&gt;
+&lt;li&gt;准备 Preparation&lt;/li&gt;
+&lt;li&gt;解析 Resolution&lt;/li&gt;
+&lt;li&gt;初始化 Initialization&lt;/li&gt;
+&lt;li&gt;使用 Using&lt;/li&gt;
+&lt;li&gt;卸载 UnLoading&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;（其中：[验证-准备-解析] 合并称为连接）&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;加载、验证、准备、初始化和卸载这五个阶段的顺序是确定的，类型的加载过程必须按 照这种顺序按部就班地开始，而&lt;strong&gt;解析阶段则不一定:它在某些情况下可以在初始化阶段之后再开始，&lt;/strong&gt; 这是为了支持Java语言的运行时绑定特性(也称为动态绑定或晚期绑定)。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;加载&#34;&gt;加载&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;通过类的全限定名来获取此类的二进制字节流&lt;/li&gt;
+&lt;li&gt;将这个字节流所代表的静态结构转化为方法区的运行时数据结构&lt;/li&gt;
+&lt;li&gt;在内存中生成类的java.lang.Class对象，作为方法区这个类的访&lt;strong&gt;问入口&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;开发人员通过定义自己的类加载器去控制字节 流的获取方式(重写一个类加载器的findClass()或loadClass()方法)，实现根据自己的想法来赋予应用 程序获取运行代码的动态性。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301132046721.png&#34; alt=&#34;image-20230113204653639&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;验证&#34;&gt;验证&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;确保Class文件的字节流中包含的信息符合《Java虚拟机规范》的全部约束要求，保证这些信息被当作代码运行后不会危害虚拟机自身的安全。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;会验证什么内容：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;文件格式&lt;/li&gt;
+&lt;li&gt;元数据&lt;/li&gt;
+&lt;li&gt;字节码&lt;/li&gt;
+&lt;li&gt;符号引用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;准备&#34;&gt;准备&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;正式为类中定义的静态变量分配内存并设置初始值（全是零值）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947192.png&#34; alt=&#34;image-20230113205120712&#34;&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; value = 123; &lt;span style=&#34;color:#228b22&#34;&gt;// 准备阶段会赋予0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;final&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; value = 123; &lt;span style=&#34;color:#228b22&#34;&gt;// 准备阶段会赋予123
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h4 id=&#34;解析&#34;&gt;解析&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Java虚拟机将常量池内的符号引用替换为直接引用（直接指向目标的指针/句柄）的过程&lt;/li&gt;
+&lt;li&gt;解析动作主要针对类或接口、字段、类方法、接口方法、方法类型、方法句柄和调用点限定符（会做权限验证）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;初始化&#34;&gt;初始化&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;进行准备阶段时，变量已经赋过一次系统要求的初始零值，而在初始化阶段，则会根据程序员通过程序编码制定的主观计划去初始化类变量和其他资源。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;会执行系统自动生成的&amp;lt;cliend&amp;gt;()类构造器&lt;/li&gt;
+&lt;li&gt;&amp;lt;client&amp;gt;()：收集赋值语句和静态语句块产生&lt;/li&gt;
+&lt;li&gt;虚拟机会保证父类的&amp;lt;client&amp;gt;()都执行完，因此第一个执行&amp;lt;client&amp;gt;()的肯定是java.lang.Object（接口就不需要了）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301132101484.png&#34; alt=&#34;image-20230113210146387&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;类加载器&#34;&gt;类加载器&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Java虚拟机设计团队有意把类加载阶段中的“通过一个类的全限定名来获取描述该类的二进制字节流”这个动作放到Java虚拟机外部去实现，以便让应用程序自己决定如何去获取所需的类。实现这个动 作的代码被称为“&lt;strong&gt;类加载器”(Class Loader)&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;只有加载两个类的类加载器是相同的，才可以继续比较这两个类是否相同（相同 = equals(), isAssignableFrom(), isInstance() 的结果是否相同）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;双亲委派模型&#34;&gt;双亲委派模型&lt;/h3&gt;
+&lt;p&gt;默认有三种类加载器：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Bootstrap ClassLoader 启动类加载器&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;这个类加载器负责加载存放在 &amp;lt;JAVA_HOME&amp;gt;\lib目录，或者被-Xbootclasspath参数所指定的路径中存放的，而且是Java虚拟机能够识别的(按照文件名识别，如rt .jar、t ools.jar，名字不符合的类库即使放在lib目录中也不会被加载)类加载到虚拟机的内存中。启动类加载器无法被Java程序直接引用，用户在编写自定义类加载器时， 如果需要把加载请求委派给引导类加载器去处理，那直接使用null代替即可&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Extension Class Loader 扩展类加载器&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;这个类加载器是在类sun.misc.Launcher$ExtClassLoader 中以Java代码的形式实现的。它负责加载&amp;lt;JAVA_HOM E&amp;gt;\lib\ext目录中，或者被java.ext.dirs系统变量所 指定的路径中所有的类库。根据“扩展类加载器”这个名称，就可以推断出这是一种Java系统类库的扩 展机制，JDK的开发团队允许用户将具有通用性的类库放置在ext目录里以扩展Java SE的功能，在JDK 9之后，这种扩展机制被模块化带来的天然的扩展能力所取代。由于扩展类加载器是由Java代码实现 的，开发者可以直接在程序中使用扩展类加载器来加载Class文件。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Application Class Loader 应用程序类加载器&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;这个类加载器由sun.misc.Launcher$Ap p ClassLoader来实现。由于应用程序类加载器是ClassLoader类中的getSy stem- ClassLoader()方法的返回值，所以有些场合中也称它为“系统类加载器”。它负责加载用户类路径 (ClassPath)上所有的类库，开发者同样可以直接在代码中使用这个类加载器。如果应用程序中没有 自定义过自己的类加载器，一般情况下这个就是程序中默认的类加载器。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;JDK 9之前的Java应用都是由这三种类加载器互相配合来完成加载的，如果用户认为有必要，还可以加入自定义的类加载器来进行拓展，如下&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947385.png&#34; alt=&#34;image-20230113211429138&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;这个层次关系被称为双亲委派模型（Parents Delegation Model）&lt;/li&gt;
+&lt;li&gt;除了启动类加载器之外，其余的类都要有父加载器（组合关系而不是继承关系）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;工作流程：&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;如果一个类加载器收到类加载请求，会将该请求发给父类加载器去完成，直到传到顶层。只有父类加载器说自己无法完成这个请求（搜索范围中没有指定的类），再自顶向下由子类尝试加载&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;好处：
+&lt;ul&gt;
+&lt;li&gt;防止类的重复加载&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;protected&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;synchronized&lt;/span&gt; Class&amp;lt;?&amp;gt; loadClass(String name, &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;boolean&lt;/span&gt; resolve) &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;throws&lt;/span&gt; ClassNotFoundException {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#228b22&#34;&gt;// 首先，检查请求的类是否已经被加载过了 
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    Class c = findLoadedClass(name); 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (c == &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;null&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;try&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (parent != &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;null&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            c = parent.&lt;span style=&#34;color:#658b00&#34;&gt;loadClass&lt;/span&gt;(name, &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;false&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        } &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            c = findBootstrapClassOrNull(name); 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        } &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;catch&lt;/span&gt; (ClassNotFoundException e) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 如果父类加载器抛出ClassNotFoundException 
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 说明父类加载器无法完成加载请求
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (c == &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;null&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 在父类加载器无法加载时
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#228b22&#34;&gt;// 再调用本身的findClass方法来进行类加载 c = findClass(name);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            c = findClass(name);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        } 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (resolve) { resolveClass(c)&lt;span style=&#34;color:#a61717;background-color:#e3d2d2&#34;&gt;；&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; c;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;第八章-虚拟机字节码执行引擎&#34;&gt;第八章 虚拟机字节码执行引擎&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;执行引擎是Java虚拟机核心的组成部分之一。“虚拟机”是一个相对于“物理机”的概念，这两种机器都有代码执行能力，其区别是物理机的执行引擎是直接建立在处理器、缓存、指令集和操作系统层面上的，而虚拟机的执行引擎则是由软件自行实现的，因此可以不受物理条件制约地定制指令集与执行引擎的结构体系，能够执行那些不被硬件直接支持的指令集格式。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;运行时栈帧结构&#34;&gt;运行时栈帧结构&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301132304431.png&#34; alt=&#34;image-20230113230406323&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Java虚拟机的最基本执行单元是方法，而“栈帧”用于支持方法调用&lt;/li&gt;
+&lt;li&gt;栈帧存储了局部变量表、操作数栈、动态连接、方法返回地址以及一些额外信息&lt;/li&gt;
+&lt;li&gt;Java可能认为栈里面的方法都是运行状态，但是对于执行引擎来说，只有栈顶的方法在活动，称为“当前栈帧”，所关联的方法称为“当前方法”&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;局部变量表-1&#34;&gt;局部变量表&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;存放方法参数和方法内部定义的局部变量&lt;/li&gt;
+&lt;li&gt;被编译时大小就确定了&lt;/li&gt;
+&lt;li&gt;如果是局部变量的long和double，不存在线程安全问题，因为是线程私有的&lt;/li&gt;
+&lt;li&gt;局部变量槽可能会被复用，原槽中的值就算脱离范围可以被GC，由于局部变量表还和这个废值有所关联，因此不会GC回收（因&lt;strong&gt;此会推荐将不使用的变量手动=null帮助GC&lt;/strong&gt;）&lt;/li&gt;
+&lt;li&gt;局部变量必须赋予初始值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;操作数栈&#34;&gt;操作数栈&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Java虚拟机的解释执行引擎被称为“基于栈的执行引擎”，里面的“栈”就是操作数栈。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;方法开始执行时就会有各种入栈和出栈操作&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;动态连接&#34;&gt;动态连接&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;指向运行时常量池该栈帧所属方法的引用（每一次运行期间转变为直接引用）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;方法返回地址&#34;&gt;方法返回地址&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;方法有两种返回方式：正常返回 / 异常返回，不管怎么返回都必须回到最初调用方法的位置&lt;/li&gt;
+&lt;li&gt;方法正常退出时，主调方法的PC计数器的值就可以作为返回地址，栈帧中很可能会保存这个计数器值&lt;/li&gt;
+&lt;li&gt;而方法异常退出时，返回地址要从异常处理表中找，栈帧中一般不会保存这类信息&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;方法调用&#34;&gt;方法调用&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;唯一目的就是确定调用哪一个方法，和执行方法内部的代码没有关系&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;解析-1&#34;&gt;解析&lt;/h4&gt;
+&lt;p&gt;类加载解析阶段，会将一部分符号引用（Class文件中的常量池）转换为直接引用，解析成立的原因是该方法在编译时就完全确定了（非虚方法）。这类方法的调用称为解析&lt;/p&gt;
+&lt;h4 id=&#34;非虚方法&#34;&gt;非虚方法&lt;/h4&gt;
+&lt;p&gt;类加载时可以直接把符号引用变为直接引用，包括如下五种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;final修饰的方法&lt;/li&gt;
+&lt;li&gt;static修饰的方法&lt;/li&gt;
+&lt;li&gt;private方法&lt;/li&gt;
+&lt;li&gt;构造函数&lt;/li&gt;
+&lt;li&gt;父类方法&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;分派&#34;&gt;分派&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;分派调用过程将会揭示多态性特征的一些最基本的体现，如“重载”和“重写”在 Java虚拟机之中是如何实现的&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;Java是静态多分派，动态单分派语言&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;静态分派&#34;&gt;静态分派&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;虚拟机在重载时根据参数的&lt;strong&gt;静态类型&lt;/strong&gt;作为判断条件&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;对象human的实际类型是可变的，编译期间它完全是个“薛定谔的人”，到底是Man还是Woman，必须等到程序运行到这行的时候才能确定。而&lt;strong&gt;human的静态类型是Human。&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947620.png&#34; alt=&#34;image-20230114162733981&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;所有根据静态类型来决定执行哪个方法的动作，都称为静态分派。最典型的代表是重载&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;静态分派编译期就已经决定了&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;动态分派&#34;&gt;动态分派&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947144.png&#34; alt=&#34;image-20230114163254968&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;运行期间根据实际类型确定执行方法版本的分派过程称为动态分派&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;一个Demo：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141637060.png&#34; alt=&#34;image-20230114163701959&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Son创建时，调用父类构造函数，但是父类构造函数实际执行的是虚方法调用，因此调用Son::showMeTheMoney，此时访问子类的money字段，为0&lt;/li&gt;
+&lt;li&gt;而后执行到子类初始化阶段，设置money为4&lt;/li&gt;
+&lt;li&gt;最后通过静态类型访问到了父类的money，值为2&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;动态类型语言支持&#34;&gt;动态类型语言支持&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Java是静态类型语言，编译器确定一切（而动态语言是变量无类型，变量值才有类型）&lt;/li&gt;
+&lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第九章-类加载及执行子系统的案例与实战&#34;&gt;第九章 类加载及执行子系统的案例与实战&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;后续补上&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;tomcat正统的类加载器架构&#34;&gt;Tomcat:正统的类加载器架构&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141651466.png&#34; alt=&#34;image-20230114165137369&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;CommonClassLoader: /common/*&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;SharedClassLoader: /server/*&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;WebAppClassLoader: /shared/*和/WebApp/WEB-INF/*&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;一个Web应用程序对应一个WebAppClassLoader&lt;/p&gt;
+&lt;p&gt;一个JSP文件对应一个JasperLoader&lt;/p&gt;
+&lt;p&gt;意思就是会有多个类加载器的实例&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第十章-前端编译与优化&#34;&gt;第十章 前端编译与优化&lt;/h2&gt;
+&lt;h3 id=&#34;语法糖&#34;&gt;语法糖&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;除了本节中介绍的泛型、自动装箱、自动拆箱、遍历循环、变长参数和条件编译之外，Java语言 还有不少其他的语法糖，如内部类、枚举类、断言语句、数值字面量、对枚举和字符串的switch支 持、try语句中定义和关闭资源(这3个从JDK 7开始支持)、Lambda表达式(从JDK 8开始支持， Lambda不能算是单纯的语法糖，但在前端编译器中做了大量的转换工作)，等等&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;泛型&#34;&gt;泛型&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;泛型的本质是参数化类型(Parameterized Type)或者参数化多态(Parametric Polymorphism)的 应用，即可以将操作的数据类型指定为方法签名中的一种特殊参数，这种参数类型能够用在类、接口 和方法的创建中，分别构成泛型类、泛型接口和泛型方法。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Java中的泛型是“类型擦除式泛型”（比如ArrayList&amp;lt;int&amp;gt;和ArrayList&amp;lt;String&amp;gt;是同一个类型&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;无法对泛型进行类型判断&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;无法创建泛型的实例对象&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;无法使用泛型创建数组&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;泛型无法用基本数据类型，装箱拆箱是Java泛型慢的重要原因&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;运行期Java无法取得泛型类型&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141707072.png&#34; alt=&#34;image-20230114170755921&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;擦去泛型后如果方法入参一致，也不能重载（但如果返回值不同就可以）&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;自动装箱拆箱与遍历循环&#34;&gt;自动装箱、拆箱与遍历循环&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;根据布尔常量值的真假，编译器将会把分支中不成立的代码块消除掉，这一工作将在编译器解除语法糖阶段(com.sun.tools.javac.comp .Lower 类中)完成&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141712839.png&#34; alt=&#34;image-20230114171208732&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第十一章-后端编译与优化&#34;&gt;第十一章 后端编译与优化&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;目前主流的两款商用Java虚拟机(HotSpot、OpenJ9)里，Java程序最初都是通过解释器进行解释执行的，当虚拟机发现某个方法或代码块的运行特别频繁，就会把这些代码认定为“热点代码”(Hot Spot Code)，为了提高热点代码的执行效率，在运行时，虚拟机将会把这些代码编译成本地机器码，并以各种手段尽可能地进行代码优化，运行时完成这个任务的后端编译器被称为即时编译器。本节我们将会了解HotSpot虚拟机内的即时编译器的运作过程，此外，我们还将解决以下几个问题:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;为何HotSpot虚拟机要使用解释器与即时编译器并存的架构?&lt;/li&gt;
+&lt;li&gt;为何HotSpot虚拟机要实现两个(或三个)不同的即时编译器?&lt;/li&gt;
+&lt;li&gt;程序何时使用解释器执行?何时使用编译器执行?&lt;/li&gt;
+&lt;li&gt;哪些程序代码会被编译为本地代码?如何编译本地代码?&lt;/li&gt;
+&lt;li&gt;如何从外部观察到即时编译器的编译过程和编译结果?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;解释器与编译器&#34;&gt;解释器与编译器&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;HotSpot是解释器与编译器共存&lt;/p&gt;
+&lt;p&gt;HotSpot虚拟机中内置了两个(或三个)即时编译器，其中有两个编译器存在已久，分别被称 为“客户端编译器”(Client Compiler)和“服务端编译器”(Server Compiler)，或者简称为C1编译器和 C2编译器&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;程序启动执行时，&lt;strong&gt;解释器&lt;/strong&gt;先发挥作用，省去编译时间，立刻运行&lt;/li&gt;
+&lt;li&gt;程序启动后，随时间消耗，&lt;strong&gt;编译器&lt;/strong&gt;将越来越多代码编译为本地代码，减少解释器的中间损耗，提高效率&lt;/li&gt;
+&lt;li&gt;内存少则用解释器节约内存，内存多则用编译器提高效率&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141716510.png&#34; alt=&#34;image-20230114171613403&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;编译对象与触发条件&#34;&gt;编译对象与触发条件&lt;/h3&gt;
+&lt;p&gt;会被即时编译器编译的目标是热点代码，包括&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;被多次调用的方法&lt;/li&gt;
+&lt;li&gt;被多次执行的循环体&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;对于这两种情况，编译的目标对象都是整个方法体，而不会是单独的循环体。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;判断“多次”的方法：热点探测：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基于采样的热点探测：周期性看看哪个方法经常出现在栈顶，就是热点&lt;/li&gt;
+&lt;li&gt;基于计数器的热点探测：要维护计数器，比较麻烦，但是更精确&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;hotpot实现方法&#34;&gt;HotPot实现方法&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;方法调用计数器&lt;/li&gt;
+&lt;li&gt;回边计数器（回边：在循环边界往回跳转）&lt;/li&gt;
+&lt;li&gt;两个计数器都有一个阙值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947064.png&#34; alt=&#34;image-20230114172149801&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;编译过程&#34;&gt;编译过程&lt;/h3&gt;
+&lt;p&gt;在默认条件下，无论是方法调用产生的标准编译请求，还是栈上替换编译请求，虚拟机在编译器 还未完成编译之前，都仍然将按照解释方式继续执行代码，而编译动作则在后台的编译线程中进行。&lt;/p&gt;
+&lt;h2 id=&#34;第十二章-java内存模型与线程&#34;&gt;&lt;strong&gt;==第十二章 Java内存模型与线程==&lt;/strong&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Java语言和虚拟机提供了许多工具，把并发编程的门槛降低了不少。各种中间件服务器、各类框架也都努力地替程序员隐藏尽可能多的线程并发细节，使得程序员在编码时 能更关注业务逻辑，而不是花费大部分时间去关注此服务会同时被多少人调用、如何处理数据争用、 协调硬件资源。但是无论语言、中间件和框架再如何先进，开发人员都不应期望它们能独立完成所有 并发处理的事情，了解并发的内幕仍然是成为一个高级程序员不可缺少的课程。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;硬件的效率与一致性&#34;&gt;硬件的效率与一致性&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;任务大多都需要靠CPU与内存交互实现&lt;/li&gt;
+&lt;li&gt;加入缓存可以提高效率，但会带来“缓存一致性”问题&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;java内存模型&#34;&gt;Java内存模型&lt;/h3&gt;
+&lt;p&gt;Java Memory Model - JMM&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;用于屏蔽各种硬件和操作系统的内存访问差异，以实现Java在各种平台下都可以达到一致性的访问效果&lt;/p&gt;
+&lt;p&gt;Java内存模型定义程序中各种变量的访问细节，如：虚拟机把变量值存储到内存，或从内存中取出变量值的底层细节&lt;/p&gt;
+&lt;p&gt;此处变量范围：实例字段、静态字段、构成数组对象的元素（不包括线程私有的局部变量和方法参数等）&lt;/p&gt;
+&lt;p&gt;如果局部变量是一个reference类型，它引用的对象在Java堆中可被各个线程共享，但是reference本身在Java栈的局部变量表中是线程私有的&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;主内存和工作内存&#34;&gt;主内存和工作内存&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;所有变量都存储在主内存中（主内存是虚拟机的一部分）&lt;/li&gt;
+&lt;li&gt;每条线程有自己的工作内存，仅保留该线程使用的变量的主内存副本&lt;/li&gt;
+&lt;li&gt;线程只能对自己的工作内存做读写，不可以访问主内存&lt;/li&gt;
+&lt;li&gt;不同线程无法访问各自工作内存，值传递需要通过主内存&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947497.png&#34; alt=&#34;image-20230114181553526&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;这里所讲的主内存、工作内存与第2章所讲的Java内存区域中的Java堆、栈、方法区等并不是同一个层次的对内存的划分，这两者基本上是没有任何关系的。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;内存间相互操作&#34;&gt;内存间相互操作&lt;/h4&gt;
+&lt;p&gt;Java虚拟机保证每一种操作都是原子的（long,double可能有例外）&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;作用于主内存：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;lock 锁定&lt;/li&gt;
+&lt;li&gt;unlock 解锁&lt;/li&gt;
+&lt;li&gt;read 读取&lt;/li&gt;
+&lt;li&gt;write 写入&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;作用于工作内存：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;载入 load&lt;/li&gt;
+&lt;li&gt;使用 use&lt;/li&gt;
+&lt;li&gt;赋值 assign&lt;/li&gt;
+&lt;li&gt;存储 store&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;八种操作规则：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;不允许read和load、store和write操作之一单独出现，即不允许一个变量从主内存读取了但工作内存不接受，或者工作内存发起回写了但主内存不接受的情况出现。&lt;/li&gt;
+&lt;li&gt;不允许一个线程丢弃它最近的assign操作，即变量在工作内存中改变了之后必须把该变化同步回主内存。&lt;/li&gt;
+&lt;li&gt;不允许一个线程无原因地(没有发生过任何assign操作)把数据从线程的工作内存同步回主内存 中。&lt;/li&gt;
+&lt;li&gt;一个新的变量只能在主内存中“诞生”，不允许在工作内存中直接使用一个未被初始化(load或assign) 的 变 量&lt;/li&gt;
+&lt;li&gt;一个变量在同一个时刻只允许一条线程对其进行lock操作，但lock操作可以被同一条线程重复执行多次，多次执行lock后，只有执行相同次数的unlock操作，变量才会被解锁。&lt;/li&gt;
+&lt;li&gt;如果对一个变量执行lock操作，那将会清空工作内存中此变量的值，在执行引擎使用这个变量前，需要重新执行load或assign操作以初始化变量的值。&lt;/li&gt;
+&lt;li&gt;如果一个变量事先没有被lock操作锁定，那就不允许对它执行unlock操作，也不允许去unlock一个 被其他线程锁定的变量。&lt;/li&gt;
+&lt;li&gt;对一个变量执行unlock操作之前，必须先把此变量同步回主内存中(执行store、write操作)。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;对于volatile型变量的特殊规则&#34;&gt;对于volatile型变量的特殊规则&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;关键字volatile可以说是Java虚拟机提供的最轻量级的同步机制&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;volatile变量的值对于所有线程可见（原理：每次读都先从主内存刷新最新值，改了以后要立刻写回）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;volatile无原子性，不是线程安全&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;volatile会禁止指令重排序（原理：&lt;strong&gt;内存屏障&lt;/strong&gt;）&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;// 禁止重排序例子：单例模式
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Singleton&lt;/span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 使得instance对其他线程立刻可见
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;volatile&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; Singleton instance;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; Singleton &lt;span style=&#34;color:#008b45&#34;&gt;getInstance&lt;/span&gt;(){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt;(instance == &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;null&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;synchronized&lt;/span&gt;(Singleton.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt;(instance == &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;null&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    instance = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; Singleton();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;Singleton&lt;/span&gt;() { }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;针对long和double型变量的特殊规则&#34;&gt;针对long和double型变量的特殊规则&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;long和double的非原子性协定&lt;/p&gt;
+&lt;p&gt;如果有多个线程共享一个并未声明为volat ile的long或double类型的变量，并且同时对它们进行读取 和修改操作，那么某些线程可能会读取到一个既不是原值，也不是其他线程修改值的代表了“半个变量”的数值。不过这种读取到“半个变量”的情况是非常罕见的&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;对于long和double（64位），允许虚拟机将&lt;strong&gt;没有被volatile修饰&lt;/strong&gt;的64位数据的读写操作划分为&lt;strong&gt;两次&lt;/strong&gt;32位的操作来进行&lt;/p&gt;
+&lt;h4 id=&#34;原子性可见性与有序性&#34;&gt;原子性、可见性与有序性&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;原子性：基本类型访问原子性操作&lt;/li&gt;
+&lt;li&gt;可见性：共享变量的值被修改可立刻被别的线程得知（volatile, synchronized, final）&lt;/li&gt;
+&lt;li&gt;有序性：volatile和synchronized都可以保证&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;happens-before原则&#34;&gt;Happens-before原则&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;程序次序：按控制流顺序（分支、循环）而不是代码顺序&lt;/li&gt;
+&lt;li&gt;管程锁定：unlock发生在lock前（同一个锁）&lt;/li&gt;
+&lt;li&gt;volatile变量：写发生于读之前&lt;/li&gt;
+&lt;li&gt;线程启动：start()发生于此线程之后的每一个动作前&lt;/li&gt;
+&lt;li&gt;线程终止：所有操作都发生在线程的终止前&lt;/li&gt;
+&lt;li&gt;线程中断：对线程interrupt()方法的调用发生在被中断线程的代码检测到中断事件发生&lt;/li&gt;
+&lt;li&gt;对象终结：构造函数发生在finalize()方法前&lt;/li&gt;
+&lt;li&gt;传递性：A先于B，B先于C，则A先于C&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;java与线程&#34;&gt;Java与线程&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;线程是Java里面处理机资源调度的最基本单位&lt;/p&gt;
+&lt;p&gt;现线程主要有三种方式:使用内核线程实现(1:1实现)，使用用户线程实现(1:N实现)， 使用用户线程加轻量级进程混合实现(N:M 实现)。&lt;/p&gt;
+&lt;p&gt;纯纯的操作系统知识&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;线程的实现&#34;&gt;线程的实现&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;内核线程&lt;/li&gt;
+&lt;li&gt;用户线程&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;java线程的实现&#34;&gt;Java线程的实现&lt;/h4&gt;
+&lt;p&gt;以HotSpot为例，它的每一个Java线程都是直接映射到一个操作系统原生线程来实现的，而且中间 没有额外的间接结构，所以HotSpot自己是不会去干涉线程调度的&lt;/p&gt;
+&lt;p&gt;1:1的内核线程模型是如今Java虚拟机线程实现的主流选择，但是这种映射到操作系统上的线程天然的缺陷是切换、调度成本高昂，系统 能容纳的线程数量也很有限&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;内核线程的调度成本主要来自于用户态与核心态之间的状态转换，而这两种状态转换的开销主要来自于响应中断、保护和恢复执行现场的成本。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Java中的线程可以分配优先级，但其实没多大作用，最后决定权还是在操作系统上&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;java线程调度&#34;&gt;Java线程调度&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;线程调度：CPU为线程分配处理器使用权限&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;协同式：线程执行时间自己控制&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;抢占式（Java）：系统分配&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;线程状态转换&#34;&gt;线程状态转换&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;新建&lt;/li&gt;
+&lt;li&gt;运行&lt;/li&gt;
+&lt;li&gt;无限期等待（wait(), join(), park())&lt;/li&gt;
+&lt;li&gt;有限期等待（sleep(time), wait(time), join(time), parkNanos(time), parkUntil(time)）&lt;/li&gt;
+&lt;li&gt;阻塞&lt;/li&gt;
+&lt;li&gt;结束&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141846685.png&#34; alt=&#34;image-20230114184615568&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第十三章-线程安全与锁优化&#34;&gt;&lt;strong&gt;==第十三章 线程安全与锁优化==&lt;/strong&gt;&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;《Java并发编程实战》的作者Brian Goetz为“线程安全”做 出了一个比较恰当的定义:&lt;strong&gt;“当多个线程同时访问一个对象时，如果不用考虑这些线程在运行时环境下的调度和交替执行，也不需要进行额外的同步，或者在调用方进行任何其他的协调操作，调用这个对象的行为都可以获得正确的结果，那就称这个对象是线程安全的。”&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;java语言中的线程安全&#34;&gt;Java语言中的线程安全&lt;/h3&gt;
+&lt;p&gt;将Java中的操作数据分成五类：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;不可变：final定义的基本数据类型，或者String这样的不可变对象&lt;/li&gt;
+&lt;li&gt;绝对线程安全&lt;/li&gt;
+&lt;li&gt;相对线程安全：大部分线程安全的类&lt;/li&gt;
+&lt;li&gt;线程兼容&lt;/li&gt;
+&lt;li&gt;线程对立&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;线程安全的实现方法&#34;&gt;线程安全的实现方法&lt;/h3&gt;
+&lt;h4 id=&#34;互斥同步&#34;&gt;互斥同步&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;互斥：保证共享数据只被一个线程使用&lt;/li&gt;
+&lt;li&gt;同步：临界区、互斥量、信号量&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;最常见的是synchronized&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;synchronized实现原理&#34;&gt;synchronized实现原理&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;synchronized关键字编译后，会生成monitorenter和monitorexit这两个字节码指令｜会维护一个计数器（可重入锁）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;这两个字节码指令都有一个reference参数指明要锁定和解锁的东西&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;如果指的是对象，则以对象引用作为reference&lt;/li&gt;
+&lt;li&gt;如果指的是实例方法，则对象实例为锁&lt;/li&gt;
+&lt;li&gt;如果指的是类方法，则以Class对象为锁&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;可重入锁&#34;&gt;可重入锁&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;等待可中断&lt;/li&gt;
+&lt;li&gt;公平锁&lt;/li&gt;
+&lt;li&gt;锁绑定多个条件（Condition）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;非阻塞同步&#34;&gt;非阻塞同步&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;比较并设置 Compare and Set&lt;/li&gt;
+&lt;li&gt;获取并增加 Compare and Increment&lt;/li&gt;
+&lt;li&gt;比较并交换 Compare and Swap&lt;/li&gt;
+&lt;li&gt;&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;// AtomicInteger中的incrementAndGey
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;final&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;incrementAndGet&lt;/span&gt;(){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt;(;;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; current = get();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; next = current + 1;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt;(compareAndSet(current, next)){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; next;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;ABA问题：版本号解决（AtomicStampedReference，通过控制变量值的版本也可以解决，但不常用）&lt;/p&gt;
+&lt;h4 id=&#34;线程本地存储&#34;&gt;线程本地存储&lt;/h4&gt;
+&lt;p&gt;ThreadLoacl&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;每一个Thread对象中都有一个ThreadLocalMap&lt;/li&gt;
+&lt;li&gt;ThreadLocalMap的key是&lt;strong&gt;ThreadLocal.threadLocalHashCode（每一个线程都独一无二）&lt;/strong&gt;，value是本地变量值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;锁优化&#34;&gt;锁优化&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;高效并发是从JDK 5升级到JDK 6后一项重要的改进项，HotSpot虚拟机开发团队在这个版本上花费了大量的资源去实现各种锁优化技术，如适应性自旋(Adaptive Spinning)、锁消除(Lock Elimination)、锁膨胀(Lock Coarsening)、轻量级锁(Lightweight Locking)、偏向锁(Biased Locking)等，这些技术都是为了在线程之间更高效地共享数据及解决竞争问题，从而提高程序的执行效率。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;自旋锁与自适应自旋&#34;&gt;自旋锁与自适应自旋&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;也是一种根据经验判断的感觉&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;原本的自旋锁：一直忙等&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;自适应自旋锁（JDK6优化）：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;对于相同锁对象，如果自旋等待刚刚成功拿过锁并且有锁的线程在运行，那么允许等待久一点&lt;/li&gt;
+&lt;li&gt;如果很少有自旋拿到过锁，则不自旋了&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;锁消除&#34;&gt;锁消除&lt;/h4&gt;
+&lt;p&gt;编译器会对不存在竞争但却加了锁的代码块进行“优化”，也就是删去锁&lt;/p&gt;
+&lt;h4 id=&#34;锁粗化&#34;&gt;锁粗化&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原因是频繁加锁解锁也会有性能损耗&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如果对同个对象反复加锁解锁，编译器可能会把这些零碎的加锁操作合成一块。&lt;/p&gt;
+&lt;h4 id=&#34;轻量级锁&#34;&gt;轻量级锁&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;轻量级锁能提升程序同步性能的依据是“对于绝大部分的锁，在整个同步周期内都是不存在竞争 的”这一经验法则。如果没有竞争，轻量级锁便通过CAS操作成功避免了使用互斥量的开销;但如果确 实存在锁竞争，除了互斥量的本身开销外，还额外发生了CAS操作的开销。因此在有竞争的情况下， 轻量级锁反而会比传统的重量级锁更慢。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;回看对象头：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141947636.png&#34; alt=&#34;image-20230114193229869&#34;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;轻量级锁加锁解锁操作都是CAS&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;如果锁标志位为01（未被锁定），在线程层的栈帧中创建Lock Record空间，存储Mark Word拷贝&lt;/li&gt;
+&lt;li&gt;加锁：尝试将对象的Mark Word用CAS操作更新为指向Lock Record的指针
+&lt;ul&gt;
+&lt;li&gt;如果成功，锁标志位设为00，表示轻量锁定&lt;/li&gt;
+&lt;li&gt;如果失败，看看是不是自己的锁，如果是就进入代码块，如果不是则转为重量级锁&amp;ndash;&amp;gt;10&amp;ndash;&amp;gt;Mark Word中存重量级锁的指针&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;解锁：CAS操作，如果对象的Mark Word仍然指向线程的锁记录，那就用CAS操作把对象当前的Mark Word和线程中复制的Displaced Mark Word替换回来。假如能够成功替换，那整个同步过程就顺利完成了;如果替换失败，则说明有 其他线程尝试过获取该锁，就要在释放锁的同时，唤醒被挂起的线程。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;偏向锁&#34;&gt;偏向锁&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;实现原理是做了一次CAS，标记对象的Mark Word&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;偏向锁就是在运行过程中，对象的锁偏向某个线程&lt;/li&gt;
+&lt;li&gt;即在开启偏向锁机制的情况下，某个线程获得锁，当该线程下次再想要获得锁时，不需要重新申请获得锁（即忽略synchronized关键词），直接就可以执行同步代码，比较适合竞争较少的情况。&lt;/li&gt;
+&lt;/ul&gt;
+- https://kother.top/post/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ - Kother.</description>
+        </item>
     
     
     
