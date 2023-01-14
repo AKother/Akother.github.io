@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<meta name="referrer" content="no-referrer" />
+<html><head>
+<title>KOTHER'S BLOG</title>
+
+
+
+
+<style> @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&display=swap'); </style>
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="Redis设计与实现 读书笔记" />
+<meta property="og:description" content="Redis设计与实现-读书笔记 书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识
+适合补Redis基础，实战还是得另外找书
+[TOC]
+第一章 引言 Redis中的数据结构和对象 每个键值对（key-value pari）都由对象组成 key是String对象 value可以是String object, list object, hash object, set object, sorted set object 第二章 简单动态字符串 简单动态字符串 - Simple Dynamic String
+结构 1 2 3 4 5 struct sdshdr{ int len; // 不算空字符串 int free; char buf[]; } 以空字符串结尾（SDS函数自动完成添加和删除）&ndash;&gt; 好处是可以重用C语言中的字符串函数库 SDS与C字符串的区别 常量获取字符串长度，因为保存了len，C只能遍历 杜绝缓冲区溢出（不管是直接分配还是拼接(sdscat))，因为保存了free，而C可能会假定内存够，实则溢出 减少修改字符串时带来的内存重分配技术：C在截断或拼接时都要管理内存，否则可能会有内存溢出或者内存泄漏，而Redis实现如下： 空间预分配：要对SDS空间扩展时，同时分配需要空间和额外空间 修改后len&lt;1MB: len = free 修改后len&gt;1MB: free = 1MB 惰性空间：String中移除字符后不会立刻释放空间，由free记录（可能以后用到）（源码：用户再次调用该字符串，会调用释放空间的API） **二进制安全：**C字符串有编码限制（不能保存图像、音频等二进制数据），但Redis用的buf[]则可以 Redis有需要时也可以重用C语言函数库（感觉这个不算区别） 第三章 链表 除了链表键之外，发布与订阅、慢查询、监视器等功能也用到了链表，Redis服务器本身还使用链表来保存多个客户端的状态信息，以及使用链表来构建客户端输出缓冲区（output buffer）
+结构 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 // 节点 typedef struct listNode{ struct listNode* prev; struct listNode* next; void* value; } // 链表结构 typedef struct list{ listNode* head; listNode* tail; unsigned long len; void* (*dup) (void *ptr); // 节点复制 void (*free) (void *ptr); // 节点释放 int (*match) (void *ptr, void *key); // 节点对比 }list; 双端无环 带表头表尾指针 链表长度计数器 多态（保存不同类型值） 第四章 字典 字典，又称为符号表（symbol table）、关联数组（associative array）或映射（map），是一种用于保存键值对（key-value pair）的抽象数据结构。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kother.top/read/redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="read" />
+<meta property="article:published_time" content="2023-01-14T23:54:03+08:00" />
+<meta property="article:modified_time" content="2023-01-14T23:54:03+08:00" /><meta property="og:site_name" content="My Blog" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Redis设计与实现 读书笔记"/>
+<meta name="twitter:description" content="Redis设计与实现-读书笔记 书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识
+适合补Redis基础，实战还是得另外找书
+[TOC]
+第一章 引言 Redis中的数据结构和对象 每个键值对（key-value pari）都由对象组成 key是String对象 value可以是String object, list object, hash object, set object, sorted set object 第二章 简单动态字符串 简单动态字符串 - Simple Dynamic String
+结构 1 2 3 4 5 struct sdshdr{ int len; // 不算空字符串 int free; char buf[]; } 以空字符串结尾（SDS函数自动完成添加和删除）&ndash;&gt; 好处是可以重用C语言中的字符串函数库 SDS与C字符串的区别 常量获取字符串长度，因为保存了len，C只能遍历 杜绝缓冲区溢出（不管是直接分配还是拼接(sdscat))，因为保存了free，而C可能会假定内存够，实则溢出 减少修改字符串时带来的内存重分配技术：C在截断或拼接时都要管理内存，否则可能会有内存溢出或者内存泄漏，而Redis实现如下： 空间预分配：要对SDS空间扩展时，同时分配需要空间和额外空间 修改后len&lt;1MB: len = free 修改后len&gt;1MB: free = 1MB 惰性空间：String中移除字符后不会立刻释放空间，由free记录（可能以后用到）（源码：用户再次调用该字符串，会调用释放空间的API） **二进制安全：**C字符串有编码限制（不能保存图像、音频等二进制数据），但Redis用的buf[]则可以 Redis有需要时也可以重用C语言函数库（感觉这个不算区别） 第三章 链表 除了链表键之外，发布与订阅、慢查询、监视器等功能也用到了链表，Redis服务器本身还使用链表来保存多个客户端的状态信息，以及使用链表来构建客户端输出缓冲区（output buffer）
+结构 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 // 节点 typedef struct listNode{ struct listNode* prev; struct listNode* next; void* value; } // 链表结构 typedef struct list{ listNode* head; listNode* tail; unsigned long len; void* (*dup) (void *ptr); // 节点复制 void (*free) (void *ptr); // 节点释放 int (*match) (void *ptr, void *key); // 节点对比 }list; 双端无环 带表头表尾指针 链表长度计数器 多态（保存不同类型值） 第四章 字典 字典，又称为符号表（symbol table）、关联数组（associative array）或映射（map），是一种用于保存键值对（key-value pair）的抽象数据结构。"/>
+
+
+
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-123-45', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+
+
+
+  
+
+
+
+
+
+
+      <script src="/js/toc.js"></script>
+    
+    <link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<link rel="stylesheet" href="/scss/journal.min.66cf0f76f275d011531b27e244451df2f6155c714e54ce7ef938e51869bbdf64.css" integrity="sha256-Zs8PdvJ10BFTGyfiREUd8vYVXHFOVM5&#43;&#43;TjlGGm732Q=" media="screen">
+
+
+
+<link rel="stylesheet" href="/scss/dark-mode.min.31b4f7dd2c9db4bc1f5c9be4337b86ff309731dfbc886bcb23711efe353d1000.css" integrity="sha256-MbT33SydtLwfXJvkM3uG/zCXMd&#43;8iGvLI3Ee/jU9EAA=" media="screen">
+
+
+<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Material+Icons">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="/vendor/js/md5.min.js"></script><script>
+  var gitalk = new Gitalk({
+  clientID: 'ee22eaa3184cbf1df6d9',
+  clientSecret: '00bb1d24a9cfdc647db6e565549bc405f57c5dd1',
+  repo: 'Akother.github.io',
+  owner: 'Akother',
+  admin: ['Akother'],
+  id: md5(location.pathname),
+  distractionFreeMode: 'false'
+  });
+  window.onload = function () {
+        gitalk.render('gitalk-container')
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div id="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://kother.top">
+    
+        <div class="nav-title">
+            Kother&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            记录点喜欢的.
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/post">
+                博客
+            </a>
+            
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/read">
+                阅读
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+
+    </div>
+    
+</div><div id="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#redis%e8%ae%be%e8%ae%a1%e4%b8%8e%e5%ae%9e%e7%8e%b0-%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#redis设计与实现-读书笔记-nav`)" id="redis设计与实现-读书笔记-nav">
+									Redis设计与实现-读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e5%bc%95%e8%a8%80" onclick="onNavClick(`#第一章-引言-nav`)" id="第一章-引言-nav">
+									第一章 引言
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#redis%e4%b8%ad%e7%9a%84%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84%e5%92%8c%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#redis中的数据结构和对象-nav`)" id="redis中的数据结构和对象-nav">
+									Redis中的数据结构和对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-%e7%ae%80%e5%8d%95%e5%8a%a8%e6%80%81%e5%ad%97%e7%ac%a6%e4%b8%b2" onclick="onNavClick(`#第二章-简单动态字符串-nav`)" id="第二章-简单动态字符串-nav">
+									第二章 简单动态字符串
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84" onclick="onNavClick(`#结构-nav`)" id="结构-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#sds%e4%b8%8ec%e5%ad%97%e7%ac%a6%e4%b8%b2%e7%9a%84%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#sds与c字符串的区别-nav`)" id="sds与c字符串的区别-nav">
+									SDS与C字符串的区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-%e9%93%be%e8%a1%a8" onclick="onNavClick(`#第三章-链表-nav`)" id="第三章-链表-nav">
+									第三章 链表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-1" onclick="onNavClick(`#结构-1-nav`)" id="结构-1-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-%e5%ad%97%e5%85%b8" onclick="onNavClick(`#第四章-字典-nav`)" id="第四章-字典-nav">
+									第四章 字典
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-2" onclick="onNavClick(`#结构-2-nav`)" id="结构-2-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%93%88%e5%b8%8c%e7%ae%97%e6%b3%95" onclick="onNavClick(`#哈希算法-nav`)" id="哈希算法-nav">
+									哈希算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%a7%a3%e5%86%b3%e9%94%ae%e5%86%b2%e7%aa%81" onclick="onNavClick(`#解决键冲突-nav`)" id="解决键冲突-nav">
+									解决键冲突
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rehash" onclick="onNavClick(`#rehash-nav`)" id="rehash-nav">
+									rehash
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%ad%a5%e9%aa%a4" onclick="onNavClick(`#步骤-nav`)" id="步骤-nav">
+									步骤
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%93%88%e5%b8%8c%e8%a1%a8%e7%9a%84%e6%89%a9%e5%b1%95%e4%b8%8e%e6%94%b6%e7%bc%a9%e6%97%b6%e6%9c%ba" onclick="onNavClick(`#哈希表的扩展与收缩时机-nav`)" id="哈希表的扩展与收缩时机-nav">
+									哈希表的扩展与收缩时机
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%b8%90%e8%bf%9b%e6%80%a7rehash" onclick="onNavClick(`#渐进性rehash-nav`)" id="渐进性rehash-nav">
+									渐进性rehash
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e8%b7%b3%e8%b7%83%e8%a1%a8" onclick="onNavClick(`#第五章-跳跃表-nav`)" id="第五章-跳跃表-nav">
+									第五章 跳跃表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-3" onclick="onNavClick(`#结构-3-nav`)" id="结构-3-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-%e6%95%b4%e6%95%b0%e9%9b%86%e5%90%88" onclick="onNavClick(`#第六章-整数集合-nav`)" id="第六章-整数集合-nav">
+									第六章 整数集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-4" onclick="onNavClick(`#结构-4-nav`)" id="结构-4-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8d%87%e7%ba%a7" onclick="onNavClick(`#升级-nav`)" id="升级-nav">
+									升级
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%87%e7%ba%a7%e7%9a%84%e5%a5%bd%e5%a4%84" onclick="onNavClick(`#升级的好处-nav`)" id="升级的好处-nav">
+									升级的好处
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-%e5%8e%8b%e7%bc%a9%e5%88%97%e8%a1%a8" onclick="onNavClick(`#第七章-压缩列表-nav`)" id="第七章-压缩列表-nav">
+									第七章 压缩列表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a type="button" class="pagination-action" id="darkModeToggleButton">
+            <span class="material-icons pagination-action-icon" id="darkModeToggleIcon">
+                dark_mode
+            </span>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" id="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/post">
+                    博客
+                </a>
+                
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/read">
+                    阅读
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#redis%e8%ae%be%e8%ae%a1%e4%b8%8e%e5%ae%9e%e7%8e%b0-%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#redis设计与实现-读书笔记-nav`)" id="redis设计与实现-读书笔记-nav">
+									Redis设计与实现-读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e5%bc%95%e8%a8%80" onclick="onNavClick(`#第一章-引言-nav`)" id="第一章-引言-nav">
+									第一章 引言
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#redis%e4%b8%ad%e7%9a%84%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84%e5%92%8c%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#redis中的数据结构和对象-nav`)" id="redis中的数据结构和对象-nav">
+									Redis中的数据结构和对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-%e7%ae%80%e5%8d%95%e5%8a%a8%e6%80%81%e5%ad%97%e7%ac%a6%e4%b8%b2" onclick="onNavClick(`#第二章-简单动态字符串-nav`)" id="第二章-简单动态字符串-nav">
+									第二章 简单动态字符串
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84" onclick="onNavClick(`#结构-nav`)" id="结构-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#sds%e4%b8%8ec%e5%ad%97%e7%ac%a6%e4%b8%b2%e7%9a%84%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#sds与c字符串的区别-nav`)" id="sds与c字符串的区别-nav">
+									SDS与C字符串的区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-%e9%93%be%e8%a1%a8" onclick="onNavClick(`#第三章-链表-nav`)" id="第三章-链表-nav">
+									第三章 链表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-1" onclick="onNavClick(`#结构-1-nav`)" id="结构-1-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-%e5%ad%97%e5%85%b8" onclick="onNavClick(`#第四章-字典-nav`)" id="第四章-字典-nav">
+									第四章 字典
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-2" onclick="onNavClick(`#结构-2-nav`)" id="结构-2-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%93%88%e5%b8%8c%e7%ae%97%e6%b3%95" onclick="onNavClick(`#哈希算法-nav`)" id="哈希算法-nav">
+									哈希算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%a7%a3%e5%86%b3%e9%94%ae%e5%86%b2%e7%aa%81" onclick="onNavClick(`#解决键冲突-nav`)" id="解决键冲突-nav">
+									解决键冲突
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rehash" onclick="onNavClick(`#rehash-nav`)" id="rehash-nav">
+									rehash
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%ad%a5%e9%aa%a4" onclick="onNavClick(`#步骤-nav`)" id="步骤-nav">
+									步骤
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%93%88%e5%b8%8c%e8%a1%a8%e7%9a%84%e6%89%a9%e5%b1%95%e4%b8%8e%e6%94%b6%e7%bc%a9%e6%97%b6%e6%9c%ba" onclick="onNavClick(`#哈希表的扩展与收缩时机-nav`)" id="哈希表的扩展与收缩时机-nav">
+									哈希表的扩展与收缩时机
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%b8%90%e8%bf%9b%e6%80%a7rehash" onclick="onNavClick(`#渐进性rehash-nav`)" id="渐进性rehash-nav">
+									渐进性rehash
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e8%b7%b3%e8%b7%83%e8%a1%a8" onclick="onNavClick(`#第五章-跳跃表-nav`)" id="第五章-跳跃表-nav">
+									第五章 跳跃表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-3" onclick="onNavClick(`#结构-3-nav`)" id="结构-3-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-%e6%95%b4%e6%95%b0%e9%9b%86%e5%90%88" onclick="onNavClick(`#第六章-整数集合-nav`)" id="第六章-整数集合-nav">
+									第六章 整数集合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-4" onclick="onNavClick(`#结构-4-nav`)" id="结构-4-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8d%87%e7%ba%a7" onclick="onNavClick(`#升级-nav`)" id="升级-nav">
+									升级
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%87%e7%ba%a7%e7%9a%84%e5%a5%bd%e5%a4%84" onclick="onNavClick(`#升级的好处-nav`)" id="升级的好处-nav">
+									升级的好处
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-%e5%8e%8b%e7%bc%a9%e5%88%97%e8%a1%a8" onclick="onNavClick(`#第七章-压缩列表-nav`)" id="第七章-压缩列表-nav">
+									第七章 压缩列表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div id="drawer-mask" v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav id="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div id="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a id="navTitle" class="navbar-brand" href="https://kother.top">
+            Kother&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" id="darkModeToggleButton2">
+            <i class="material-icons" id="darkModeToggleIcon2">
+                dark_mode
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" id="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://kother.top">
+        <div class="single-column-header-title">Kother&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">记录点喜欢的.</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+                <div id="streamContainer" class="stream-container">
+
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    Redis设计与实现 读书笔记
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-01-14 23:54
+                        </time>
+                        
+
+                        
+
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="redis设计与实现-读书笔记">Redis设计与实现-读书笔记</h1>
+<blockquote>
+<p>书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识</p>
+<p>适合补Redis基础，实战还是得另外找书</p>
+</blockquote>
+<p>[TOC]</p>
+<h2 id="第一章-引言">第一章 引言</h2>
+<h3 id="redis中的数据结构和对象">Redis中的数据结构和对象</h3>
+<ul>
+<li>每个键值对（key-value pari）都由对象组成
+<ul>
+<li>key是String对象</li>
+<li>value可以是String object, list object, hash object, set object, sorted set object</li>
+</ul>
+</li>
+</ul>
+<h2 id="第二章-简单动态字符串">第二章 简单动态字符串</h2>
+<blockquote>
+<p>简单动态字符串 - Simple Dynamic String</p>
+</blockquote>
+<h3 id="结构">结构</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> sdshdr{
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">int</span> len; <span style="color:#228b22">// 不算空字符串
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">int</span> free;
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">char</span> buf[];
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>以空字符串结尾（SDS函数自动完成添加和删除）&ndash;&gt; 好处是可以重用C语言中的字符串函数库</li>
+</ul>
+<h3 id="sds与c字符串的区别">SDS与C字符串的区别</h3>
+<ul>
+<li><strong>常量获取字符串长度</strong>，因为保存了len，C只能遍历</li>
+<li><strong>杜绝缓冲区溢出（不管是直接分配还是拼接(sdscat))</strong>，因为保存了free，而C可能会假定内存够，实则溢出</li>
+<li><strong>减少修改字符串时带来的内存重分配技术</strong>：C在截断或拼接时都要管理内存，否则可能会有内存溢出或者内存泄漏，而Redis实现如下：
+<ul>
+<li>空间预分配：要对SDS空间扩展时，同时分配需要空间和额外空间
+<ul>
+<li>修改后len&lt;1MB: len = free</li>
+<li>修改后len&gt;1MB: free = 1MB</li>
+</ul>
+</li>
+<li>惰性空间：String中移除字符后不会立刻释放空间，由free记录（可能以后用到）（源码：用户再次调用该字符串，会调用释放空间的API）</li>
+</ul>
+</li>
+<li>**二进制安全：**C字符串有编码限制（不能保存图像、音频等二进制数据），但Redis用的buf[]则可以</li>
+<li>Redis有需要时也可以重用C语言函数库（感觉这个不算区别）</li>
+</ul>
+<h2 id="第三章-链表">第三章 链表</h2>
+<blockquote>
+<p>除了链表键之外，发布与订阅、慢查询、监视器等功能也用到了链表，Redis服务器本身还使用链表来保存多个客户端的状态信息，以及使用链表来构建客户端输出缓冲区（output buffer）</p>
+</blockquote>
+<h3 id="结构-1">结构</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#228b22">// 节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">struct</span> listNode{
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">struct</span> listNode* prev;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">struct</span> listNode* next;
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">void</span>* value;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// 链表结构
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">struct</span> list{
+</span></span><span style="display:flex;"><span>    listNode* head;
+</span></span><span style="display:flex;"><span>    listNode* tail;
+</span></span><span style="display:flex;"><span>   	<span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> len;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">void</span>* (*dup) (<span style="color:#00688b;font-weight:bold">void</span> *ptr); <span style="color:#228b22">// 节点复制
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">void</span> (*free) (<span style="color:#00688b;font-weight:bold">void</span> *ptr); <span style="color:#228b22">// 节点释放
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">int</span> (*match) (<span style="color:#00688b;font-weight:bold">void</span> *ptr, <span style="color:#00688b;font-weight:bold">void</span> *key); <span style="color:#228b22">// 节点对比
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}list;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>双端无环</li>
+<li>带表头表尾指针</li>
+<li>链表长度计数器</li>
+<li>多态（保存不同类型值）</li>
+</ul>
+<h2 id="第四章-字典">第四章 字典</h2>
+<blockquote>
+<p>字典，又称为符号表（symbol table）、关联数组（associative array）或映射（map），是一种用于保存键值对（key-value pair）的抽象数据结构。</p>
+<p>Redis的数据库就是使用字典来作为底层实现的，对数据库的增、删、查、改操作也是构建在对字典的操作之上的。</p>
+</blockquote>
+<h3 id="结构-2">结构</h3>
+<blockquote>
+<p>Redis字典实现方式是哈希表</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#228b22">// 字典
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">struct</span> dict{
+</span></span><span style="display:flex;"><span>    dictType* type;	<span style="color:#228b22">// 类型特定函数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">void</span> *private; <span style="color:#228b22">// 私有数据
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    dictht ht[<span style="color:#b452cd">2</span>]; <span style="color:#228b22">// 哈希表
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    in trehashidx; <span style="color:#228b22">// rehash索引
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>} dict;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// 哈希表
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">struct</span> dictht{
+</span></span><span style="display:flex;"><span>    dictEntry **table; <span style="color:#228b22">// 哈希表数组
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> size; <span style="color:#228b22">// 哈希表大小
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> sizemask; <span style="color:#228b22">// 哈希表大小掩码，用于计算索引
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> used; <span style="color:#228b22">// 哈希表已有节点数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>} dictht;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// 哈希表节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">struct</span> dictEntry{
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">void</span>* key;			<span style="color:#228b22">// 键
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">union</span>{				<span style="color:#228b22">// 值
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#00688b;font-weight:bold">void</span> *val;
+</span></span><span style="display:flex;"><span>        uint64_tu64;
+</span></span><span style="display:flex;"><span>        int64_ts64;
+</span></span><span style="display:flex;"><span>    }v;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">struct</span> dictEntry *next;	<span style="color:#228b22">// 指向下一个哈希表
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>} dictEntry
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://gitee.com/kother/typora/raw/master/img/202301142154733.png" alt="image-20230114215455699"></p>
+<h3 id="哈希算法">哈希算法</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#228b22">// &lt;k0, v0&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>hash = dict-&gt;type-&gt;hashFunction(k0);
+</span></span><span style="display:flex;"><span>index = hash &amp; dict-&gt;ht[<span style="color:#b452cd">0</span>].sizemask = <span style="color:#b452cd">8</span> &amp; <span style="color:#b452cd">3</span> = <span style="color:#b452cd">0</span>;  <span style="color:#228b22">// &amp;运算
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>MurmurHash2算法</li>
+<li>优点：随机性好，生成速度快</li>
+</ul>
+<blockquote>
+<p>有时间可以去了解一下</p>
+</blockquote>
+<h3 id="解决键冲突">解决键冲突</h3>
+<p>链地址法解决</p>
+<h3 id="rehash">rehash</h3>
+<blockquote>
+<p>当哈希表保存的键值对数量太多或者太少时，程序需要对哈希表的大小进行相应的扩展或者收缩。</p>
+</blockquote>
+<h4 id="步骤">步骤</h4>
+<ul>
+<li>
+<p>为ht[1]分配空间（根据使用空间分配）</p>
+<ul>
+<li>
+<p>如果是扩展操作，ht[1]大小=第一个大于等于ht[0].used*2的2^n</p>
+</li>
+<li>
+<p>如果是收缩操作，ht[1]大小=第一个大于等于ht[0].used的2^n</p>
+<p>(这里描述的有点难受，实际上就是，如果扩3，要变为4；如果要扩9，要变为16，只能是2的整数倍)</p>
+</li>
+</ul>
+</li>
+<li>
+<p>将ht[0]的所有键重新计算索引值，并将键值对一起放到ht[1]指定位置</p>
+</li>
+<li>
+<p>迁移完毕以后释放ht[0]，另ht[0]=ht[1]（新），再新建一个ht[1]</p>
+</li>
+</ul>
+<h4 id="哈希表的扩展与收缩时机">哈希表的扩展与收缩时机</h4>
+<h5 id="扩展">扩展</h5>
+<ul>
+<li>哈希表负载因子&gt;=1，服务器<strong>没有</strong>执行BGSAVE或BGREWRITEAOF</li>
+<li>哈希表负载因子&gt;=5，服务器<strong>正在</strong>执行BGSAVE或BGREWRITEAOF</li>
+</ul>
+<p>也就是说只要扩展因子&gt;=1就有可能实现哈希表扩展或收缩</p>
+<h5 id="收缩">收缩</h5>
+<ul>
+<li>哈希表负载因子&lt;=0.1，自动开始收缩</li>
+</ul>
+<h3 id="渐进性rehash">渐进性rehash</h3>
+<p>这也是实际上的用法，渐进式rehash中字典会同时用ht[0]和ht[1]（可能先去ht[0]找，之后再进ht[1]）</p>
+<blockquote>
+<p>为了避免rehash对服务器性能造成影响，服务器不是一次性将ht[0]里面的所有键值对全部rehash到ht[1]，而是分多次、渐进式地将ht[0]里面的键值对慢慢地rehash到ht[1]。</p>
+</blockquote>
+<ul>
+<li>为ht[1]表分配空间</li>
+<li>在字典中维护索引计数器rehashidx，将值设为0时表示rehash开始</li>
+<li>每次增删改查，都会顺带将ht[0]在rehashidx索引上的所有键值对rehash到ht[1]，并将rehashidx+1</li>
+<li>某个时间点上ht[0]的所有值都会被rehash到ht[1]，此时令rehashidx=-1表示rehash操作完成</li>
+</ul>
+<p>注意：</p>
+<ul>
+<li>新增key-value全都会被保存到ht[1]，这个步骤保证ht[0]只增不减，最终变为空表</li>
+</ul>
+<h2 id="第五章-跳跃表">第五章 跳跃表</h2>
+<blockquote>
+<p>跳跃表（skiplist）是一种有序数据结构，它通过在每个节点中维持多个指向其他节点的指针，从而达到快速访问节点的目的。平均O(logN)、最坏O(N)</p>
+<p>很多程序用跳跃表来代替平衡树，因为性能差不多但跳表实现更简单</p>
+<ul>
+<li>当有序集合数量多，或有值是比较长的字符串时，跳表就被用作有序集合键的底层实现</li>
+<li>集群节点用作内部结构</li>
+</ul>
+</blockquote>
+<h3 id="结构-3">结构</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#228b22">// 跳跃表
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">struct</span> zskiplist{
+</span></span><span style="display:flex;"><span>    structz skiplistNode *header, *tail; <span style="color:#228b22">// 表头和表尾
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">long</span> length; <span style="color:#228b22">// 节点数量
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">int</span> level; <span style="color:#228b22">// 最大层数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// 跳表节点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">struct</span> zskiplistNode{
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 层
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">struct</span> zskiplistLevel{
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">struct</span> zskiplistNode* forward;<span style="color:#228b22">// 前进指针
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">int</span> span; <span style="color:#228b22">// 跨度
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    }level[];
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">struct</span> zskiplistNode* backward; <span style="color:#228b22">// 后退指针
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">double</span> score; <span style="color:#228b22">// 分值｜按分值从小到大排
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    robj *obj; <span style="color:#228b22">// 成员对象
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}zskiplistNode;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>level数组可以包含多个元素，可以通过层来加快访问其他节点的速度，层数越多，访问效率就越高</li>
+<li>创建新跳表节点时，<strong>随机生成1～32</strong>之间的值作为level数组的大小（层的高度）</li>
+<li>遍历只需要利用前进指针</li>
+<li>Span说明两个节点之间的距离，计算rank：查找某个节点过程中，将沿途所有层的跨度累计起来，结果就是目标节点在跳表中的<strong>排位</strong></li>
+<li>同个跳表中，成员唯一但是score可以相同（越小越靠近表头）</li>
+</ul>
+<!-- raw HTML omitted -->
+<h2 id="第六章-整数集合">第六章 整数集合</h2>
+<blockquote>
+<p>整数<strong>集合</strong>（intset）是集合键的底层实现之一，当一个集合只包含整数值元素，并且这个集合的元素数量不多时，Redis就会使用整数集合作为集合键的底层实现。</p>
+</blockquote>
+<h3 id="结构-4">结构</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">struct</span> intset {
+</span></span><span style="display:flex;"><span>    <span style="color:#00688b;font-weight:bold">uint32_t</span> encoding; 	<span style="color:#228b22">// 编码方式
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">uint32_t</span> length;	<span style="color:#228b22">// 集合包含元素的数量
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">int8_t</span> contents[];  <span style="color:#228b22">// 保存元素的数组｜这里的int8_t可以不看
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>保存类型为int16_t / int32_t / int64_t</li>
+<li>每个元素按从小到大排列（为了二分插入时判断重复项性质），不会出现重复元素</li>
+<li>声明是int8_t，实际上存储的类型取决于encoding</li>
+</ul>
+<h3 id="升级">升级</h3>
+<blockquote>
+<p>时间复杂度O(N)</p>
+</blockquote>
+<ul>
+<li>根据新元素类型，扩展空间大小，为新元素分配空间</li>
+<li>现在有的数组全部都转换为和新元素一样的类型</li>
+<li>将新元素放进去</li>
+</ul>
+<blockquote>
+<p>PS：不支持降级，升了就是升了</p>
+</blockquote>
+<h4 id="升级的好处">升级的好处</h4>
+<ul>
+<li>提高灵活性（不会把两种类型的值放在一个数组）</li>
+<li>节约内存（可以保存三种类型的值，又可以保证升级只有在需要时进行，节约内存）</li>
+</ul>
+<h2 id="第七章-压缩列表">第七章 压缩列表</h2>
+
+                    
+                    <HR width="100%" id="EOF">
+		    <p style="color:#777;">上次修改於 2023-01-14</p>
+                    
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			下回<br>已經到底啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="/read/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
+			上回<br>深入理解Java虚拟机 读书笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+<div id="gitalk-container"></div>
+
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+
+
+                    </div>
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+</div>
+            </div>
+    
+    <script src="/js/journal.js"></script></body>
+</html>
