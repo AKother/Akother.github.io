@@ -21,7 +21,6 @@
 
 <meta property="og:title" content="Redis设计与实现 读书笔记" />
 <meta property="og:description" content="Redis设计与实现-读书笔记 书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识
-适合补Redis基础，实战还是得另外找书
 [TOC]
 第一章 引言 Redis中的数据结构和对象 每个键值对（key-value pari）都由对象组成 key是String对象 value可以是String object, list object, hash object, set object, sorted set object 第二章 简单动态字符串 简单动态字符串 - Simple Dynamic String
 结构 1 2 3 4 5 struct sdshdr{ int len; // 不算空字符串 int free; char buf[]; } 以空字符串结尾（SDS函数自动完成添加和删除）&ndash;&gt; 好处是可以重用C语言中的字符串函数库 SDS与C字符串的区别 常量获取字符串长度，因为保存了len，C只能遍历 杜绝缓冲区溢出（不管是直接分配还是拼接(sdscat))，因为保存了free，而C可能会假定内存够，实则溢出 减少修改字符串时带来的内存重分配技术：C在截断或拼接时都要管理内存，否则可能会有内存溢出或者内存泄漏，而Redis实现如下： 空间预分配：要对SDS空间扩展时，同时分配需要空间和额外空间 修改后len&lt;1MB: len = free 修改后len&gt;1MB: free = 1MB 惰性空间：String中移除字符后不会立刻释放空间，由free记录（可能以后用到）（源码：用户再次调用该字符串，会调用释放空间的API） **二进制安全：**C字符串有编码限制（不能保存图像、音频等二进制数据），但Redis用的buf[]则可以 Redis有需要时也可以重用C语言函数库（感觉这个不算区别） 第三章 链表 除了链表键之外，发布与订阅、慢查询、监视器等功能也用到了链表，Redis服务器本身还使用链表来保存多个客户端的状态信息，以及使用链表来构建客户端输出缓冲区（output buffer）
@@ -39,7 +38,6 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Redis设计与实现 读书笔记"/>
 <meta name="twitter:description" content="Redis设计与实现-读书笔记 书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识
-适合补Redis基础，实战还是得另外找书
 [TOC]
 第一章 引言 Redis中的数据结构和对象 每个键值对（key-value pari）都由对象组成 key是String对象 value可以是String object, list object, hash object, set object, sorted set object 第二章 简单动态字符串 简单动态字符串 - Simple Dynamic String
 结构 1 2 3 4 5 struct sdshdr{ int len; // 不算空字符串 int free; char buf[]; } 以空字符串结尾（SDS函数自动完成添加和删除）&ndash;&gt; 好处是可以重用C语言中的字符串函数库 SDS与C字符串的区别 常量获取字符串长度，因为保存了len，C只能遍历 杜绝缓冲区溢出（不管是直接分配还是拼接(sdscat))，因为保存了free，而C可能会假定内存够，实则溢出 减少修改字符串时带来的内存重分配技术：C在截断或拼接时都要管理内存，否则可能会有内存溢出或者内存泄漏，而Redis实现如下： 空间预分配：要对SDS空间扩展时，同时分配需要空间和额外空间 修改后len&lt;1MB: len = free 修改后len&gt;1MB: free = 1MB 惰性空间：String中移除字符后不会立刻释放空间，由free记录（可能以后用到）（源码：用户再次调用该字符串，会调用释放空间的API） **二进制安全：**C字符串有编码限制（不能保存图像、音频等二进制数据），但Redis用的buf[]则可以 Redis有需要时也可以重用C语言函数库（感觉这个不算区别） 第三章 链表 除了链表键之外，发布与订阅、慢查询、监视器等功能也用到了链表，Redis服务器本身还使用链表来保存多个客户端的状态信息，以及使用链表来构建客户端输出缓冲区（output buffer）
@@ -697,6 +695,2960 @@ Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> b
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-5" onclick="onNavClick(`#结构-5-nav`)" id="结构-5-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8e%8b%e7%bc%a9%e5%88%97%e8%a1%a8" onclick="onNavClick(`#压缩列表-nav`)" id="压缩列表-nav">
+									压缩列表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8e%8b%e7%bc%a9%e5%88%97%e8%a1%a8%e8%8a%82%e7%82%b9" onclick="onNavClick(`#压缩列表节点-nav`)" id="压缩列表节点-nav">
+									压缩列表节点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%9e%e9%94%81%e6%9b%b4%e6%96%b0" onclick="onNavClick(`#连锁更新-nav`)" id="连锁更新-nav">
+									连锁更新
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#第八章-对象-nav`)" id="第八章-对象-nav">
+									第八章 对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e7%b1%bb%e5%9e%8b%e4%b8%8e%e7%bc%96%e7%a0%81" onclick="onNavClick(`#对象的类型与编码-nav`)" id="对象的类型与编码-nav">
+									对象的类型与编码
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ad%97%e7%ac%a6%e4%b8%b2%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#字符串对象-nav`)" id="字符串对象-nav">
+									字符串对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#embstr%e5%92%8craw%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#embstr和raw区别-nav`)" id="embstr和raw区别-nav">
+									embstr和raw区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e7%9a%84%e8%bd%ac%e6%8d%a2" onclick="onNavClick(`#编码的转换-nav`)" id="编码的转换-nav">
+									编码的转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#常用命令-nav`)" id="常用命令-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%88%97%e8%a1%a8%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#列表对象-nav`)" id="列表对象-nav">
+									列表对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e8%bd%ac%e6%8d%a2" onclick="onNavClick(`#编码转换-nav`)" id="编码转换-nav">
+									编码转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4-1" onclick="onNavClick(`#常用命令-1-nav`)" id="常用命令-1-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%93%88%e5%b8%8c%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#哈希对象-nav`)" id="哈希对象-nav">
+									哈希对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e8%bd%ac%e6%8d%a2-1" onclick="onNavClick(`#编码转换-1-nav`)" id="编码转换-1-nav">
+									编码转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4-2" onclick="onNavClick(`#常用命令-2-nav`)" id="常用命令-2-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e5%90%88%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#集合对象-nav`)" id="集合对象-nav">
+									集合对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e8%bd%ac%e6%8d%a2-2" onclick="onNavClick(`#编码转换-2-nav`)" id="编码转换-2-nav">
+									编码转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4-3" onclick="onNavClick(`#常用命令-3-nav`)" id="常用命令-3-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%89%e5%ba%8f%e9%9b%86%e5%90%88%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#有序集合对象-nav`)" id="有序集合对象-nav">
+									有序集合对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e8%bd%ac%e6%8d%a2-3" onclick="onNavClick(`#编码转换-3-nav`)" id="编码转换-3-nav">
+									编码转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4-4" onclick="onNavClick(`#常用命令-4-nav`)" id="常用命令-4-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%9e%8b%e6%a3%80%e6%9f%a5%e4%b8%8e%e5%91%bd%e4%bb%a4%e5%a4%9a%e6%80%81" onclick="onNavClick(`#类型检查与命令多态-nav`)" id="类型检查与命令多态-nav">
+									类型检查与命令多态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e4%bb%a4%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#命令类型-nav`)" id="命令类型-nav">
+									命令类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%9e%8b%e6%a3%80%e6%9f%a5" onclick="onNavClick(`#类型检查-nav`)" id="类型检查-nav">
+									类型检查
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%9a%e6%80%81%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#多态命令-nav`)" id="多态命令-nav">
+									多态命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%86%85%e5%ad%98%e5%9b%9e%e6%94%b6" onclick="onNavClick(`#内存回收-nav`)" id="内存回收-nav">
+									内存回收
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e5%85%b1%e4%ba%ab" onclick="onNavClick(`#对象共享-nav`)" id="对象共享-nav">
+									对象共享
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e7%a9%ba%e8%bd%ac%e6%97%b6%e9%95%bf" onclick="onNavClick(`#对象的空转时长-nav`)" id="对象的空转时长-nav">
+									对象的空转时长
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b9%9d%e7%ab%a0-%e6%95%b0%e6%8d%ae%e5%ba%93" onclick="onNavClick(`#第九章-数据库-nav`)" id="第九章-数据库-nav">
+									第九章 数据库
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%bb%98%e8%ae%a4%e6%95%b0%e6%8d%ae%e5%ba%93%e8%ae%be%e7%bd%ae" onclick="onNavClick(`#默认数据库设置-nav`)" id="默认数据库设置-nav">
+									默认数据库设置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%ba%93%e9%94%ae%e7%a9%ba%e9%97%b4" onclick="onNavClick(`#数据库键空间-nav`)" id="数据库键空间-nav">
+									数据库键空间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%94%ae%e7%9a%84%e6%97%b6%e9%97%b4%e7%9b%b8%e5%85%b3%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#键的时间相关命令-nav`)" id="键的时间相关命令-nav">
+									键的时间相关命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%ae%be%e7%bd%ae%e9%94%ae%e7%9a%84%e7%94%9f%e5%ad%98%e6%97%b6%e9%97%b4%e6%88%96%e8%bf%87%e6%9c%9f%e6%97%b6%e9%97%b4" onclick="onNavClick(`#设置键的生存时间或过期时间-nav`)" id="设置键的生存时间或过期时间-nav">
+									设置键的生存时间或过期时间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a7%bb%e9%99%a4%e8%bf%87%e6%9c%9f%e6%97%b6%e9%97%b4" onclick="onNavClick(`#移除过期时间-nav`)" id="移除过期时间-nav">
+									移除过期时间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9f%a5%e7%9c%8b%e5%89%a9%e4%bd%99%e7%94%9f%e5%91%bd%e6%97%b6%e9%97%b4" onclick="onNavClick(`#查看剩余生命时间-nav`)" id="查看剩余生命时间-nav">
+									查看剩余生命时间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%87%e6%9c%9f%e9%94%ae%e7%9a%84%e5%88%a4%e5%ae%9a" onclick="onNavClick(`#过期键的判定-nav`)" id="过期键的判定-nav">
+									过期键的判定
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%87%e6%9c%9f%e9%94%ae%e7%9a%84%e5%88%a0%e9%99%a4%e7%ad%96%e7%95%a5" onclick="onNavClick(`#过期键的删除策略-nav`)" id="过期键的删除策略-nav">
+									过期键的删除策略
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e6%97%b6%e5%88%a0%e9%99%a4" onclick="onNavClick(`#定时删除-nav`)" id="定时删除-nav">
+									定时删除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%83%b0%e6%80%a7%e5%88%a0%e9%99%a4" onclick="onNavClick(`#惰性删除-nav`)" id="惰性删除-nav">
+									惰性删除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e6%9c%9f%e5%88%a0%e9%99%a4" onclick="onNavClick(`#定期删除-nav`)" id="定期删除-nav">
+									定期删除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#redis%e7%9a%84%e8%bf%87%e6%9c%9f%e9%94%ae%e5%88%a0%e9%99%a4%e7%ad%96%e7%95%a5" onclick="onNavClick(`#redis的过期键删除策略-nav`)" id="redis的过期键删除策略-nav">
+									Redis的过期键删除策略
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#expireifneed" onclick="onNavClick(`#expireifneed-nav`)" id="expireifneed-nav">
+									expireIfNeed
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#activeexpirecycle" onclick="onNavClick(`#activeexpirecycle-nav`)" id="activeexpirecycle-nav">
+									activeExpireCycle
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#aofrdb%e5%92%8c%e5%a4%8d%e5%88%b6%e5%8a%9f%e8%83%bd%e5%af%b9%e8%bf%87%e6%9c%9f%e9%94%ae%e7%9a%84%e5%a4%84%e7%90%86" onclick="onNavClick(`#aofrdb和复制功能对过期键的处理-nav`)" id="aofrdb和复制功能对过期键的处理-nav">
+									AOF、RDB和复制功能对过期键的处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%94%9f%e6%88%90rdb%e6%96%87%e4%bb%b6" onclick="onNavClick(`#生成rdb文件-nav`)" id="生成rdb文件-nav">
+									生成RDB文件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bd%bd%e5%85%a5rdb%e6%96%87%e4%bb%b6" onclick="onNavClick(`#载入rdb文件-nav`)" id="载入rdb文件-nav">
+									载入RDB文件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8eaof%e6%96%87%e4%bb%b6%e5%86%99%e5%85%a5" onclick="onNavClick(`#从aof文件写入-nav`)" id="从aof文件写入-nav">
+									从AOF文件写入
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#aof%e9%87%8d%e6%96%b0%e5%86%99" onclick="onNavClick(`#aof重新写-nav`)" id="aof重新写-nav">
+									AOF重新写
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%8d%e5%88%b6" onclick="onNavClick(`#复制-nav`)" id="复制-nav">
+									复制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%ba%93%e9%80%9a%e7%9f%a5" onclick="onNavClick(`#数据库通知-nav`)" id="数据库通知-nav">
+									数据库通知
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-rdb%e6%8c%81%e4%b9%85%e5%8c%96" onclick="onNavClick(`#第十章-rdb持久化-nav`)" id="第十章-rdb持久化-nav">
+									第十章 RDB持久化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af" onclick="onNavClick(`#基本信息-nav`)" id="基本信息-nav">
+									基本信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rdb%e6%96%87%e4%bb%b6%e7%9a%84%e5%88%9b%e5%bb%ba" onclick="onNavClick(`#rdb文件的创建-nav`)" id="rdb文件的创建-nav">
+									RDB文件的创建
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rdb%e6%96%87%e4%bb%b6%e7%9a%84%e8%bd%bd%e5%85%a5" onclick="onNavClick(`#rdb文件的载入-nav`)" id="rdb文件的载入-nav">
+									RDB文件的载入
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e9%97%b4%e9%9a%94%e6%80%a7%e4%bf%9d%e5%ad%98" onclick="onNavClick(`#自动间隔性保存-nav`)" id="自动间隔性保存-nav">
+									自动间隔性保存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#dirty%e8%ae%a1%e6%95%b0%e5%99%a8" onclick="onNavClick(`#dirty计数器-nav`)" id="dirty计数器-nav">
+									dirty计数器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#lastsave" onclick="onNavClick(`#lastsave-nav`)" id="lastsave-nav">
+									lastsave
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#rdb%e6%96%87%e4%bb%b6%e7%bb%93%e6%9e%84" onclick="onNavClick(`#rdb文件结构-nav`)" id="rdb文件结构-nav">
+									RDB文件结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#database" onclick="onNavClick(`#database-nav`)" id="database-nav">
+									database
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%80%e7%ab%a0-aof%e6%8c%81%e4%b9%85%e5%8c%96" onclick="onNavClick(`#第十一章-aof持久化-nav`)" id="第十一章-aof持久化-nav">
+									第十一章 AOF持久化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af-1" onclick="onNavClick(`#基本信息-1-nav`)" id="基本信息-1-nav">
+									基本信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#aof%e6%8c%81%e4%b9%85%e5%8c%96%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#aof持久化的实现-nav`)" id="aof持久化的实现-nav">
+									AOF持久化的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e4%bb%a4%e8%bf%bd%e5%8a%a0" onclick="onNavClick(`#命令追加-nav`)" id="命令追加-nav">
+									命令追加
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%86%99%e5%85%a5%e4%b8%8e%e5%90%8c%e6%ad%a5" onclick="onNavClick(`#写入与同步-nav`)" id="写入与同步-nav">
+									写入与同步
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e8%bd%bd%e5%85%a5" onclick="onNavClick(`#数据载入-nav`)" id="数据载入-nav">
+									数据载入
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%87%8d%e5%86%99" onclick="onNavClick(`#重写-nav`)" id="重写-nav">
+									重写
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%ba%8c%e7%ab%a0-%e4%ba%8b%e4%bb%b6" onclick="onNavClick(`#第十二章-事件-nav`)" id="第十二章-事件-nav">
+									第十二章 事件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%96%87%e4%bb%b6%e4%ba%8b%e4%bb%b6" onclick="onNavClick(`#文件事件-nav`)" id="文件事件-nav">
+									文件事件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%96%87%e4%bb%b6%e4%ba%8b%e4%bb%b6%e5%a4%84%e7%90%86%e5%99%a8" onclick="onNavClick(`#文件事件处理器-nav`)" id="文件事件处理器-nav">
+									文件事件处理器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#io%e5%a4%9a%e8%b7%af%e5%a4%8d%e7%94%a8%e5%ba%95%e5%b1%82%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#io多路复用底层实现-nav`)" id="io多路复用底层实现-nav">
+									I/O多路复用底层实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%8c%e6%95%b4%e7%9a%84%e5%ae%a2%e6%88%b7%e7%ab%af%e4%b8%8e%e6%9c%8d%e5%8a%a1%e5%99%a8%e8%bf%9e%e6%8e%a5%e4%be%8b%e5%ad%90" onclick="onNavClick(`#完整的客户端与服务器连接例子-nav`)" id="完整的客户端与服务器连接例子-nav">
+									完整的客户端与服务器连接例子
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%97%b6%e9%97%b4%e4%ba%8b%e4%bb%b6" onclick="onNavClick(`#时间事件-nav`)" id="时间事件-nav">
+									时间事件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%97%b6%e9%97%b4%e4%ba%8b%e4%bb%b6%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#时间事件类型-nav`)" id="时间事件类型-nav">
+									时间事件类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%97%b6%e9%97%b4%e4%ba%8b%e4%bb%b6%e7%bb%84%e6%88%90%e9%83%a8%e5%88%86" onclick="onNavClick(`#时间事件组成部分-nav`)" id="时间事件组成部分-nav">
+									时间事件组成部分
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8e%9f%e7%90%86" onclick="onNavClick(`#实现原理-nav`)" id="实现原理-nav">
+									实现原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e4%be%8bservercron%e5%87%bd%e6%95%b0" onclick="onNavClick(`#实例servercron函数-nav`)" id="实例servercron函数-nav">
+									实例：serverCron函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%8b%e4%bb%b6%e7%9a%84%e8%b0%83%e5%ba%a6%e4%b8%8e%e6%89%a7%e8%a1%8c" onclick="onNavClick(`#事件的调度与执行-nav`)" id="事件的调度与执行-nav">
+									事件的调度与执行
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%89%e7%ab%a0-%e5%ae%a2%e6%88%b7%e7%ab%af" onclick="onNavClick(`#第十三章-客户端-nav`)" id="第十三章-客户端-nav">
+									第十三章 客户端
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84%e5%86%85%e5%ae%b9" onclick="onNavClick(`#数据结构内容-nav`)" id="数据结构内容-nav">
+									数据结构内容
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%aa%e5%ae%a2%e6%88%b7%e7%ab%af" onclick="onNavClick(`#伪客户端-nav`)" id="伪客户端-nav">
+									伪客户端
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%93%e5%86%b2%e5%8c%ba" onclick="onNavClick(`#缓冲区-nav`)" id="缓冲区-nav">
+									缓冲区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e5%9b%9b%e7%ab%a0-%e6%9c%8d%e5%8a%a1%e5%99%a8" onclick="onNavClick(`#第十四章-服务器-nav`)" id="第十四章-服务器-nav">
+									第十四章 服务器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e4%bb%a4%e8%af%b7%e6%b1%82%e7%9a%84%e6%89%a7%e8%a1%8c%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#命令请求的执行过程-nav`)" id="命令请求的执行过程-nav">
+									命令请求的执行过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%a1%e7%ae%97%e7%a9%ba%e8%bd%ac%e6%97%b6%e9%95%bf" onclick="onNavClick(`#计算空转时长-nav`)" id="计算空转时长-nav">
+									计算空转时长
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ae%a1%e7%90%86%e5%ae%a2%e6%88%b7%e7%ab%af%e8%b5%84%e6%ba%90" onclick="onNavClick(`#管理客户端资源-nav`)" id="管理客户端资源-nav">
+									管理客户端资源
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e9%9c%80%e8%a6%81%e6%8c%81%e4%b9%85%e5%8c%96" onclick="onNavClick(`#判断是否需要持久化-nav`)" id="判断是否需要持久化-nav">
+									判断是否需要持久化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%9d%e5%a7%8b%e5%8c%96%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%8a%b6%e6%80%81%e7%bb%93%e6%9e%84" onclick="onNavClick(`#初始化服务器状态结构-nav`)" id="初始化服务器状态结构-nav">
+									初始化服务器状态结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%ba%94%e7%ab%a0-%e5%a4%8d%e5%88%b6" onclick="onNavClick(`#第十五章-复制-nav`)" id="第十五章-复制-nav">
+									第十五章 复制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%97%a7%e7%89%88%e5%a4%8d%e5%88%b6%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#旧版复制方式-nav`)" id="旧版复制方式-nav">
+									旧版复制方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%97%a7%e7%89%88%e5%a4%8d%e5%88%b6%e5%8a%9f%e8%83%bd%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#旧版复制功能实现-nav`)" id="旧版复制功能实现-nav">
+									旧版复制功能实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%97%a7%e7%89%88%e5%a4%8d%e5%88%b6%e5%8a%9f%e8%83%bd%e7%bc%ba%e9%99%b7" onclick="onNavClick(`#旧版复制功能缺陷-nav`)" id="旧版复制功能缺陷-nav">
+									旧版复制功能缺陷
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b0%e7%89%88%e5%a4%8d%e5%88%b6%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#新版复制方式-nav`)" id="新版复制方式-nav">
+									新版复制方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%83%a8%e5%88%86%e9%87%8d%e5%8a%9f%e8%83%bd%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#部分重功能实现-nav`)" id="部分重功能实现-nav">
+									部分重功能实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#psync%e5%91%bd%e4%bb%a4%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#psync命令实现-nav`)" id="psync命令实现-nav">
+									PSYNC命令实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%8d%e5%88%b6%e7%9a%84%e5%ae%9e%e7%8e%b0%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#复制的实现过程-nav`)" id="复制的实现过程-nav">
+									复制的实现过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bf%83%e8%b7%b3%e6%a3%80%e6%b5%8b" onclick="onNavClick(`#心跳检测-nav`)" id="心跳检测-nav">
+									心跳检测
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#方式-nav`)" id="方式-nav">
+									方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%9c%e7%94%a8" onclick="onNavClick(`#作用-nav`)" id="作用-nav">
+									作用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e5%85%ad%e7%ab%a0-sentinel" onclick="onNavClick(`#第十六章-sentinel-nav`)" id="第十六章-sentinel-nav">
+									第十六章 Sentinel
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%90%af%e5%8a%a8%e5%b9%b6%e5%88%9d%e5%a7%8b%e5%8c%96sentinel" onclick="onNavClick(`#启动并初始化sentinel-nav`)" id="启动并初始化sentinel-nav">
+									启动并初始化Sentinel
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1%e6%89%a7%e8%a1%8c%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#1执行命令-nav`)" id="1执行命令-nav">
+									1.执行命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#2%e5%88%9d%e5%a7%8b%e5%8c%96%e6%9c%8d%e5%8a%a1%e5%99%a8" onclick="onNavClick(`#2初始化服务器-nav`)" id="2初始化服务器-nav">
+									2.初始化服务器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#3%e4%bd%bf%e7%94%a8sentinel%e4%b8%93%e7%94%a8%e4%bb%a3%e7%a0%81" onclick="onNavClick(`#3使用sentinel专用代码-nav`)" id="3使用sentinel专用代码-nav">
+									3.使用Sentinel专用代码
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#4%e5%88%9d%e5%a7%8b%e5%8c%96sentinel%e7%8a%b6%e6%80%81" onclick="onNavClick(`#4初始化sentinel状态-nav`)" id="4初始化sentinel状态-nav">
+									4.初始化Sentinel状态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#5%e5%88%9d%e5%a7%8b%e5%8c%96sentinel%e7%8a%b6%e6%80%81%e4%b8%ad%e7%9a%84masters%e5%b1%9e%e6%80%a7" onclick="onNavClick(`#5初始化sentinel状态中的masters属性-nav`)" id="5初始化sentinel状态中的masters属性-nav">
+									5.初始化Sentinel状态中的masters属性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#6%e5%88%9b%e5%bb%ba%e8%bf%9e%e5%90%91%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%9a%84%e7%bd%91%e7%bb%9c%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#6创建连向主服务器的网络连接-nav`)" id="6创建连向主服务器的网络连接-nav">
+									6.创建连向主服务器的网络连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e8%8e%b7%e5%8f%96%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e4%bf%a1%e6%81%af" onclick="onNavClick(`#获取主服务器信息-nav`)" id="获取主服务器信息-nav">
+									获取主服务器信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%8e%b7%e5%8f%96%e4%bb%8e%e6%9c%8d%e5%8a%a1%e5%99%a8%e4%bf%a1%e6%81%af" onclick="onNavClick(`#获取从服务器信息-nav`)" id="获取从服务器信息-nav">
+									获取从服务器信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%90%91%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e5%92%8c%e4%bb%8e%e6%9c%8d%e5%8a%a1%e5%99%a8%e5%8f%91%e9%80%81%e4%bf%a1%e6%81%af" onclick="onNavClick(`#向主服务器和从服务器发送信息-nav`)" id="向主服务器和从服务器发送信息-nav">
+									向主服务器和从服务器发送信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8e%a5%e6%94%b6%e6%9d%a5%e8%87%aa%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e5%92%8c%e4%bb%8e%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%9a%84%e9%a2%91%e9%81%93%e4%bf%a1%e6%81%af" onclick="onNavClick(`#接收来自主服务器和从服务器的频道信息-nav`)" id="接收来自主服务器和从服务器的频道信息-nav">
+									接收来自主服务器和从服务器的频道信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1%e6%9b%b4%e6%96%b0sentinel%e5%ad%97%e5%85%b8" onclick="onNavClick(`#1更新sentinel字典-nav`)" id="1更新sentinel字典-nav">
+									1.更新Sentinel字典
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#2%e5%88%9b%e5%bb%ba%e8%bf%9e%e5%90%91%e5%85%b6%e4%bb%96sentinel%e7%9a%84%e5%91%bd%e4%bb%a4%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#2创建连向其他sentinel的命令连接-nav`)" id="2创建连向其他sentinel的命令连接-nav">
+									2.创建连向其他Sentinel的命令连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%a3%80%e6%9f%a5%e4%b8%bb%e8%a7%82%e4%b8%8b%e7%ba%bf%e7%8a%b6%e6%80%81" onclick="onNavClick(`#检查主观下线状态-nav`)" id="检查主观下线状态-nav">
+									检查主观下线状态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a3%80%e6%9f%a5%e5%ae%a2%e8%a7%82%e4%b8%8b%e7%ba%bf%e7%8a%b6%e6%80%81" onclick="onNavClick(`#检查客观下线状态-nav`)" id="检查客观下线状态-nav">
+									检查客观下线状态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%80%89%e4%b8%be%e9%a2%86%e5%a4%b4sentinel" onclick="onNavClick(`#选举领头sentinel-nav`)" id="选举领头sentinel-nav">
+									选举领头Sentinel
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%a7%84%e5%88%99" onclick="onNavClick(`#规则-nav`)" id="规则-nav">
+									规则
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%95%85%e9%9a%9c%e8%bd%ac%e7%a7%bb" onclick="onNavClick(`#故障转移-nav`)" id="故障转移-nav">
+									故障转移
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%8c%91%e9%80%89%e6%96%b0%e7%9a%84%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#挑选新的主服务器过程-nav`)" id="挑选新的主服务器过程-nav">
+									挑选新的主服务器过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%83%e7%ab%a0-%e9%9b%86%e7%be%a4" onclick="onNavClick(`#第十七章-集群-nav`)" id="第十七章-集群-nav">
+									第十七章 集群
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%8a%82%e7%82%b9" onclick="onNavClick(`#节点-nav`)" id="节点-nav">
+									节点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%90%af%e5%8a%a8%e8%8a%82%e7%82%b9" onclick="onNavClick(`#启动节点-nav`)" id="启动节点-nav">
+									启动节点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%a7%bd%e6%8c%87%e6%b4%be" onclick="onNavClick(`#槽指派-nav`)" id="槽指派-nav">
+									槽指派
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%8c%87%e6%b4%be%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#指派命令-nav`)" id="指派命令-nav">
+									指派命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%b0%e5%bd%95%e8%8a%82%e7%82%b9%e7%9a%84%e6%a7%bd%e6%8c%87%e6%b4%be%e4%bf%a1%e6%81%af" onclick="onNavClick(`#记录节点的槽指派信息-nav`)" id="记录节点的槽指派信息-nav">
+									记录节点的槽指派信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%a0%e6%92%ad%e8%8a%82%e7%82%b9%e7%9a%84%e6%a7%bd%e6%8c%87%e6%b4%be%e4%bf%a1%e6%81%af" onclick="onNavClick(`#传播节点的槽指派信息-nav`)" id="传播节点的槽指派信息-nav">
+									传播节点的槽指派信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%b0%e5%bd%95%e9%9b%86%e7%be%a4%e6%89%80%e6%9c%89%e6%a7%bd%e7%9a%84%e6%8c%87%e6%b4%be%e4%bf%a1%e6%81%af" onclick="onNavClick(`#记录集群所有槽的指派信息-nav`)" id="记录集群所有槽的指派信息-nav">
+									记录集群所有槽的指派信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%9c%a8%e9%9b%86%e7%be%a4%e4%b8%ad%e6%89%a7%e8%a1%8c%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#在集群中执行命令-nav`)" id="在集群中执行命令-nav">
+									在集群中执行命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#moved%e9%94%99%e8%af%af" onclick="onNavClick(`#moved错误-nav`)" id="moved错误-nav">
+									MOVED错误
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%8a%82%e7%82%b9%e6%95%b0%e6%8d%ae%e5%ba%93%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#节点数据库的实现-nav`)" id="节点数据库的实现-nav">
+									节点数据库的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%87%8d%e6%96%b0%e5%88%86%e7%89%87" onclick="onNavClick(`#重新分片-nav`)" id="重新分片-nav">
+									重新分片
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8e%9f%e7%90%86-1" onclick="onNavClick(`#实现原理-1-nav`)" id="实现原理-1-nav">
+									实现原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#ask%e9%94%99%e8%af%af" onclick="onNavClick(`#ask错误-nav`)" id="ask错误-nav">
+									ASK错误
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#asking%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#asking命令-nav`)" id="asking命令-nav">
+									ASKING命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#ask%e9%94%99%e8%af%af%e5%92%8cmoved%e9%94%99%e8%af%af%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#ask错误和moved错误区别-nav`)" id="ask错误和moved错误区别-nav">
+									ASK错误和MOVED错误区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%8d%e5%88%b6%e4%b8%8e%e6%95%85%e9%9a%9c%e8%bd%ac%e7%a7%bb" onclick="onNavClick(`#复制与故障转移-nav`)" id="复制与故障转移-nav">
+									复制与故障转移
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%85%e9%9a%9c%e8%bd%ac%e7%a7%bb%e6%ad%a5%e9%aa%a4" onclick="onNavClick(`#故障转移步骤-nav`)" id="故障转移步骤-nav">
+									故障转移步骤
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%80%89%e5%8f%96%e6%96%b0%e7%9a%84%e4%b8%bb%e8%8a%82%e7%82%b9" onclick="onNavClick(`#选取新的主节点-nav`)" id="选取新的主节点-nav">
+									选取新的主节点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af" onclick="onNavClick(`#消息-nav`)" id="消息-nav">
+									消息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#gossip%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#gossip协议-nav`)" id="gossip协议-nav">
+									Gossip协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e5%85%ab%e7%ab%a0-%e5%8f%91%e5%b8%83%e4%b8%8e%e8%ae%a2%e9%98%85" onclick="onNavClick(`#第十八章-发布与订阅-nav`)" id="第十八章-发布与订阅-nav">
+									第十八章 发布与订阅
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%a2%91%e9%81%93%e7%9a%84%e8%ae%a2%e9%98%85%e5%92%8c%e9%80%80%e8%ae%a2" onclick="onNavClick(`#频道的订阅和退订-nav`)" id="频道的订阅和退订-nav">
+									频道的订阅和退订
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -1259,6 +4211,2960 @@ Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> b
 					
 				
 			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84-5" onclick="onNavClick(`#结构-5-nav`)" id="结构-5-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8e%8b%e7%bc%a9%e5%88%97%e8%a1%a8" onclick="onNavClick(`#压缩列表-nav`)" id="压缩列表-nav">
+									压缩列表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8e%8b%e7%bc%a9%e5%88%97%e8%a1%a8%e8%8a%82%e7%82%b9" onclick="onNavClick(`#压缩列表节点-nav`)" id="压缩列表节点-nav">
+									压缩列表节点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%9e%e9%94%81%e6%9b%b4%e6%96%b0" onclick="onNavClick(`#连锁更新-nav`)" id="连锁更新-nav">
+									连锁更新
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#第八章-对象-nav`)" id="第八章-对象-nav">
+									第八章 对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e7%b1%bb%e5%9e%8b%e4%b8%8e%e7%bc%96%e7%a0%81" onclick="onNavClick(`#对象的类型与编码-nav`)" id="对象的类型与编码-nav">
+									对象的类型与编码
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ad%97%e7%ac%a6%e4%b8%b2%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#字符串对象-nav`)" id="字符串对象-nav">
+									字符串对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#embstr%e5%92%8craw%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#embstr和raw区别-nav`)" id="embstr和raw区别-nav">
+									embstr和raw区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e7%9a%84%e8%bd%ac%e6%8d%a2" onclick="onNavClick(`#编码的转换-nav`)" id="编码的转换-nav">
+									编码的转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#常用命令-nav`)" id="常用命令-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%88%97%e8%a1%a8%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#列表对象-nav`)" id="列表对象-nav">
+									列表对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e8%bd%ac%e6%8d%a2" onclick="onNavClick(`#编码转换-nav`)" id="编码转换-nav">
+									编码转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4-1" onclick="onNavClick(`#常用命令-1-nav`)" id="常用命令-1-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%93%88%e5%b8%8c%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#哈希对象-nav`)" id="哈希对象-nav">
+									哈希对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e8%bd%ac%e6%8d%a2-1" onclick="onNavClick(`#编码转换-1-nav`)" id="编码转换-1-nav">
+									编码转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4-2" onclick="onNavClick(`#常用命令-2-nav`)" id="常用命令-2-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e5%90%88%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#集合对象-nav`)" id="集合对象-nav">
+									集合对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e8%bd%ac%e6%8d%a2-2" onclick="onNavClick(`#编码转换-2-nav`)" id="编码转换-2-nav">
+									编码转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4-3" onclick="onNavClick(`#常用命令-3-nav`)" id="常用命令-3-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%89%e5%ba%8f%e9%9b%86%e5%90%88%e5%af%b9%e8%b1%a1" onclick="onNavClick(`#有序集合对象-nav`)" id="有序集合对象-nav">
+									有序集合对象
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e7%a0%81%e8%bd%ac%e6%8d%a2-3" onclick="onNavClick(`#编码转换-3-nav`)" id="编码转换-3-nav">
+									编码转换
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4-4" onclick="onNavClick(`#常用命令-4-nav`)" id="常用命令-4-nav">
+									常用命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%9e%8b%e6%a3%80%e6%9f%a5%e4%b8%8e%e5%91%bd%e4%bb%a4%e5%a4%9a%e6%80%81" onclick="onNavClick(`#类型检查与命令多态-nav`)" id="类型检查与命令多态-nav">
+									类型检查与命令多态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e4%bb%a4%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#命令类型-nav`)" id="命令类型-nav">
+									命令类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%b1%bb%e5%9e%8b%e6%a3%80%e6%9f%a5" onclick="onNavClick(`#类型检查-nav`)" id="类型检查-nav">
+									类型检查
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%9a%e6%80%81%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#多态命令-nav`)" id="多态命令-nav">
+									多态命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%86%85%e5%ad%98%e5%9b%9e%e6%94%b6" onclick="onNavClick(`#内存回收-nav`)" id="内存回收-nav">
+									内存回收
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e5%85%b1%e4%ba%ab" onclick="onNavClick(`#对象共享-nav`)" id="对象共享-nav">
+									对象共享
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e7%a9%ba%e8%bd%ac%e6%97%b6%e9%95%bf" onclick="onNavClick(`#对象的空转时长-nav`)" id="对象的空转时长-nav">
+									对象的空转时长
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b9%9d%e7%ab%a0-%e6%95%b0%e6%8d%ae%e5%ba%93" onclick="onNavClick(`#第九章-数据库-nav`)" id="第九章-数据库-nav">
+									第九章 数据库
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%bb%98%e8%ae%a4%e6%95%b0%e6%8d%ae%e5%ba%93%e8%ae%be%e7%bd%ae" onclick="onNavClick(`#默认数据库设置-nav`)" id="默认数据库设置-nav">
+									默认数据库设置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%ba%93%e9%94%ae%e7%a9%ba%e9%97%b4" onclick="onNavClick(`#数据库键空间-nav`)" id="数据库键空间-nav">
+									数据库键空间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%94%ae%e7%9a%84%e6%97%b6%e9%97%b4%e7%9b%b8%e5%85%b3%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#键的时间相关命令-nav`)" id="键的时间相关命令-nav">
+									键的时间相关命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%ae%be%e7%bd%ae%e9%94%ae%e7%9a%84%e7%94%9f%e5%ad%98%e6%97%b6%e9%97%b4%e6%88%96%e8%bf%87%e6%9c%9f%e6%97%b6%e9%97%b4" onclick="onNavClick(`#设置键的生存时间或过期时间-nav`)" id="设置键的生存时间或过期时间-nav">
+									设置键的生存时间或过期时间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%a7%bb%e9%99%a4%e8%bf%87%e6%9c%9f%e6%97%b6%e9%97%b4" onclick="onNavClick(`#移除过期时间-nav`)" id="移除过期时间-nav">
+									移除过期时间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9f%a5%e7%9c%8b%e5%89%a9%e4%bd%99%e7%94%9f%e5%91%bd%e6%97%b6%e9%97%b4" onclick="onNavClick(`#查看剩余生命时间-nav`)" id="查看剩余生命时间-nav">
+									查看剩余生命时间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%87%e6%9c%9f%e9%94%ae%e7%9a%84%e5%88%a4%e5%ae%9a" onclick="onNavClick(`#过期键的判定-nav`)" id="过期键的判定-nav">
+									过期键的判定
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%87%e6%9c%9f%e9%94%ae%e7%9a%84%e5%88%a0%e9%99%a4%e7%ad%96%e7%95%a5" onclick="onNavClick(`#过期键的删除策略-nav`)" id="过期键的删除策略-nav">
+									过期键的删除策略
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e6%97%b6%e5%88%a0%e9%99%a4" onclick="onNavClick(`#定时删除-nav`)" id="定时删除-nav">
+									定时删除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%83%b0%e6%80%a7%e5%88%a0%e9%99%a4" onclick="onNavClick(`#惰性删除-nav`)" id="惰性删除-nav">
+									惰性删除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e6%9c%9f%e5%88%a0%e9%99%a4" onclick="onNavClick(`#定期删除-nav`)" id="定期删除-nav">
+									定期删除
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#redis%e7%9a%84%e8%bf%87%e6%9c%9f%e9%94%ae%e5%88%a0%e9%99%a4%e7%ad%96%e7%95%a5" onclick="onNavClick(`#redis的过期键删除策略-nav`)" id="redis的过期键删除策略-nav">
+									Redis的过期键删除策略
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#expireifneed" onclick="onNavClick(`#expireifneed-nav`)" id="expireifneed-nav">
+									expireIfNeed
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#activeexpirecycle" onclick="onNavClick(`#activeexpirecycle-nav`)" id="activeexpirecycle-nav">
+									activeExpireCycle
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#aofrdb%e5%92%8c%e5%a4%8d%e5%88%b6%e5%8a%9f%e8%83%bd%e5%af%b9%e8%bf%87%e6%9c%9f%e9%94%ae%e7%9a%84%e5%a4%84%e7%90%86" onclick="onNavClick(`#aofrdb和复制功能对过期键的处理-nav`)" id="aofrdb和复制功能对过期键的处理-nav">
+									AOF、RDB和复制功能对过期键的处理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%94%9f%e6%88%90rdb%e6%96%87%e4%bb%b6" onclick="onNavClick(`#生成rdb文件-nav`)" id="生成rdb文件-nav">
+									生成RDB文件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bd%bd%e5%85%a5rdb%e6%96%87%e4%bb%b6" onclick="onNavClick(`#载入rdb文件-nav`)" id="载入rdb文件-nav">
+									载入RDB文件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8eaof%e6%96%87%e4%bb%b6%e5%86%99%e5%85%a5" onclick="onNavClick(`#从aof文件写入-nav`)" id="从aof文件写入-nav">
+									从AOF文件写入
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#aof%e9%87%8d%e6%96%b0%e5%86%99" onclick="onNavClick(`#aof重新写-nav`)" id="aof重新写-nav">
+									AOF重新写
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%8d%e5%88%b6" onclick="onNavClick(`#复制-nav`)" id="复制-nav">
+									复制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%ba%93%e9%80%9a%e7%9f%a5" onclick="onNavClick(`#数据库通知-nav`)" id="数据库通知-nav">
+									数据库通知
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-rdb%e6%8c%81%e4%b9%85%e5%8c%96" onclick="onNavClick(`#第十章-rdb持久化-nav`)" id="第十章-rdb持久化-nav">
+									第十章 RDB持久化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af" onclick="onNavClick(`#基本信息-nav`)" id="基本信息-nav">
+									基本信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rdb%e6%96%87%e4%bb%b6%e7%9a%84%e5%88%9b%e5%bb%ba" onclick="onNavClick(`#rdb文件的创建-nav`)" id="rdb文件的创建-nav">
+									RDB文件的创建
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rdb%e6%96%87%e4%bb%b6%e7%9a%84%e8%bd%bd%e5%85%a5" onclick="onNavClick(`#rdb文件的载入-nav`)" id="rdb文件的载入-nav">
+									RDB文件的载入
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e9%97%b4%e9%9a%94%e6%80%a7%e4%bf%9d%e5%ad%98" onclick="onNavClick(`#自动间隔性保存-nav`)" id="自动间隔性保存-nav">
+									自动间隔性保存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#dirty%e8%ae%a1%e6%95%b0%e5%99%a8" onclick="onNavClick(`#dirty计数器-nav`)" id="dirty计数器-nav">
+									dirty计数器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#lastsave" onclick="onNavClick(`#lastsave-nav`)" id="lastsave-nav">
+									lastsave
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#rdb%e6%96%87%e4%bb%b6%e7%bb%93%e6%9e%84" onclick="onNavClick(`#rdb文件结构-nav`)" id="rdb文件结构-nav">
+									RDB文件结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#database" onclick="onNavClick(`#database-nav`)" id="database-nav">
+									database
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%80%e7%ab%a0-aof%e6%8c%81%e4%b9%85%e5%8c%96" onclick="onNavClick(`#第十一章-aof持久化-nav`)" id="第十一章-aof持久化-nav">
+									第十一章 AOF持久化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af-1" onclick="onNavClick(`#基本信息-1-nav`)" id="基本信息-1-nav">
+									基本信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#aof%e6%8c%81%e4%b9%85%e5%8c%96%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#aof持久化的实现-nav`)" id="aof持久化的实现-nav">
+									AOF持久化的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e4%bb%a4%e8%bf%bd%e5%8a%a0" onclick="onNavClick(`#命令追加-nav`)" id="命令追加-nav">
+									命令追加
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%86%99%e5%85%a5%e4%b8%8e%e5%90%8c%e6%ad%a5" onclick="onNavClick(`#写入与同步-nav`)" id="写入与同步-nav">
+									写入与同步
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e8%bd%bd%e5%85%a5" onclick="onNavClick(`#数据载入-nav`)" id="数据载入-nav">
+									数据载入
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%87%8d%e5%86%99" onclick="onNavClick(`#重写-nav`)" id="重写-nav">
+									重写
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%ba%8c%e7%ab%a0-%e4%ba%8b%e4%bb%b6" onclick="onNavClick(`#第十二章-事件-nav`)" id="第十二章-事件-nav">
+									第十二章 事件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%96%87%e4%bb%b6%e4%ba%8b%e4%bb%b6" onclick="onNavClick(`#文件事件-nav`)" id="文件事件-nav">
+									文件事件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%96%87%e4%bb%b6%e4%ba%8b%e4%bb%b6%e5%a4%84%e7%90%86%e5%99%a8" onclick="onNavClick(`#文件事件处理器-nav`)" id="文件事件处理器-nav">
+									文件事件处理器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#io%e5%a4%9a%e8%b7%af%e5%a4%8d%e7%94%a8%e5%ba%95%e5%b1%82%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#io多路复用底层实现-nav`)" id="io多路复用底层实现-nav">
+									I/O多路复用底层实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%8c%e6%95%b4%e7%9a%84%e5%ae%a2%e6%88%b7%e7%ab%af%e4%b8%8e%e6%9c%8d%e5%8a%a1%e5%99%a8%e8%bf%9e%e6%8e%a5%e4%be%8b%e5%ad%90" onclick="onNavClick(`#完整的客户端与服务器连接例子-nav`)" id="完整的客户端与服务器连接例子-nav">
+									完整的客户端与服务器连接例子
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%97%b6%e9%97%b4%e4%ba%8b%e4%bb%b6" onclick="onNavClick(`#时间事件-nav`)" id="时间事件-nav">
+									时间事件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%97%b6%e9%97%b4%e4%ba%8b%e4%bb%b6%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#时间事件类型-nav`)" id="时间事件类型-nav">
+									时间事件类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%97%b6%e9%97%b4%e4%ba%8b%e4%bb%b6%e7%bb%84%e6%88%90%e9%83%a8%e5%88%86" onclick="onNavClick(`#时间事件组成部分-nav`)" id="时间事件组成部分-nav">
+									时间事件组成部分
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8e%9f%e7%90%86" onclick="onNavClick(`#实现原理-nav`)" id="实现原理-nav">
+									实现原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e4%be%8bservercron%e5%87%bd%e6%95%b0" onclick="onNavClick(`#实例servercron函数-nav`)" id="实例servercron函数-nav">
+									实例：serverCron函数
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%8b%e4%bb%b6%e7%9a%84%e8%b0%83%e5%ba%a6%e4%b8%8e%e6%89%a7%e8%a1%8c" onclick="onNavClick(`#事件的调度与执行-nav`)" id="事件的调度与执行-nav">
+									事件的调度与执行
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%89%e7%ab%a0-%e5%ae%a2%e6%88%b7%e7%ab%af" onclick="onNavClick(`#第十三章-客户端-nav`)" id="第十三章-客户端-nav">
+									第十三章 客户端
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84%e5%86%85%e5%ae%b9" onclick="onNavClick(`#数据结构内容-nav`)" id="数据结构内容-nav">
+									数据结构内容
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%aa%e5%ae%a2%e6%88%b7%e7%ab%af" onclick="onNavClick(`#伪客户端-nav`)" id="伪客户端-nav">
+									伪客户端
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%93%e5%86%b2%e5%8c%ba" onclick="onNavClick(`#缓冲区-nav`)" id="缓冲区-nav">
+									缓冲区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e5%9b%9b%e7%ab%a0-%e6%9c%8d%e5%8a%a1%e5%99%a8" onclick="onNavClick(`#第十四章-服务器-nav`)" id="第十四章-服务器-nav">
+									第十四章 服务器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e4%bb%a4%e8%af%b7%e6%b1%82%e7%9a%84%e6%89%a7%e8%a1%8c%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#命令请求的执行过程-nav`)" id="命令请求的执行过程-nav">
+									命令请求的执行过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%a1%e7%ae%97%e7%a9%ba%e8%bd%ac%e6%97%b6%e9%95%bf" onclick="onNavClick(`#计算空转时长-nav`)" id="计算空转时长-nav">
+									计算空转时长
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ae%a1%e7%90%86%e5%ae%a2%e6%88%b7%e7%ab%af%e8%b5%84%e6%ba%90" onclick="onNavClick(`#管理客户端资源-nav`)" id="管理客户端资源-nav">
+									管理客户端资源
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e9%9c%80%e8%a6%81%e6%8c%81%e4%b9%85%e5%8c%96" onclick="onNavClick(`#判断是否需要持久化-nav`)" id="判断是否需要持久化-nav">
+									判断是否需要持久化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%9d%e5%a7%8b%e5%8c%96%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%8a%b6%e6%80%81%e7%bb%93%e6%9e%84" onclick="onNavClick(`#初始化服务器状态结构-nav`)" id="初始化服务器状态结构-nav">
+									初始化服务器状态结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%ba%94%e7%ab%a0-%e5%a4%8d%e5%88%b6" onclick="onNavClick(`#第十五章-复制-nav`)" id="第十五章-复制-nav">
+									第十五章 复制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%97%a7%e7%89%88%e5%a4%8d%e5%88%b6%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#旧版复制方式-nav`)" id="旧版复制方式-nav">
+									旧版复制方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%97%a7%e7%89%88%e5%a4%8d%e5%88%b6%e5%8a%9f%e8%83%bd%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#旧版复制功能实现-nav`)" id="旧版复制功能实现-nav">
+									旧版复制功能实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%97%a7%e7%89%88%e5%a4%8d%e5%88%b6%e5%8a%9f%e8%83%bd%e7%bc%ba%e9%99%b7" onclick="onNavClick(`#旧版复制功能缺陷-nav`)" id="旧版复制功能缺陷-nav">
+									旧版复制功能缺陷
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%96%b0%e7%89%88%e5%a4%8d%e5%88%b6%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#新版复制方式-nav`)" id="新版复制方式-nav">
+									新版复制方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%83%a8%e5%88%86%e9%87%8d%e5%8a%9f%e8%83%bd%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#部分重功能实现-nav`)" id="部分重功能实现-nav">
+									部分重功能实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#psync%e5%91%bd%e4%bb%a4%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#psync命令实现-nav`)" id="psync命令实现-nav">
+									PSYNC命令实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%8d%e5%88%b6%e7%9a%84%e5%ae%9e%e7%8e%b0%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#复制的实现过程-nav`)" id="复制的实现过程-nav">
+									复制的实现过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bf%83%e8%b7%b3%e6%a3%80%e6%b5%8b" onclick="onNavClick(`#心跳检测-nav`)" id="心跳检测-nav">
+									心跳检测
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#方式-nav`)" id="方式-nav">
+									方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%9c%e7%94%a8" onclick="onNavClick(`#作用-nav`)" id="作用-nav">
+									作用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e5%85%ad%e7%ab%a0-sentinel" onclick="onNavClick(`#第十六章-sentinel-nav`)" id="第十六章-sentinel-nav">
+									第十六章 Sentinel
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%90%af%e5%8a%a8%e5%b9%b6%e5%88%9d%e5%a7%8b%e5%8c%96sentinel" onclick="onNavClick(`#启动并初始化sentinel-nav`)" id="启动并初始化sentinel-nav">
+									启动并初始化Sentinel
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1%e6%89%a7%e8%a1%8c%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#1执行命令-nav`)" id="1执行命令-nav">
+									1.执行命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#2%e5%88%9d%e5%a7%8b%e5%8c%96%e6%9c%8d%e5%8a%a1%e5%99%a8" onclick="onNavClick(`#2初始化服务器-nav`)" id="2初始化服务器-nav">
+									2.初始化服务器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#3%e4%bd%bf%e7%94%a8sentinel%e4%b8%93%e7%94%a8%e4%bb%a3%e7%a0%81" onclick="onNavClick(`#3使用sentinel专用代码-nav`)" id="3使用sentinel专用代码-nav">
+									3.使用Sentinel专用代码
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#4%e5%88%9d%e5%a7%8b%e5%8c%96sentinel%e7%8a%b6%e6%80%81" onclick="onNavClick(`#4初始化sentinel状态-nav`)" id="4初始化sentinel状态-nav">
+									4.初始化Sentinel状态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#5%e5%88%9d%e5%a7%8b%e5%8c%96sentinel%e7%8a%b6%e6%80%81%e4%b8%ad%e7%9a%84masters%e5%b1%9e%e6%80%a7" onclick="onNavClick(`#5初始化sentinel状态中的masters属性-nav`)" id="5初始化sentinel状态中的masters属性-nav">
+									5.初始化Sentinel状态中的masters属性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#6%e5%88%9b%e5%bb%ba%e8%bf%9e%e5%90%91%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%9a%84%e7%bd%91%e7%bb%9c%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#6创建连向主服务器的网络连接-nav`)" id="6创建连向主服务器的网络连接-nav">
+									6.创建连向主服务器的网络连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e8%8e%b7%e5%8f%96%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e4%bf%a1%e6%81%af" onclick="onNavClick(`#获取主服务器信息-nav`)" id="获取主服务器信息-nav">
+									获取主服务器信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%8e%b7%e5%8f%96%e4%bb%8e%e6%9c%8d%e5%8a%a1%e5%99%a8%e4%bf%a1%e6%81%af" onclick="onNavClick(`#获取从服务器信息-nav`)" id="获取从服务器信息-nav">
+									获取从服务器信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%90%91%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e5%92%8c%e4%bb%8e%e6%9c%8d%e5%8a%a1%e5%99%a8%e5%8f%91%e9%80%81%e4%bf%a1%e6%81%af" onclick="onNavClick(`#向主服务器和从服务器发送信息-nav`)" id="向主服务器和从服务器发送信息-nav">
+									向主服务器和从服务器发送信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8e%a5%e6%94%b6%e6%9d%a5%e8%87%aa%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e5%92%8c%e4%bb%8e%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%9a%84%e9%a2%91%e9%81%93%e4%bf%a1%e6%81%af" onclick="onNavClick(`#接收来自主服务器和从服务器的频道信息-nav`)" id="接收来自主服务器和从服务器的频道信息-nav">
+									接收来自主服务器和从服务器的频道信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#1%e6%9b%b4%e6%96%b0sentinel%e5%ad%97%e5%85%b8" onclick="onNavClick(`#1更新sentinel字典-nav`)" id="1更新sentinel字典-nav">
+									1.更新Sentinel字典
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#2%e5%88%9b%e5%bb%ba%e8%bf%9e%e5%90%91%e5%85%b6%e4%bb%96sentinel%e7%9a%84%e5%91%bd%e4%bb%a4%e8%bf%9e%e6%8e%a5" onclick="onNavClick(`#2创建连向其他sentinel的命令连接-nav`)" id="2创建连向其他sentinel的命令连接-nav">
+									2.创建连向其他Sentinel的命令连接
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%a3%80%e6%9f%a5%e4%b8%bb%e8%a7%82%e4%b8%8b%e7%ba%bf%e7%8a%b6%e6%80%81" onclick="onNavClick(`#检查主观下线状态-nav`)" id="检查主观下线状态-nav">
+									检查主观下线状态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a3%80%e6%9f%a5%e5%ae%a2%e8%a7%82%e4%b8%8b%e7%ba%bf%e7%8a%b6%e6%80%81" onclick="onNavClick(`#检查客观下线状态-nav`)" id="检查客观下线状态-nav">
+									检查客观下线状态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%80%89%e4%b8%be%e9%a2%86%e5%a4%b4sentinel" onclick="onNavClick(`#选举领头sentinel-nav`)" id="选举领头sentinel-nav">
+									选举领头Sentinel
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%a7%84%e5%88%99" onclick="onNavClick(`#规则-nav`)" id="规则-nav">
+									规则
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%95%85%e9%9a%9c%e8%bd%ac%e7%a7%bb" onclick="onNavClick(`#故障转移-nav`)" id="故障转移-nav">
+									故障转移
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%8c%91%e9%80%89%e6%96%b0%e7%9a%84%e4%b8%bb%e6%9c%8d%e5%8a%a1%e5%99%a8%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#挑选新的主服务器过程-nav`)" id="挑选新的主服务器过程-nav">
+									挑选新的主服务器过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%83%e7%ab%a0-%e9%9b%86%e7%be%a4" onclick="onNavClick(`#第十七章-集群-nav`)" id="第十七章-集群-nav">
+									第十七章 集群
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%8a%82%e7%82%b9" onclick="onNavClick(`#节点-nav`)" id="节点-nav">
+									节点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%90%af%e5%8a%a8%e8%8a%82%e7%82%b9" onclick="onNavClick(`#启动节点-nav`)" id="启动节点-nav">
+									启动节点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%a7%bd%e6%8c%87%e6%b4%be" onclick="onNavClick(`#槽指派-nav`)" id="槽指派-nav">
+									槽指派
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%8c%87%e6%b4%be%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#指派命令-nav`)" id="指派命令-nav">
+									指派命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%b0%e5%bd%95%e8%8a%82%e7%82%b9%e7%9a%84%e6%a7%bd%e6%8c%87%e6%b4%be%e4%bf%a1%e6%81%af" onclick="onNavClick(`#记录节点的槽指派信息-nav`)" id="记录节点的槽指派信息-nav">
+									记录节点的槽指派信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%a0%e6%92%ad%e8%8a%82%e7%82%b9%e7%9a%84%e6%a7%bd%e6%8c%87%e6%b4%be%e4%bf%a1%e6%81%af" onclick="onNavClick(`#传播节点的槽指派信息-nav`)" id="传播节点的槽指派信息-nav">
+									传播节点的槽指派信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%b0%e5%bd%95%e9%9b%86%e7%be%a4%e6%89%80%e6%9c%89%e6%a7%bd%e7%9a%84%e6%8c%87%e6%b4%be%e4%bf%a1%e6%81%af" onclick="onNavClick(`#记录集群所有槽的指派信息-nav`)" id="记录集群所有槽的指派信息-nav">
+									记录集群所有槽的指派信息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%9c%a8%e9%9b%86%e7%be%a4%e4%b8%ad%e6%89%a7%e8%a1%8c%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#在集群中执行命令-nav`)" id="在集群中执行命令-nav">
+									在集群中执行命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#moved%e9%94%99%e8%af%af" onclick="onNavClick(`#moved错误-nav`)" id="moved错误-nav">
+									MOVED错误
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%8a%82%e7%82%b9%e6%95%b0%e6%8d%ae%e5%ba%93%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#节点数据库的实现-nav`)" id="节点数据库的实现-nav">
+									节点数据库的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%87%8d%e6%96%b0%e5%88%86%e7%89%87" onclick="onNavClick(`#重新分片-nav`)" id="重新分片-nav">
+									重新分片
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8e%9f%e7%90%86-1" onclick="onNavClick(`#实现原理-1-nav`)" id="实现原理-1-nav">
+									实现原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#ask%e9%94%99%e8%af%af" onclick="onNavClick(`#ask错误-nav`)" id="ask错误-nav">
+									ASK错误
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#asking%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#asking命令-nav`)" id="asking命令-nav">
+									ASKING命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#ask%e9%94%99%e8%af%af%e5%92%8cmoved%e9%94%99%e8%af%af%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#ask错误和moved错误区别-nav`)" id="ask错误和moved错误区别-nav">
+									ASK错误和MOVED错误区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%8d%e5%88%b6%e4%b8%8e%e6%95%85%e9%9a%9c%e8%bd%ac%e7%a7%bb" onclick="onNavClick(`#复制与故障转移-nav`)" id="复制与故障转移-nav">
+									复制与故障转移
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%85%e9%9a%9c%e8%bd%ac%e7%a7%bb%e6%ad%a5%e9%aa%a4" onclick="onNavClick(`#故障转移步骤-nav`)" id="故障转移步骤-nav">
+									故障转移步骤
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%80%89%e5%8f%96%e6%96%b0%e7%9a%84%e4%b8%bb%e8%8a%82%e7%82%b9" onclick="onNavClick(`#选取新的主节点-nav`)" id="选取新的主节点-nav">
+									选取新的主节点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af" onclick="onNavClick(`#消息-nav`)" id="消息-nav">
+									消息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#gossip%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#gossip协议-nav`)" id="gossip协议-nav">
+									Gossip协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e5%85%ab%e7%ab%a0-%e5%8f%91%e5%b8%83%e4%b8%8e%e8%ae%a2%e9%98%85" onclick="onNavClick(`#第十八章-发布与订阅-nav`)" id="第十八章-发布与订阅-nav">
+									第十八章 发布与订阅
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%a2%91%e9%81%93%e7%9a%84%e8%ae%a2%e9%98%85%e5%92%8c%e9%80%80%e8%ae%a2" onclick="onNavClick(`#频道的订阅和退订-nav`)" id="频道的订阅和退订-nav">
+									频道的订阅和退订
+								</a>
+							</li>
+						
+						
+					
+				
+			
 		</ul>
 	</div>
 
@@ -1338,7 +7244,6 @@ Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> b
                     <h1 id="redis设计与实现-读书笔记">Redis设计与实现-读书笔记</h1>
 <blockquote>
 <p>书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识</p>
-<p>适合补Redis基础，实战还是得另外找书</p>
 </blockquote>
 <p>[TOC]</p>
 <h2 id="第一章-引言">第一章 引言</h2>
@@ -1590,8 +7495,8 @@ Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> b
 <p>跳跃表（skiplist）是一种有序数据结构，它通过在每个节点中维持多个指向其他节点的指针，从而达到快速访问节点的目的。平均O(logN)、最坏O(N)</p>
 <p>很多程序用跳跃表来代替平衡树，因为性能差不多但跳表实现更简单</p>
 <ul>
-<li>当有序集合数量多，或有值是比较长的字符串时，跳表就被用作有序集合键的底层实现</li>
-<li>集群节点用作内部结构</li>
+<li>当<strong>有序集合</strong>数量多，或有值是比较长的字符串时，跳表就被用作有序集合键的底层实现</li>
+<li><strong>集群节点</strong>用作内部结构</li>
 </ul>
 </blockquote>
 <h3 id="结构-3">结构</h3>
@@ -1693,6 +7598,1236 @@ Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> b
 <li>节约内存（可以保存三种类型的值，又可以保证升级只有在需要时进行，节约内存）</li>
 </ul>
 <h2 id="第七章-压缩列表">第七章 压缩列表</h2>
+<blockquote>
+<p>压缩列表（ziplist）是列表键和哈希键的底层实现之一。</p>
+<p>当一个列表键只包含少量列表项，并且每个列表项要么就是小整数值，要么就是长度比较短的字符串，那么Redis就会使用压缩列表来做列表键的底层实现。</p>
+<p>当一个哈希键只包含少量键值对，比且每个键值对的键和值要么就是小整数值，要么就是长度比较短的字符串，那么Redis就会使用压缩列表来做哈希键的底层实现。</p>
+</blockquote>
+<h3 id="结构-5">结构</h3>
+<p>顺序型</p>
+<p>一个压缩列表包含任意多个节点，一个节点可以保存一个字节数组或一个整数值</p>
+<h4 id="压缩列表">压缩列表</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301151443044.png" alt="image-20230115144305997"></p>
+<ul>
+<li>zlbytes: 压缩列表总字节数</li>
+<li>zltair：尾部距离起始位置字节数</li>
+<li>zllen：节点数量</li>
+<li>entry：节点</li>
+<li>zlend：标记列表末端</li>
+</ul>
+<h4 id="压缩列表节点">压缩列表节点</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947601.png" alt="image-20230115144756332"></p>
+<ul>
+<li>previous_entry_length：前一个节点长度</li>
+<li>encoding：保存的数据类型以及长度</li>
+</ul>
+<h4 id="连锁更新">连锁更新</h4>
+<blockquote>
+<p>最坏复杂度O(N^2)</p>
+</blockquote>
+<ul>
+<li>添加新节点后，后一个节点的previous_entry_length不够大小保存新节点长度，需要扩容，而previous_entry_length属于节点的一部分，相当于对节点扩容，而如果节点扩容后也到达边界值（254字节），还会引起后面节点继续扩容，以此类推……</li>
+<li>同理，删除节点也会导致连锁更新（比如删了前一个，现在要存储前前一个节点，同样不够存，需要扩容）</li>
+</ul>
+<p>本质都是前一个节点的容量大小变化，要引起后一个节点previous_entry_length大小的重分配</p>
+<h2 id="第八章-对象">第八章 对象</h2>
+<blockquote>
+<p>在前面的数个章节里，我们陆续介绍了Redis用到的所有主要数据结构，比如简单动态字符串（SDS）、跳表、双端链表、字典、压缩列表、整数集合等等。</p>
+<p>Redis并没有直接使用这些数据结构来实现键值对数据库，而是基于这些数据结构创建了一个对象系统，这个系统包含字符串对象、列表对象、哈希对象、集合对象和有序集合对象这五种类型的对象，每种对象都用到了至少一种我们前面所介绍的数据结构。</p>
+<p>六个数据结构 -&gt; 五个对象</p>
+<p>好处：</p>
+<p>1.解耦，数据结构可以优化，上层对象可以扩展</p>
+<p>2.上层数据结构在合适的情况下使用合适的实现，提高性能，优化内存</p>
+</blockquote>
+<h3 id="对象的类型与编码">对象的类型与编码</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301151503220.png" alt="image-20230115150327177"></p>
+<ul>
+<li>
+<p>Redis中保存的键值对，键只能是字符串对象，值可以是上述之一</p>
+</li>
+<li>
+<p>对象的ptr指针指向对象的底层实现数据结构，而这些数据结构由对象的encoding属性决定（encoding记录对象使用什么数据结构作为底层实现）</p>
+<!-- raw HTML omitted -->
+<ul>
+<li>这样的好处是可以灵活切换，而不是为某一种对象固定一个数据结构，可以优化对象在特定场景下的效率</li>
+</ul>
+</li>
+</ul>
+<h3 id="字符串对象">字符串对象</h3>
+<ul>
+<li>编码可以是int(long类型整数)，raw(SDS),embstr(embstr编码的SDS)</li>
+<li>如果字符串长度小于等于32字节，会用embstr来保存</li>
+<li>字符串对象是Redis五种类型的对象中唯一一种会被其他四种类型对象嵌套的对象。</li>
+</ul>
+<h4 id="embstr和raw区别">embstr和raw区别</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301151512061.png" alt="image-20230115151233011"></p>
+<ul>
+<li>embstr只调用1次内存分配（raw两次）</li>
+<li>embstr只调用1次内存释放（raw两次）</li>
+<li>embstr的<strong>所有数据都保存在一块连续内存中</strong>，可以更好利用缓存带来的优势</li>
+</ul>
+<h4 id="编码的转换">编码的转换</h4>
+<ul>
+<li>int对象和embstr对象在条件满足情况下，会被转换为raw对象</li>
+<li>embstr是只读的，如果对其进行修改，会变成raw对象（原因是embstr底层没有任何修改程序）</li>
+</ul>
+<h4 id="常用命令">常用命令</h4>
+<ul>
+<li>set</li>
+<li>get</li>
+<li>append</li>
+<li>incrbyfloat</li>
+<li>incrby</li>
+<li>decrby</li>
+<li>strlen</li>
+<li>setrange</li>
+<li>getrange</li>
+</ul>
+<h3 id="列表对象">列表对象</h3>
+<ul>
+<li>实现方式可以是ziplist或者linkedlist</li>
+<li>ziplist适用于连续空间，而linkedlist可以利用碎片，对空间是否连续没有要求</li>
+</ul>
+<p><strong>Redis 3.2版本后，列表底层统一采用quicklist实现</strong>，quicklist是linkedlist和ziplist的结合，是双向链表，且链表的每一个节点都是ziplist</p>
+<h4 id="编码转换">编码转换</h4>
+<ul>
+<li>保存的所有字符串长度都小于64字节：ziplist</li>
+<li>保存的字符串数量小于512个：ziplist</li>
+<li>除此之外使用linkedlist</li>
+</ul>
+<h4 id="常用命令-1">常用命令</h4>
+<ul>
+<li>lpush</li>
+<li>rpush</li>
+<li>lpop</li>
+<li>rpop</li>
+<li>lindex</li>
+<li>llen</li>
+<li>linsert</li>
+<li>lrem</li>
+<li>ltrim</li>
+<li>lset</li>
+</ul>
+<h3 id="哈希对象">哈希对象</h3>
+<ul>
+<li>哈希对象编码可以是ziplist或hashtable</li>
+</ul>
+<h4 id="编码转换-1">编码转换</h4>
+<ul>
+<li>所有保存的键和值的长度都小于64字节且数量小于512个：ziplist</li>
+<li>除此之外都用hashtable</li>
+</ul>
+<h4 id="常用命令-2">常用命令</h4>
+<ul>
+<li>hset</li>
+<li>hget</li>
+<li>hexists</li>
+<li>hdel</li>
+<li>hlen</li>
+<li>hgetall</li>
+</ul>
+<h3 id="集合对象">集合对象</h3>
+<ul>
+<li>集合对象的编码可以是intset或hashtable</li>
+</ul>
+<h4 id="编码转换-2">编码转换</h4>
+<ul>
+<li>所有元素都是整数值且保存数量不超过512个：intset</li>
+<li>除此之外用hashtable</li>
+</ul>
+<h4 id="常用命令-3">常用命令</h4>
+<ul>
+<li>sadd</li>
+<li>scard</li>
+<li>sismemeber</li>
+<li>smembers</li>
+<li>srandmember</li>
+<li>spop</li>
+<li>srem</li>
+</ul>
+<h3 id="有序集合对象">有序集合对象</h3>
+<ul>
+<li>有序集合的编码可以是ziplist或skiplist(同时实现)</li>
+</ul>
+<h4 id="编码转换-3">编码转换</h4>
+<ul>
+<li>数量小于128且长度都小于64字节：ziplist</li>
+<li>除此之外用skiplist</li>
+</ul>
+<h4 id="常用命令-4">常用命令</h4>
+<ul>
+<li>zadd</li>
+<li>zcard</li>
+<li>zcount</li>
+<li>zrange</li>
+<li>zrevrange</li>
+<li>zrank</li>
+<li>zrevrank</li>
+<li>zrem</li>
+<li>zscore</li>
+</ul>
+<h3 id="类型检查与命令多态">类型检查与命令多态</h3>
+<h4 id="命令类型">命令类型</h4>
+<ul>
+<li>命令类型一：del、expire、rename、type、object，这些可以对任何键执行</li>
+<li>命令类型二：特定命令对特定键执行（详情看常用命令）</li>
+</ul>
+<h4 id="类型检查">类型检查</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301151535581.png" alt="image-20230115153516521"></p>
+<ul>
+<li>通过redisObject结构的type属性实现</li>
+</ul>
+<h4 id="多态命令">多态命令</h4>
+<ul>
+<li>不仅根据键判断能否执行命令，还根据对象的encoding</li>
+<li>如下，因此可以认为命令是“多态”的</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301151537393.png" alt="image-20230115153704341"></p>
+<h3 id="内存回收">内存回收</h3>
+<blockquote>
+<p>因为C语言并不具备自动内存回收功能，所以Redis在自己的对象系统中构建了一个引用计数（reference counting）技术实现的内存回收机制，通过这一机制，程序可以通过跟踪对象的引用计数信息，在适当的时候自动释放对象并进行内存回收。</p>
+</blockquote>
+<ul>
+<li>
+<p>引用计数法**（redis不存在循环引用问题）**</p>
+</li>
+<li>
+<p>创建对象值时计数值为1（不能一创建就被回收了），其余和Java的差不多</p>
+</li>
+</ul>
+<h3 id="对象共享">对象共享</h3>
+<blockquote>
+<p>是对value对象共享</p>
+<p>节约内存</p>
+<p>目前来说，Redis会在初始化服务器时，创建一万个字符串对象，这些对象包含了<strong>从0到9999</strong>的所有整数值，当服务器需要用到值为0到9999的字符串对象时，服务器就会使用这些共享对象，而不是新创建对象。</p>
+</blockquote>
+<p>可能会存在多个键值指向同一个对象（对象共享）</p>
+<ul>
+<li>数据库键的value指针指向一个现有value对象</li>
+<li>被指向的value对象引用计数值+1</li>
+</ul>
+<h3 id="对象的空转时长">对象的空转时长</h3>
+<blockquote>
+<p>除了前面介绍过的type、encoding、ptr和refcount四个属性之外，redisObject结构包含的最后一个属性为<strong>lru属性，该属性记录了对象最后一次被命令程序访问的时间</strong></p>
+</blockquote>
+<h2 id="第九章-数据库">第九章 数据库</h2>
+<blockquote>
+<p>本章将对Redis服务器的数据库实现进行详细介绍，说明服务器保存数据库的方法，客户端切换数据库的方法，数据库保存键值对的方法，以及针对数据库的添加、删除、查看、更新操作的实现方法等。除此之外，本章还会说明服务器保存键的过期时间的方法，以及服务器自动删除过期键的方法。</p>
+</blockquote>
+<h3 id="默认数据库设置">默认数据库设置</h3>
+<ul>
+<li>
+<p>Redis中有16个数据库，默认使用0号数据库</p>
+</li>
+<li>
+<p>可以通过select [number] 切换数据库（原理：修改redisClient.db指针）</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947421.png" alt="image-20230115154729166"></p>
+</li>
+</ul>
+<h3 id="数据库键空间">数据库键空间</h3>
+<blockquote>
+<p>因为数据库的键空间是一个字典，所以所有针对数据库的操作，比如添加一个键值对到数据库，或者从数据库中删除一个键值对，又或者在数据库中获取某个键值对等，实际上都是通过对键空间字典进行操作来实现的</p>
+</blockquote>
+<ul>
+<li>redisDb的dict字典保存了数据库中所有键值对</li>
+</ul>
+<blockquote>
+<p>这些<strong>维护</strong>基本实现了Redis的大部分功能</p>
+<p>当使用Redis命令对数据库进行读写时，服务器不仅会对键空间执行指定的读写操作，还会执行一些额外的维护操作，其中包括：
+❑在读取一个键之后（读操作和写操作都要对键进行读取），服务器会根据键是否存在来更新服务器的键空间命中（hit）次数或键空间不命中（miss）次数，这两个值可以在INFO stats命令的keyspace_hits属性和keyspace_misses属性中查看。
+❑在读取一个键之后，服务器会更新键的LRU（最后一次使用）时间，这个值可以用于计算键的闲置时间，使用OBJECT idletime命令可以查看键key的闲置时间。
+❑如果服务器在读取一个键时发现该键已经过期，那么服务器会先删除这个过期键，然后才执行余下的其他操作，本章稍后对过期键的讨论会详细说明这一点。
+❑如果有客户端使用WATCH命令监视了某个键，那么服务器在对被监视的键进行修改之后，会将这个键标记为脏（dirty），从而让事务程序注意到这个键已经被修改过，第19章会详细说明这一点。
+❑服务器每次修改一个键之后，都会对脏（dirty）键计数器的值增1，这个计数器会触发服务器的持久化以及复制操作，第10章、第11章和第15章都会说到这一点。
+❑如果服务器开启了数据库通知功能，那么在对键进行修改之后，服务器将按配置发送相应的数据库通知，本章稍后讨论数据库通知功能的实现时会详细说明这一点。</p>
+</blockquote>
+<h3 id="键的时间相关命令">键的时间相关命令</h3>
+<h4 id="设置键的生存时间或过期时间">设置键的生存时间或过期时间</h4>
+<blockquote>
+<p>本质上都是通过pexpireat实现</p>
+</blockquote>
+<ul>
+<li>expire [key] [ttl] (秒)</li>
+<li>pexpire [key] [ttl] (毫秒)</li>
+<li>expireat [key] [timestamp] (秒 + 时间戳)</li>
+<li>pexpireat [key] [timestamp] (毫秒 + 时间戳)</li>
+</ul>
+<blockquote>
+<p>redisDb中的expires字段保存了所有键的过期时间&ndash;&gt;过期字典</p>
+</blockquote>
+<h4 id="移除过期时间">移除过期时间</h4>
+<ul>
+<li>persist [key] (移除过期时间)</li>
+</ul>
+<h4 id="查看剩余生命时间">查看剩余生命时间</h4>
+<blockquote>
+<p>都是通过计算键的过期时间和当前时间之间的差来实现的</p>
+</blockquote>
+<ul>
+<li>ttl [key] (秒)</li>
+<li>pttl [key] (毫秒)</li>
+</ul>
+<h3 id="过期键的判定">过期键的判定</h3>
+<ul>
+<li>查看键是否在过期字典中，存在则获取过期时间</li>
+<li>检查当前UNIX时间戳是否大于过期时间，如果是则已过期</li>
+</ul>
+<h3 id="过期键的删除策略">过期键的删除策略</h3>
+<h4 id="定时删除">定时删除</h4>
+<blockquote>
+<p>用不到</p>
+</blockquote>
+<ul>
+<li>
+<p>使用定时器，保证键一过期就立刻被删除</p>
+</li>
+<li>
+<p>对CPU不太友好</p>
+</li>
+</ul>
+<h4 id="惰性删除">惰性删除</h4>
+<ul>
+<li>取出键时对键做检查，如果过期了就删除</li>
+<li>对内存不友好，并且有些键可能永远都不会被删</li>
+</ul>
+<h4 id="定期删除">定期删除</h4>
+<ul>
+<li>每隔一段时间由程序执行一次删除过期键的操作</li>
+<li>难点在于操作执行的时长和频率</li>
+</ul>
+<h3 id="redis的过期键删除策略">Redis的过期键删除策略</h3>
+<h4 id="expireifneed">expireIfNeed</h4>
+<blockquote>
+<p>过期键的惰性删除策略由db.c/expireIfNeeded函数实现，所有读写数据库的Redis命令在执行之前都会调用expireIfNeeded函数对输入键进行检查</p>
+</blockquote>
+<!-- raw HTML omitted -->
+<p>Redis：惰性删除 + 定期删除</p>
+<h4 id="activeexpirecycle">activeExpireCycle</h4>
+<p>每当Redis的服务器周期性操作redis.c/serverCron函数执行时，activeExpireCycle函数就会被调用</p>
+<ul>
+<li><strong>分多次遍历服务器中的各个数据库，从数据库的expires字典中随机检查一部分键的过期时间</strong>，并删除其中的过期键。</li>
+<li>current_db会记录上一次检查进度</li>
+<li>全部检查完了就将current_db重置为0</li>
+</ul>
+<h3 id="aofrdb和复制功能对过期键的处理">AOF、RDB和复制功能对过期键的处理</h3>
+<h4 id="生成rdb文件">生成RDB文件</h4>
+<ul>
+<li>save或besave创建RDB时，会先进行检查，RDB中不会保存过期键</li>
+</ul>
+<h4 id="载入rdb文件">载入RDB文件</h4>
+<ul>
+<li>如果是<strong>主</strong>服务器模式：RDB中过期键不会被载入</li>
+<li>如果是<strong>从</strong>服务器模式：RDB中所有键都会被载入(过期键需要等待主服务器的同步命令来删除)</li>
+</ul>
+<h4 id="从aof文件写入">从AOF文件写入</h4>
+<ul>
+<li>AOF不会因为过期键产生影响</li>
+<li>过期键被删后，程序会向AOF中追加del命令表示该键已被删除</li>
+</ul>
+<h4 id="aof重新写">AOF重新写</h4>
+<ul>
+<li>已过期键会被忽略，不会被重写到AOF</li>
+</ul>
+<h3 id="复制">复制</h3>
+<ul>
+<li>当服务器运行在复制模式下时，从服务器的过期键删除动作由主服务器控制：
+<ul>
+<li>主服务器在删除一个过期键之后，会显式地向所有从服务器发送一个DEL命令，告知从服务器删除这个过期键。</li>
+<li>从服务器在执行客户端发送的读命令时，即使碰到过期键也不会将过期键删除，而是继续像处理未过期的键一样来处理过期键。</li>
+<li>从服务器只有在接到主服务器发来的DEL命令之后，才会删除过期键。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>可能会有实时一致性问题，过期键仍然存在于从服务器；但可以保证最终一致性</p>
+</blockquote>
+<h3 id="数据库通知">数据库通知</h3>
+<blockquote>
+<p>数据库通知是Redis 2.8版本新增加的功能，这个功能可以让客户端通过订阅给定的频道或者模式，来获知数据库中键的变化，以及数据库中命令的执行情况。</p>
+</blockquote>
+<p>发送通知</p>
+<ul>
+<li>notifyKeyspaceEvent</li>
+</ul>
+<h2 id="第十章-rdb持久化">第十章 RDB持久化</h2>
+<blockquote>
+<p>Redis database</p>
+</blockquote>
+<h3 id="基本信息">基本信息</h3>
+<ul>
+<li>RDB将内存中的数据库状态保存到磁盘中</li>
+<li>RDB持久化可以手动执行，也可以配置服务器选项定期执行</li>
+<li>生成的RDB文件是一个经过压缩的二进制文件</li>
+<li>这个二进制文件能还原生成RDB文件时的数据库状态</li>
+<li>针对encoding类型不同，RDB有不同的保存方式（可能压缩、可能转换）</li>
+</ul>
+<h3 id="rdb文件的创建">RDB文件的创建</h3>
+<ul>
+<li>save (阻塞 &ndash;&gt; 拒绝所有客户端请求)</li>
+<li>bgsave (子进程 &ndash;&gt; 拒绝save，延迟bgrewriteaof)</li>
+</ul>
+<h3 id="rdb文件的载入">RDB文件的载入</h3>
+<ul>
+<li>没有命令，redis服务器启动时只要检测到RDB文件，则：
+<ul>
+<li>如果开启了AOF持久化，优先用AOF</li>
+<li>如果没开启AOF持久化，用RDB</li>
+</ul>
+</li>
+<li>如果载入RDB，则服务器会一直阻塞，直到载入完成</li>
+</ul>
+<h3 id="自动间隔性保存">自动间隔性保存</h3>
+<ul>
+<li>默认条件：满足三个条件中的任意一个，执行besave（子线程）：
+<ul>
+<li>服务器在900秒之内，对数据库进行了至少1次修改。</li>
+<li>服务器在300秒之内，对数据库进行了至少10次修改。</li>
+<li>服务器在60秒之内，对数据库进行了至少10000次修改。</li>
+</ul>
+</li>
+<li>启动时也可以通过配置文件或者传入启动参数设置save选项（用户自定义）</li>
+</ul>
+<h4 id="dirty计数器">dirty计数器</h4>
+<p>记录[上一次成功执行save/besave, 现在]区间中，对数据库进行了多少次修改</p>
+<h4 id="lastsave">lastsave</h4>
+<p>UNIX时间戳，记录上一次成功执行save/besave的时间</p>
+<h3 id="rdb文件结构">RDB文件结构</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301151630356.png" alt="image-20230115163051328"></p>
+<ul>
+<li>REDIS：该文件是RDB文件的标志（有点像Class中的魔数）</li>
+<li>db_version：版本号</li>
+<li>databases：保存数据库和数据库中的键值对</li>
+<li>EOF：结束符号（标志database内容结束）</li>
+<li>check_sum：校验和</li>
+</ul>
+<h4 id="database">database</h4>
+<ul>
+<li>非空则会保存</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301151633051.png" alt="image-20230115163329983"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947320.png" alt="image-20230115163345743"></p>
+<ul>
+<li>SELECTDB：表示接下来要读一个数据库号</li>
+<li>db_number：数据库号</li>
+<li>key_value_pairs：键值对及过期时间</li>
+</ul>
+<h2 id="第十一章-aof持久化">第十一章 AOF持久化</h2>
+<blockquote>
+<p>Append Only File</p>
+</blockquote>
+<h3 id="基本信息-1">基本信息</h3>
+<ul>
+<li>通过保存Redis服务器所执行的写记录来记录数据库状态</li>
+<li>需要打开AOF持久化功能</li>
+</ul>
+<h3 id="aof持久化的实现">AOF持久化的实现</h3>
+<ul>
+<li>append 追加</li>
+<li>文件写入</li>
+<li>文件同步</li>
+</ul>
+<h4 id="命令追加">命令追加</h4>
+<ul>
+<li>执行完一个命令后，会以协议格式将被执行命令追加到redisServer中的aof_buf缓冲区末端</li>
+</ul>
+<h4 id="写入与同步">写入与同步</h4>
+<blockquote>
+<p>Redis的服务器进程就是一个事件循环（loop），这个循环中的文件事件负责接收客户端的命令请求，以及向客户端发送命令回复，而时间事件则负责执行像serverCron函数这样需要定时运行的函数。</p>
+</blockquote>
+<ul>
+<li>结束事件循环前，调用flushAppendOnlyFile</li>
+<li>此时考虑是否将aof_buf中内容写入和保存到AOF文件</li>
+<li>这个考虑取决于appendfsync配置选项(always,everysecond,no)</li>
+<li>么appendfsync选项的默认值为everysec（每秒同步）</li>
+</ul>
+<h4 id="数据载入">数据载入</h4>
+<blockquote>
+<p>因为AOF文件里面包含了重建数据库状态所需的所有写命令，所以服务器只要读入并重新执行一遍AOF文件里面保存的写命令，就可以还原服务器关闭之前的数据库状态。</p>
+</blockquote>
+<ul>
+<li>会有一个fake client，伪客户端<strong>没有网络连接</strong></li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301151646295.png" alt="image-20230115164623225"></p>
+<h4 id="重写">重写</h4>
+<blockquote>
+<p>随着时间推移，AOF体积可能过大，并且AOF只需要记录最新数据即可，因此Redis提供了AOF重写功能。</p>
+<p>Redis服务器可以创建一个新的AOF文件来替代现有的AOF文件，新旧两个AOF文件所保存的数据库状态相同，但新AOF文件<strong>不会包含任何浪费空间的冗余命令</strong>，所以新AOF文件的体积通常会比旧AOF文件的体积要小得多。</p>
+</blockquote>
+<ul>
+<li>重写和现有的AOF文件完全无关，直接读服务器当前数据状态
+<ul>
+<li>实现原理：从数据库中读取键现在的值，然后用<strong>一条命令</strong>去记录键值对，代替之前记录这个键值对的多条命</li>
+</ul>
+</li>
+<li>重写在子线程中执行，执行期间：
+<ul>
+<li><img src="https://gitee.com/kother/typora/raw/master/img/202301161947700.png" alt="image-20230115165349941"></li>
+</ul>
+</li>
+<li>写好以后直接将新AOF文件覆盖现有AOF文件</li>
+</ul>
+<h2 id="第十二章-事件">第十二章 事件</h2>
+<blockquote>
+<p>Redis服务器是一个事件驱动程序，服务器需要处理以下两类事件：</p>
+<ul>
+<li>文件事件（file event）：Redis服务器通过套接字与客户端（或者其他Redis服务器）进行连接，而**文件事件就是服务器对套接字操作的抽象。**服务器与客户端（或者其他服务器）的通信会产生相应的文件事件，而服务器则通过监听并处理这些事件来完成一系列网络通信操作。</li>
+<li>时间事件（time event）：**Redis服务器中的一些操作（比如serverCron函数）需要在给定的时间点执行，**而时间事件就是服务器对这类定时操作的抽象。</li>
+</ul>
+</blockquote>
+<h3 id="文件事件">文件事件</h3>
+<blockquote>
+<p>Redis基于Reactor模式开发了自己的网络事件处理器：这个处理器被称为文件事件处理器（file event handler）</p>
+<p>Reactor模式（反应器设计模式）</p>
+<ul>
+<li>Redis采用单线程Reactor模式</li>
+<li>由一个非阻塞线程处理并发请求</li>
+<li>并将请求提交到一个或多个服务处理程序的事件设计模式</li>
+</ul>
+</blockquote>
+<h4 id="文件事件处理器">文件事件处理器</h4>
+<blockquote>
+<p>file event handler</p>
+<p>虽然文件事件处理器以单线程方式运行，但通过使用I/O多路复用程序来监听多个套接字，文件事件处理器既实现了高性能的网络通信模型，又可以很好地与Redis服务器中其他同样以单线程方式运行的模块进行对接，这保持了Redis内部单线程设计的简单性。</p>
+<ul>
+<li>如果一个套接字可读可写，服务器将优先处理读套接字（连接或命令请求）</li>
+<li>常用的处理器：连接应答、命令请求、命令回复</li>
+</ul>
+</blockquote>
+<ul>
+<li>I/O多路复用程序同时监听多个套接字</li>
+<li>并根据套接字目前执行的任务关联不同事件处理器</li>
+<li>套接字准备执行操作（accept, read, write, close）等操作时，相关的文件事件会产生</li>
+<li>I/O多路复用程序会将套接字放进队列中，有序单个的传递给事件处理器，并且只有上一个事件处理完后，才会继续分派套接字</li>
+<li>这些不同的事件处理器则会处理这些事件</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947345.png" alt="image-20230116145611844"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947346.png" alt="image-20230116145651245"></p>
+<h4 id="io多路复用底层实现">I/O多路复用底层实现</h4>
+<blockquote>
+<p>Redis的I/O多路复用程序的所有功能都是通过包装常见的select、epoll、evport和kqueue这些I/O多路复用函数库来实现的</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161458294.png" alt="image-20230116145808217"></p>
+<h4 id="完整的客户端与服务器连接例子">完整的客户端与服务器连接例子</h4>
+<p>建立连接过程</p>
+<ul>
+<li>Redis客户端向服务器发起连接，产生AE_READABLE事件</li>
+<li>连接应答处理器为客户端创建套接字、状态、以及一个AR_READABLE事件</li>
+<li>并将AR_READABLE事件与命令请求处理器关联</li>
+</ul>
+<p>处理命令过程</p>
+<ul>
+<li>Redis客户端向服务器发送命令请求，产生AE_READABLE事件</li>
+<li>命令请求处理器接受事件，读取命令内容并将其交给相关程序执行</li>
+<li>Redis客户端尝试读取命令执行结果，产生AE_WRITEABLE事件</li>
+<li>服务器将AE_WRITEABLE事件与命令回复处理器关联</li>
+<li>命令回复处理器接受事件，并将命令回复内容全部写入到套接字</li>
+<li>服务器解除AE_WRITEABLE事件与命令回复处理器关联</li>
+</ul>
+<blockquote>
+<p>连接不关闭、请求处理器不关闭、但是回复处理器会在发完回复以后就取消关联</p>
+</blockquote>
+<h3 id="时间事件">时间事件</h3>
+<h4 id="时间事件类型">时间事件类型</h4>
+<ul>
+<li><del>定时事件（目前Redis没用到）</del></li>
+<li>周期性事件</li>
+</ul>
+<h4 id="时间事件组成部分">时间事件组成部分</h4>
+<ul>
+<li>id（唯一ID）</li>
+<li>when（毫秒+事件到达时间）</li>
+<li>timeProc（时间事件处理器）</li>
+</ul>
+<h4 id="实现原理">实现原理</h4>
+<ul>
+<li>所有时间事件都放在无序（不按when排序而按id）链表中</li>
+<li>每次有时间事件处理器运行时就遍历整个链表</li>
+<li>找出已到达时间的时间事件，调用相应的事件处理器</li>
+</ul>
+<h4 id="实例servercron函数">实例：serverCron函数</h4>
+<blockquote>
+<p>周期性事件，可以修改配置来改变运行事件</p>
+</blockquote>
+<ul>
+<li>更新服务器各类统计信息（内存占用、数据库占用）</li>
+<li>清理过期键值对</li>
+<li>关闭和清理连接失效客户端</li>
+<li>尝试RDB/AOF</li>
+<li>如果是从服务器，定期同步</li>
+<li>如果处于集群模式，定期同步和连接测试</li>
+</ul>
+<h3 id="事件的调度与执行">事件的调度与执行</h3>
+<blockquote>
+<p>因为服务器中同时存在文件事件和时间事件两种事件类型，所以服务器必须对这两种事件进行调度，决定何时应该处理文件事件，何时又应该处理时间事件，以及花多少时间来处理它们等等。</p>
+</blockquote>
+<p>ae.c/aeProcessEvents函数负责事件调度与执行</p>
+<blockquote>
+<p>伪代码表示redis服务器主函数：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">def</span> <span style="color:#008b45">main</span>():
+</span></span><span style="display:flex;"><span>    init_server()
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">while</span> server_is_not_shutdown():
+</span></span><span style="display:flex;"><span>        aeProcessEvents()
+</span></span><span style="display:flex;"><span>    clean_server()
+</span></span></code></pre></td></tr></table>
+</div>
+</div></blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161519638.png" alt="image-20230116151923551"></p>
+<ul>
+<li>处理都是同步、有序、原子性</li>
+<li>时间事件处理事件通常会比设定的晚一点（因为不会抢占）</li>
+</ul>
+<blockquote>
+<p>有个观点：key = 过期事件+随机值，这个随机值不可以太小（不然“晚一些”过期还是会导致缓存雪崩）</p>
+</blockquote>
+<h2 id="第十三章-客户端">第十三章 客户端</h2>
+<blockquote>
+<p>对于每个与服务器进行连接的客户端，服务器都为这些客户端建立了相应的redis.h/redisClient结构（客户端状态），这个结构保存了客户端当前的状态信息，以及执行相关功能时需要用到的数据结构</p>
+</blockquote>
+<h4 id="数据结构内容">数据结构内容</h4>
+<ul>
+<li>
+<p>客户端的套接字描述符。</p>
+</li>
+<li>
+<p>客户端的名字。</p>
+</li>
+<li>
+<p>客户端的标志值（flag）。</p>
+</li>
+<li>
+<p>指向客户端正在使用的数据库的指针，以及该数据库的号码。</p>
+</li>
+<li>
+<p>客户端当前要执行的命令、命令的参数、命令参数的个数，以及指向命令实现函数的指针。</p>
+</li>
+<li>
+<p>客户端的输入缓冲区和输出缓冲区（可以动态扩充，最大1GB，否则关闭客户端）</p>
+</li>
+<li>
+<p>客户端的复制状态信息，以及进行复制所需的数据结构。</p>
+</li>
+<li>
+<p>客户端执行BRPOP、BLPOP等列表阻塞命令时使用的数据结构。</p>
+</li>
+<li>
+<p>客户端的事务状态，以及执行WATCH命令时用到的数据结构。</p>
+</li>
+<li>
+<p>客户端执行发布与订阅功能时用到的数据结构。</p>
+</li>
+<li>
+<p>客户端的身份验证标志。</p>
+</li>
+<li>
+<p>客户端的创建时间，客户端和服务器最后一次通信的时间，以及客户端的输出缓冲区大小超出软性限制（soft limit）的时间。</p>
+</li>
+<li>
+<p>clients是一个链表</p>
+</li>
+</ul>
+<h4 id="伪客户端">伪客户端</h4>
+<ul>
+<li>fd值 = -1</li>
+<li>用于AOF文件载入</li>
+<li>用于Lua脚本中包含的Redis命令</li>
+</ul>
+<blockquote>
+<p>为什么需要伪客户端？</p>
+</blockquote>
+<h4 id="缓冲区">缓冲区</h4>
+<ul>
+<li>
+<p>固定大小：16KB</p>
+</li>
+<li>
+<p>可变大小缓冲区：1GB</p>
+</li>
+</ul>
+<h2 id="第十四章-服务器">第十四章 服务器</h2>
+<h3 id="命令请求的执行过程">命令请求的执行过程</h3>
+<p>感觉和上面的差不多，就是多了一些细节，例如协议转换、分析、命令查找实现、命令不区分大小写、检查客户端服务器状态等</p>
+<h3 id="计算空转时长">计算空转时长</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> redisServer{
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ..
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">// 每10秒更新一次的时钟缓存
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">// 用于计算键的空转时长
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">unsigned</span> lruclock:<span style="color:#b452cd">22</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> redisObject{
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ..
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">// 每个对象都会有lru属性
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">// 保存对象最后一次被命令访问的时间
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">unsigned</span> lru:<span style="color:#b452cd">22</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>10秒一次 -&gt; 非实时，只是一个估算值</li>
+</ul>
+<h4 id="管理客户端资源">管理客户端资源</h4>
+<p>serverCron函数每次执行都会调用clientsCron函数，clientsCron函数会对一定数量的客户端进行以下两个检查：</p>
+<ul>
+<li>如果连接超时，释放客户端</li>
+<li>如果输入缓冲区过大，则释放并重新创建默认大小的输入缓冲区</li>
+</ul>
+<h4 id="判断是否需要持久化">判断是否需要持久化</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947224.png" alt="image-20230116154618032"></p>
+<ul>
+<li>两次检查：是否被延迟？是否自动保存？</li>
+</ul>
+<h4 id="初始化服务器状态结构">初始化服务器状态结构</h4>
+<ul>
+<li>
+<p>执行initServerConfig（端口号、架构、条件、LRU&hellip;.）</p>
+</li>
+<li>
+<p>载入配置选项（用户自定义）</p>
+</li>
+<li>
+<p>初始化服务器数据结构和其余一些重要设置操作（打开信号处理器、监听端口..）</p>
+</li>
+<li>
+<p>还原数据库状态（RDB/AOF）</p>
+<blockquote>
+<p>优先AOF：RDB可能丢失部分数据，但是AOF最多丢失1s数据</p>
+</blockquote>
+</li>
+<li>
+<p>执行事件循环</p>
+</li>
+</ul>
+<h2 id="第十五章-复制">第十五章 复制</h2>
+<blockquote>
+<p>在Redis中，用户可以通过执行SLAVEOF命令或者设置slaveof选项，让一个服务器去复制（replicate）另一个服务器，我们称呼被复制的服务器为主服务器（master），而对主服务器进行复制的服务器则被称为从服务器（slave）</p>
+</blockquote>
+<h3 id="旧版复制方式">旧版复制方式</h3>
+<ul>
+<li>执行slaveof [master_ip] [master_port]</li>
+<li>设置slaveof选项</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>127.0.0.1: 12345&gt; SLAVE 127.0.0.1 <span style="color:#b452cd">6379</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 然后12345会成为6379的从服务器</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="旧版复制功能实现">旧版复制功能实现</h3>
+<ul>
+<li>
+<p>同步 sync</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161558833.png" alt="image-20230116155847740"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161559331.png" alt="image-20230116155931283"></p>
+</li>
+<li>
+<p>命令传播 command propagation：主服务器将可能使得主从不一致的命令发送给从服务器，从服务器执行</p>
+</li>
+</ul>
+<h3 id="旧版复制功能缺陷">旧版复制功能缺陷</h3>
+<ul>
+<li><strong>断线重连后复制</strong>，从服务器都会接收很多不必要的数据（主服务器没必要执行besave然后创建从开始到现在的RDB文件，这不是非做不可）</li>
+<li>主服务器的bgsave虽然非阻塞（子线程），但是也会降低主服务器性能</li>
+<li>从服务器载入大量数据时是完全阻塞的</li>
+<li>发送RDB文件也会占用大量网络资源</li>
+</ul>
+<h3 id="新版复制方式">新版复制方式</h3>
+<ul>
+<li>执行PSYNC命令
+<ul>
+<li>完整重同步</li>
+<li>部分重同步</li>
+</ul>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947603.png" alt="image-20230116160605183"></p>
+<ul>
+<li>只需要发送断线期间的数据</li>
+<li>传输内容从RDB变成了命令</li>
+</ul>
+<h4 id="部分重功能实现">部分重功能实现</h4>
+<h5 id="组成部分">组成部分</h5>
+<ul>
+<li>
+<p>主服务器的复制偏移量和从服务器复制偏移量</p>
+</li>
+<li>
+<p>主服务器的复制积压缓冲区（FIFO）</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947847.png" alt="image-20230116160914720"></p>
+</li>
+<li>
+<p>服务器运行ID（相同-&gt;部分重同步；不同-&gt;完整重同步）</p>
+</li>
+</ul>
+<h4 id="psync命令实现">PSYNC命令实现</h4>
+<p>两种调用方式</p>
+<ul>
+<li>从服务器之前从来没复制过：执行PSYNC?-1，调用完整重同步</li>
+<li>从服务器之前已经复制过：调用PSYNC [runid] [offset]（主服务器判断执行完整重同步还是部分重同步）</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161615103.png" alt="image-20230116161518014"></p>
+<h3 id="复制的实现过程">复制的实现过程</h3>
+<blockquote>
+<p>如果一切顺利⬇️</p>
+</blockquote>
+<ul>
+<li>从执行slaveof [master_id] [master_port]</li>
+<li>主建立套接字连接，主为从专门创建处理复制工作的文件事件处理器（RDB、命令）</li>
+<li>从发送PING命令，主回发PONG命令</li>
+<li>身份验证（可选，根据从的masterauth，校验主从密码是否相同）</li>
+<li>从发送端口信息，主记录端口信息</li>
+<li>从请求同步</li>
+<li>命令传播</li>
+</ul>
+<h3 id="心跳检测">心跳检测</h3>
+<h4 id="方式">方式</h4>
+<ul>
+<li>从以每秒一次频率向主服务器检测</li>
+<li>方式是发送命令REPLCONF ACK [replication_offset]</li>
+</ul>
+<h4 id="作用">作用</h4>
+<ul>
+<li>检测主从网络连接状态</li>
+<li>辅助实现min-slaves选项：防止主在不安全情况下执行写命令</li>
+<li>检测命令丢失（其实就是在做部分重同步）
+<ul>
+<li>区别是部分重同步是断线重连情况下做，而命令丢失是正常连接</li>
+</ul>
+</li>
+</ul>
+<h2 id="第十六章-sentinel">第十六章 Sentinel</h2>
+<blockquote>
+<p>Sentinel（哨岗、哨兵）是Redis的高可用性（high availability）解决方案：由一个或多个Sentinel实例（instance）组成的Sentinel系统（system）可以监视任意多个主服务器，以及这些主服务器属下的所有从服务器，并在被监视的主服务器进入下线状态时，自动将下线主服务器属下的某个从服务器升级为新的主服务器，然后由新的主服务器代替已下线的主服务器继续处理命令请求。</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947434.png" alt="image-20230116162937425"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161629749.png" alt="image-20230116162951652"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161630158.png" alt="image-20230116163003062"></p>
+<h3 id="启动并初始化sentinel">启动并初始化Sentinel</h3>
+<h4 id="1执行命令">1.执行命令</h4>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#228b22"># 这两个都可以</span>
+</span></span><span style="display:flex;"><span>$ redis-sentinel /path/to/your/sentinel.conf
+</span></span><span style="display:flex;"><span>$ redis-server /path/to/your/sentinel.conf --sentinel
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="2初始化服务器">2.初始化服务器</h4>
+<ul>
+<li>Sentienl只是特殊的Redis服务器，但不载入RDB/AOF（用不上）</li>
+</ul>
+<h4 id="3使用sentinel专用代码">3.使用Sentinel专用代码</h4>
+<ul>
+<li>把Redis的代码换成Sentinel专用代码</li>
+</ul>
+<h4 id="4初始化sentinel状态">4.初始化Sentinel状态</h4>
+<ul>
+<li>是一个数据结构，保存所有和Sentinel有关的状态</li>
+</ul>
+<h4 id="5初始化sentinel状态中的masters属性">5.初始化Sentinel状态中的masters属性</h4>
+<ul>
+<li>记录被监视的主服务器相关信息</li>
+</ul>
+<h4 id="6创建连向主服务器的网络连接">6.创建连向主服务器的网络连接</h4>
+<blockquote>
+<p>这两个连接是异步的</p>
+</blockquote>
+<ul>
+<li>命令连接：向主服务器发命令并接受回复</li>
+<li>订阅连接：订阅主服务器的__sentinel:hello频道</li>
+</ul>
+<h3 id="获取主服务器信息">获取主服务器信息</h3>
+<ul>
+<li>INFO命令 10秒一次</li>
+<li>获取主服务器信息和主服务器下的所有从服务器信息（放在主服务器实例的slaves字典）</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947673.png" alt="image-20230116163737352"></p>
+<h3 id="获取从服务器信息">获取从服务器信息</h3>
+<ul>
+<li>有新的从服务器时，创建<strong>命令连接</strong>和<strong>订阅连接</strong></li>
+<li>INFO命令 10秒一次</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947799.png" alt="image-20230116163951911"></p>
+<h3 id="向主服务器和从服务器发送信息">向主服务器和从服务器发送信息</h3>
+<ul>
+<li>两秒一次，通过命令连接向主从服务器发送命令</li>
+</ul>
+<h3 id="接收来自主服务器和从服务器的频道信息">接收来自主服务器和从服务器的频道信息</h3>
+<ul>
+<li>
+<p>通过_sentinel__:hello 发送（命令连接）和接收（订阅连接）信息</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947344.png" alt="image-20230116173439542"></p>
+</li>
+<li>
+<p>一个sentinel发送后，全部订阅了该频道的sentinel都会接收回复信息（广播）</p>
+<!-- raw HTML omitted -->
+</li>
+</ul>
+<h4 id="1更新sentinel字典">1.更新Sentinel字典</h4>
+<blockquote>
+<p>因为一个Sentinel可以通过分析接收到的频道信息来获知其他Sentinel的存在，并通过发送频道信息来让其他Sentinel知道自己的存在，所以用户在使用Sentinel的时候并不需要提供各个Sentinel的地址信息，监视同一个主服务器的多个Sentinel可以自动发现对方。</p>
+</blockquote>
+<ul>
+<li>
+<p>Sentinel字典保存除了自己以外，监视相同主服务器的Sentinel</p>
+</li>
+<li>
+<p>由订阅频道，监视同一个主服务器的Sentinel可以发现监视相同主服务器的Sentinel</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161743608.png" alt="image-20230116174138717"></p>
+</li>
+</ul>
+<h4 id="2创建连向其他sentinel的命令连接">2.创建连向其他Sentinel的命令连接</h4>
+<blockquote>
+<p>只是命令连接，不会有订阅连接，订阅连接只是用于发现新的Sentinel</p>
+</blockquote>
+<ul>
+<li>
+<p>发现新Sentinel时，二者会建立相互的<strong>命令连接</strong></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947284.png" alt="image-20230116174428644"></p>
+</li>
+</ul>
+<h3 id="检查主观下线状态">检查主观下线状态</h3>
+<ul>
+<li>每秒一次，Sentinel向已有命令连接的所有实例（主服务器、从服务器、Sentinel）发送ping
+<ul>
+<li>有效恢复：PONG, LOADING, MASTERDOWN</li>
+<li>无效回复：其他回复或没有回复</li>
+</ul>
+</li>
+<li>如果没有回复，判定该实例主观下线</li>
+</ul>
+<h3 id="检查客观下线状态">检查客观下线状态</h3>
+<ul>
+<li>确定主服务器主观下线后，轮询监视该主服务器的Sentinel</li>
+<li>确定有足够数量的Sentinel也认为该主服务器下线</li>
+<li>判定该服务器为客观下线（只是这个Sentinel判定）</li>
+<li>对服务器进行故障转移</li>
+</ul>
+<blockquote>
+<p>数量条件：quorum参数值</p>
+<p>不同Sentinel判断客观下线的条件可能不同</p>
+</blockquote>
+<h3 id="选举领头sentinel">选举领头Sentinel</h3>
+<blockquote>
+<p>当一个主服务器被判断为客观下线时，监视这个下线主服务器的各个Sentinel会进行协商，选举出一个领头Sentinel，并由领头Sentinel对下线主服务器执行故障转移操作。</p>
+<p>“无论你设置要多少个Sentinel同意才能判断一个服务器失效，一个Sentinel都需要获得系统中多数Sentinel的支持， 才能发起一次自动故障迁移”</p>
+<p>Sentinel系统选举领头Sentinel的方法是对<strong>Raft算法</strong>的领头选举方法的实现</p>
+</blockquote>
+<ul>
+<li>发生在有主服务器被客观下线时</li>
+<li>选出来的领头Sentinel要做故障转移操作</li>
+</ul>
+<h4 id="规则">规则</h4>
+<ul>
+<li>所有在线的Sentinel都可以是leader</li>
+<li>选举完以后不论结果，所有Sentinel的configuration epoch(可以理解为计数器)会+1</li>
+<li>configuration epoch中，所有Sentinel都有一次设置某个Sentinel为leader的机会，设置后不可更改，每个epoch只会有一个leader</li>
+<li>每个发现主服务器客观下线的Sentinel都会要求其他Sentinel将自己设置为leader</li>
+<li>设置leader是先到先设置，Sentienl A向Sentinel B发送设置请求，那么Sentinel B之后会拒绝其他Sentinel的请求</li>
+<li>某个Sentinel被半数以上Sentinel设置为leader，则该Sentinel为leader</li>
+<li>没选出来就一段时间后重选</li>
+</ul>
+<h3 id="故障转移">故障转移</h3>
+<p>大概内容：</p>
+<ul>
+<li>在已客观下线主服务器属下的所有从服务器中，挑出一个从服务器，将它变成主服务器</li>
+<li>让其余所有从服务器都改为复制新的主服务器</li>
+<li>将已下线服务器设置为从服务器，当它重新上线时，就是新主服务器的从服务器</li>
+</ul>
+<h4 id="挑选新的主服务器过程">挑选新的主服务器过程</h4>
+<p><strong>先删除</strong></p>
+<blockquote>
+<p>做减法的过程，leader Sentinel会将从服务器保存到列表中，一步步过滤</p>
+</blockquote>
+<ul>
+<li>删除处于下线或者断线状态的从服务器</li>
+<li>删除最近五秒内未回复过leader Sentinel的INFO命令的从服务器</li>
+<li>删除所有与已下线主服务器断开超过down-after-milliseconds*10毫秒的从服务器</li>
+</ul>
+<p><strong>再根据优先级挑选</strong></p>
+<ul>
+<li>选复制偏移量大的从服务器（数据会更新）</li>
+<li>如果一样大，选运行ID最小的</li>
+</ul>
+<h2 id="第十七章-集群">第十七章 集群</h2>
+<blockquote>
+<p>Redis集群是Redis提供的分布式数据库方案，集群通过分片（sharding）来进行数据共享，并提供复制和故障转移功能。
+本节将对集群的节点、槽指派、命令执行、重新分片、转向、故障转移、消息等各个方面进行介绍。</p>
+</blockquote>
+<h3 id="节点">节点</h3>
+<ul>
+<li>
+<p>一个Redis集群通常由多个节点组成</p>
+</li>
+<li>
+<p>节点起初都是互相独立的，各自在只包含自己的集群中</p>
+</li>
+<li>
+<p>连接节点的命令：CLUSTER MEET [ip] [port] （握手）</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161820109.png" alt="image-20230116182033003"></p>
+</li>
+</ul>
+<blockquote>
+<p>之后，节点A会将节点B的信息通过Gossip协议传播给集群中的其他节点，让其他节点也与节点B进行握手，最终，经过一段时间之后，节点B会被集群中的所有节点认识。</p>
+</blockquote>
+<h4 id="启动节点">启动节点</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161818575.png" alt="image-20230116181842457"></p>
+<ul>
+<li>节点和在单机Redis中做的内容没啥区别</li>
+</ul>
+<h3 id="槽指派">槽指派</h3>
+<blockquote>
+<p>Redis集群通过分片的方式来保存数据库中的键值对：集群的整个数据库被分为16384个槽（slot），数据库中的每个键都属于这16384个槽的其中一个，集群中的每个节点可以处理0个或最多16384个槽。</p>
+<p>当数据库中的16384个槽都有节点在处理时，集群处于上线状态（ok）；相反地，如果数据库中有任何一个槽没有得到处理，那么集群处于下线状态（fail）。</p>
+</blockquote>
+<ul>
+<li>集群通过分片方式保存键值对</li>
+<li>分片是指集群的整个数据库被分为16384个<strong>槽</strong></li>
+<li>每个键都属于16384个槽中的一个</li>
+<li>每个节点最多可以处理0～16384个槽</li>
+<li>16384个槽全部在被处理，集群才是上线状态</li>
+<li>计算key属于哪个槽：CRC16(key) &amp; 16384</li>
+</ul>
+<h4 id="指派命令">指派命令</h4>
+<ul>
+<li>CLUSTER ADDSLOTS [slot] [slot &hellip;]</li>
+</ul>
+<h4 id="记录节点的槽指派信息">记录节点的槽指派信息</h4>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#228b22">// 节点信息
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">struct</span> clusterNode{
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">unsigned</span> <span style="color:#00688b;font-weight:bold">char</span> slots[<span style="color:#b452cd">16384</span>/<span style="color:#b452cd">8</span>];	<span style="color:#228b22">// 二进制数组，有16384个位
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#00688b;font-weight:bold">int</span> numslots;					<span style="color:#228b22">// 槽的数量
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">// ..
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="传播节点的槽指派信息">传播节点的槽指派信息</h4>
+<blockquote>
+<p>一个节点除了会将自己负责处理的槽记录在clusterNode结构的slots属性和numslots属性之外，它还会将自己的slots数组通过消息发送给集群中的其他节点，以此来告知其他节点自己目前负责处理哪些槽。</p>
+</blockquote>
+<ul>
+<li>一个节点收到另一个节点的槽指派内容后，会对自己的slots进行更新</li>
+<li>每个节点都会知道这16384个槽被指派给了哪些节点</li>
+</ul>
+<h4 id="记录集群所有槽的指派信息">记录集群所有槽的指派信息</h4>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">typedef</span> <span style="color:#8b008b;font-weight:bold">struct</span> clusterState{
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ..
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    clusterNode *slots[<span style="color:#b452cd">16384</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ..
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>} clusterState;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="在集群中执行命令">在集群中执行命令</h3>
+<blockquote>
+<p>在对数据库中的16384个槽都进行了指派之后，集群就会进入上线状态，这时客户端就可以向集群中的节点发送数据命令了。</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161844681.png" alt="image-20230116184439552"></p>
+<h3 id="moved错误">MOVED错误</h3>
+<p><strong>请求的键不在当前节点</strong>，重定向到该槽指派的节点</p>
+<ul>
+<li>单机模式下MOVED错误会被打印出来（单机：不知道），集群模式下会根据MOVED自动执行转换</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947683.png" alt="image-20230116184815990"></p>
+<blockquote>
+<p>一个集群客户端通常会与集群中的多个节点创建套接字连接，而所谓的节点转向实际上就是换一个套接字来发送命令。</p>
+</blockquote>
+<h3 id="节点数据库的实现">节点数据库的实现</h3>
+<ul>
+<li>
+<p>区别1:节点只能使用0号数据库，单机Redis无限制</p>
+</li>
+<li>
+<p>区别2:节点还会用clusterState结构中的slots_to_key<strong>跳跃表</strong>来保存槽和键之间的关系</p>
+<blockquote>
+<p>slots_to_keys跳跃表每个节点的分值（score）都是一个槽号，而每个节点的成员（member）都是一个数据库键：</p>
+<ul>
+<li>添加键值对时，节点就会将这个键以及键的槽号关联到slots_to_keys跳跃表。</li>
+<li>删除键值对时，节点就会在slots_to_keys跳跃表解除被删除键与槽号的关联。</li>
+</ul>
+<p>通过在slots_to_keys跳跃表中记录各个数据库键所属的槽，节点可以很方便地对属于某个或某些槽的所有数据库键进行批量操作</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="重新分片">重新分片</h3>
+<ul>
+<li>
+<p>将任意数量已指派给某节点的槽分配给另外一个节点</p>
+</li>
+<li>
+<p>相关槽所属的键值对关系也会被移动</p>
+<blockquote>
+<p>redis的槽并不会保存数据，槽只是一种逻辑单元，提供路由功能，通过计key所属的槽号，来路由到相应的节点的数据库，键值对仍然保存在数据库中。</p>
+</blockquote>
+</li>
+<li>
+<p>重新分片操作可以在线进行（节点都可以继续处理命令请求）</p>
+</li>
+</ul>
+<h4 id="实现原理-1">实现原理</h4>
+<p>Redis的集群管理软件redis-trib提供了重新分配所需的所有命令</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161855299.png" alt="image-20230116185556173"></p>
+<h3 id="ask错误">ASK错误</h3>
+<ul>
+<li>
+<p>情况：源节点向目标节点迁移时，一部分键值对在源节点，一部分在目标节点</p>
+</li>
+<li>
+<p>解决方法：</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161857332.png" alt="image-20230116185725224"></p>
+</li>
+</ul>
+<h4 id="asking命令">ASKING命令</h4>
+<p>ASKING命令唯一要做的就是打开发送该命令的客户端的REDIS_ASKING标识</p>
+<p>在一般情况下，如果客户端向节点发送一个关于槽i的命令，而槽i又没有指派给这个节点的话，那么节点将向客户端返回一个MOVED错误</p>
+<p>但是，如果节点的clusterState.importing_slots_from[i]<strong>显示节点正在导入槽i，并且发送命令的客户端带有REDIS_ASKING标识</strong>，那么节点将破例执行这个关于槽i的命令一次。</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947773.png" alt="image-20230116190246284"></p>
+<ul>
+<li>REDIS_ASKING标识是一次性的</li>
+</ul>
+<h3 id="ask错误和moved错误区别">ASK错误和MOVED错误区别</h3>
+<blockquote>
+<ul>
+<li>MOVED错误代表槽的负责权已经从一个节点转移到了另一个节点：在客户端收到关于槽i的MOVED错误之后，客户端每次遇到关于槽i的命令请求时，都可以直接将命令请求发送至MOVED错误所指向的节点，因为该节点就是目前负责槽i的节点。</li>
+<li>与此相反，ASK错误只是两个节点在迁移槽的过程中使用的一种临时措施：在客户端收到关于槽i的ASK错误之后，客户端只会在接下来的一次命令请求中将关于槽i的命令请求发送至ASK错误所指示的节点，但这种转向不会对客户端今后发送关于槽i的命令请求产生任何影响，客户端仍然会将关于槽i的命令请求发送至目前负责处理槽i的节点，除非ASK错误再次出现。</li>
+</ul>
+</blockquote>
+<ul>
+<li>MOVED：永久措施，直接转发。<strong>请求的键不在当前节点</strong>，重定向到该槽指派的节点</li>
+<li>ASK：临时措施，没有影响。<strong>请求的键在当前节点，但是可能被分派到新节点</strong>，重定向到新节点，并向节点发送一个ASKING命令</li>
+</ul>
+<h3 id="复制与故障转移">复制与故障转移</h3>
+<ul>
+<li>节点分为主节点和从节点</li>
+<li>主节点用于处理槽</li>
+<li>从节点用于复制某个主节点 / 被复制主节点下线时，代替下线主节点处理命令</li>
+<li>替换主节点和哨兵模式很像，主从交换</li>
+<li>一个节点称为从节点并开始复制主节点这个消息会广播</li>
+<li>定时发送PING检测其他节点是否在线</li>
+</ul>
+<blockquote>
+<p>可以类比一下Sentinel判断主服务器下线的过程：</p>
+<ul>
+<li>Sentinel判断一个主服务器下线，会有一个主观下线到客观下线的过程，Sentinel A认为主服务器下线，先标记为主观下线，然后向其他Sentinel 发送消息，如果包括自己在内超半数的Sentinel认为该主服务器下线了，那么Sentinel A 就标记主服务器为客观下线，并向其他Sentinel发现消息，选自己为最后执行故障转移的操作的领头Sentinel。</li>
+</ul>
+<p>首先知道集群模式下的所有节点都保存了其他节点的状态信息，并且会通过gossip协议消息来同步。</p>
+<ul>
+<li>集群模式下的redis主从，其他主节点都同时充当数据库和Sentinel的角色，主节点A认为主节点B下线了，A标记B为疑似下线状态，这里可以类比主观下线；然后A将这个消息广播给其他主节点，其他主节点在自己的节点list里找到被疑似下线的B节点，添加A标记B疑似下线的报告。当超半数的主节点都认为节点B疑似下线，那么最先检测到自己节点列表中的B的疑似下线报告超半数的节点会标记B为下线状态，可以类比客观下线；然后该节点会将这个状态消息同步给其他节点。</li>
+<li>故障转移的过程：需要在已下线的主节点B的从节点中选出一个来继承B的财产，做主节点。</li>
+<li>B的从节点得知B下线，都会抢着替代B做主节点，所以会向其他主节点发送消息，选自己的下一个主节点。这个投票过程和Sentinel 选出新主服务器的过程类似，都是对raft的实现，最终都是想选出一个状态良好、数据完整的从服务器，作为新主服务器。</li>
+</ul>
+</blockquote>
+<h4 id="故障转移步骤">故障转移步骤</h4>
+<ul>
+<li>选取在复制的从节点之一</li>
+<li>被选中的从节点执行SLAVEOF no one，成为新的主节点</li>
+<li>新的主节点撤销已下线主节点的所有槽指派，并指派给自己</li>
+<li>新的主节点广播一条PONG消息，告知自己已是主节点</li>
+<li>新的主节点开始执行命令请求，故障转移完成</li>
+</ul>
+<h4 id="选取新的主节点">选取新的主节点</h4>
+<blockquote>
+<p>前面的sentinel是内部投票，即候选人和投票人都是sentinel，而这里相当于外部投票，候选人是失效主节点的所有从节点，投票人是除失效主节点外的所有主节点</p>
+<p>sentinel leader和主节点的选举都是基于Raft算法</p>
+</blockquote>
+<ul>
+<li>集群的配置纪元是一个自增计数器，它的初始值为0。</li>
+<li>当集群里的某个节点开始一次故障转移操作时，集群配置纪元的值会被增一。</li>
+<li>对于每个配置纪元，集群里每个负责处理槽的主节点都有一次投票的机会，而第一个向主节点要求投票的从节点将获得主节点的投票。</li>
+<li>当从节点发现自己正在复制的主节点进入已下线状态时，从节点会向集群广播一条CLUSTERMSG_TYPE_FAILOVER_AUTH_REQUEST消息，要求所有收到这条消息、并且<strong>具有投票权的主节点</strong>向这个从节点投票。</li>
+<li>如果一个主节点具有投票权（它正在负责处理槽），并且这个主节点尚未投票给其他从节点，那么主节点将向要求投票的从节点返回一条CLUSTERMSG_TYPE_FAILOVER_AUTH_ACK消息，表示这个主节点支持从节点成为新的主节点。</li>
+<li>每个参与选举的从节点都会接收CLUSTERMSG_TYPE_FAILOVER_AUTH_ACK消息，并根据自己收到了多少条这种消息来统计自己获得了多少主节点的支持。</li>
+<li>如果集群里有N个具有投票权的主节点，那么当一个从节点收集到大于等于N/2+1张支持票时，这个从节点就会当选为新的主节点。</li>
+<li>因为在每一个配置纪元里面，每个具有投票权的主节点只能投一次票，所以如果有N个主节点进行投票，那么具有大于等于N/2+1张支持票的从节点只会有一个，这确保了新的主节点只会有一个。</li>
+<li>如果在一个配置纪元里面没有从节点能收集到足够多的支持票，那么集群进入一个新的配置纪元，并再次进行选举，直到选出新的主节点为止。</li>
+</ul>
+<h3 id="消息">消息</h3>
+<blockquote>
+<p>Sentinel是通过命令连接和订阅连接</p>
+</blockquote>
+<p><strong>集群中的节点</strong>通过发送和接收消息来进行通信，常见的消息包括MEET、PING、PONG、PUBLISH、FAIL五种。</p>
+<ul>
+<li>MEET：请求节点加入到当前集群</li>
+<li>PING：检测在线</li>
+<li>PONG：回复在线 / 告知其他节点自己已经变成主节点（故障转移成功）</li>
+<li>FAIL：判断某节点已下线（广播所有节点，不用Gossip是因为Gossip有延迟）</li>
+<li>PUBLISH：收到PUBLISH后会执行这个命令，并再广播一条PUBLISH消息，所有收到消息的节点会执行相同的PUBLISH命令</li>
+</ul>
+<h4 id="gossip协议">Gossip协议</h4>
+<ul>
+<li>
+<p><strong>Redis集群中的各个节点通过Gossip协议来交换各自关于不同节点的状态信息</strong>，其中<strong>Gossip协议由MEET、PING、PONG三种消息实现</strong></p>
+</li>
+<li>
+<p>meet用于将新节点邀请进集群，ping用于探测集群其他节点是否正常活跃，pong用于确认回复meet/ping消息</p>
+</li>
+<li>
+<p>Gossip协议是<strong>集群扩散</strong>，多次传播达成集群一致性</p>
+</li>
+</ul>
+<h2 id="第十八章-发布与订阅">第十八章 发布与订阅</h2>
+<blockquote>
+<p>Redis的发布与订阅功能由PUBLISH、SUBSCRIBE、PSUBSCRIBE等命令组成。</p>
+<p>通过执行SUBSCRIBE命令，客户端可以订阅一个或多个频道，从而成为这些频道的订阅者（subscriber）：每当有其他客户端向被订阅的频道发送消息（message）时，频道的所有订阅者都会收到这条消息。</p>
+<p>除了订阅频道之外，客户端还可以通过执行PSUBSCRIBE命令订阅一个或多个模式，从而成为这些模式的订阅者：每当有其他客户端向某个频道发送消息时，消息不仅会被发送给这个频道的所有订阅者，它还会被发送给所有与这个频道相匹配的模式的订阅者。</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161932901.png" alt="image-20230116193220764"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301161947241.png" alt="image-20230116193226869"></p>
+<h3 id="频道的订阅和退订">频道的订阅和退订</h3>
 
                     
                     <HR width="100%" id="EOF">
