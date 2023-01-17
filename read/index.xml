@@ -14,11 +14,11 @@
       <pubDate>Sat, 14 Jan 2023 23:54:03 +0800</pubDate>
       
       <guid>https://kother.top/read/redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
-      <description>Redis设计与实现-读书笔记 书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识
+      <description>书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识
+Redis设计与实现-读书笔记 书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识
 [TOC]
 第一章 引言 Redis中的数据结构和对象 每个键值对（key-value pari）都由对象组成 key是String对象 value可以是String object, list object, hash object, set object, sorted set object 第二章 简单动态字符串 简单动态字符串 - Simple Dynamic String
-结构 1 2 3 4 5 struct sdshdr{ int len; // 不算空字符串 int free; char buf[]; } 以空字符串结尾（SDS函数自动完成添加和删除）&amp;ndash;&amp;gt; 好处是可以重用C语言中的字符串函数库 SDS与C字符串的区别 常量获取字符串长度，因为保存了len，C只能遍历 杜绝缓冲区溢出（不管是直接分配还是拼接(sdscat))，因为保存了free，而C可能会假定内存够，实则溢出 减少修改字符串时带来的内存重分配技术：C在截断或拼接时都要管理内存，否则可能会有内存溢出或者内存泄漏，而Redis实现如下： 空间预分配：要对SDS空间扩展时，同时分配需要空间和额外空间 修改后len&amp;lt;1MB: len = free 修改后len&amp;gt;1MB: free = 1MB 惰性空间：String中移除字符后不会立刻释放空间，由free记录（可能以后用到）（源码：用户再次调用该字符串，会调用释放空间的API） **二进制安全：**C字符串有编码限制（不能保存图像、音频等二进制数据），但Redis用的buf[]则可以 Redis有需要时也可以重用C语言函数库（感觉这个不算区别） 第三章 链表 除了链表键之外，发布与订阅、慢查询、监视器等功能也用到了链表，Redis服务器本身还使用链表来保存多个客户端的状态信息，以及使用链表来构建客户端输出缓冲区（output buffer）
-结构 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 // 节点 typedef struct listNode{ struct listNode* prev; struct listNode* next; void* value; } // 链表结构 typedef struct list{ listNode* head; listNode* tail; unsigned long len; void* (*dup) (void *ptr); // 节点复制 void (*free) (void *ptr); // 节点释放 int (*match) (void *ptr, void *key); // 节点对比 }list; 双端无环 带表头表尾指针 链表长度计数器 多态（保存不同类型值） 第四章 字典 字典，又称为符号表（symbol table）、关联数组（associative array）或映射（map），是一种用于保存键值对（key-value pair）的抽象数据结构。</description>
+结构 1 2 3 4 5 struct sdshdr{ int len; // 不算空字符串 int free; char buf[]; } 以空字符串结尾（SDS函数自动完成添加和删除）&amp;ndash;&amp;gt; 好处是可以重用C语言中的字符串函数库 SDS与C字符串的区别 常量获取字符串长度，因为保存了len，C只能遍历 杜绝缓冲区溢出（不管是直接分配还是拼接(sdscat))，因为保存了free，而C可能会假定内存够，实则溢出 减少修改字符串时带来的内存重分配技术：C在截断或拼接时都要管理内存，否则可能会有内存溢出或者内存泄漏，而Redis实现如下： 空间预分配：要对SDS空间扩展时，同时分配需要空间和额外空间 修改后len&amp;lt;1MB: len = free 修改后len&amp;gt;1MB: free = 1MB 惰性空间：String中移除字符后不会立刻释放空间，由free记录（可能以后用到）（源码：用户再次调用该字符串，会调用释放空间的API） **二进制安全：**C字符串有编码限制（不能保存图像、音频等二进制数据），但Redis用的buf[]则可以 Redis有需要时也可以重用C语言函数库（感觉这个不算区别） 第三章 链表 除了链表键之外，发布与订阅、慢查询、监视器等功能也用到了链表，Redis服务器本身还使用链表来保存多个客户端的状态信息，以及使用链表来构建客户端输出缓冲区（output buffer）</description>
     </item>
     
     <item>

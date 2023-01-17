@@ -19,7 +19,10 @@
         <pubDate>Sat, 14 Jan 2023 23:54:03 +0800</pubDate>
         
         <guid>https://kother.top/read/redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
-        <description>Kother&#39;s Blog https://kother.top/read/redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;redis设计与实现-读书笔记&#34;&gt;Redis设计与实现-读书笔记&lt;/h1&gt;
+        <description>Kother&#39;s Blog https://kother.top/read/redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ -&lt;blockquote&gt;
+&lt;p&gt;书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&#34;redis设计与实现-读书笔记&#34;&gt;Redis设计与实现-读书笔记&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;书中内容基于Redis 3.0撰写，可能有点旧，之后还需要找文档补一些知识&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -394,7 +397,7 @@
 &lt;li&gt;zlend：标记列表末端&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h4 id=&#34;压缩列表节点&#34;&gt;压缩列表节点&lt;/h4&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947601.png&#34; alt=&#34;image-20230115144756332&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301151447382.png&#34; alt=&#34;image-20230115144756332&#34;&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;previous_entry_length：前一个节点长度&lt;/li&gt;
 &lt;li&gt;encoding：保存的数据类型以及长度&lt;/li&gt;
@@ -418,7 +421,7 @@
 &lt;p&gt;2.上层数据结构在合适的情况下使用合适的实现，提高性能，优化内存&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h3 id=&#34;对象的类型与编码&#34;&gt;对象的类型与编码&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301151503220.png&#34; alt=&#34;image-20230115150327177&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645619.png&#34; alt=&#34;image-20230115150327177&#34;&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;Redis中保存的键值对，键只能是字符串对象，值可以是上述之一&lt;/p&gt;
@@ -560,7 +563,7 @@
 &lt;li&gt;不仅根据键判断能否执行命令，还根据对象的encoding&lt;/li&gt;
 &lt;li&gt;如下，因此可以认为命令是“多态”的&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301151537393.png&#34; alt=&#34;image-20230115153704341&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645646.png&#34; alt=&#34;image-20230115153704341&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;内存回收&#34;&gt;内存回收&lt;/h3&gt;
 &lt;blockquote&gt;
 &lt;p&gt;因为C语言并不具备自动内存回收功能，所以Redis在自己的对象系统中构建了一个引用计数（reference counting）技术实现的内存回收机制，通过这一机制，程序可以通过跟踪对象的引用计数信息，在适当的时候自动释放对象并进行内存回收。&lt;/p&gt;
@@ -599,7 +602,7 @@
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;可以通过select [number] 切换数据库（原理：修改redisClient.db指针）&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947421.png&#34; alt=&#34;image-20230115154729166&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301151547230.png&#34; alt=&#34;image-20230115154729166&#34;&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id=&#34;数据库键空间&#34;&gt;数据库键空间&lt;/h3&gt;
@@ -770,7 +773,7 @@
 &lt;h4 id=&#34;lastsave&#34;&gt;lastsave&lt;/h4&gt;
 &lt;p&gt;UNIX时间戳，记录上一次成功执行save/besave的时间&lt;/p&gt;
 &lt;h3 id=&#34;rdb文件结构&#34;&gt;RDB文件结构&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301151630356.png&#34; alt=&#34;image-20230115163051328&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645574.png&#34; alt=&#34;image-20230115163051328&#34;&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;REDIS：该文件是RDB文件的标志（有点像Class中的魔数）&lt;/li&gt;
 &lt;li&gt;db_version：版本号&lt;/li&gt;
@@ -782,8 +785,8 @@
 &lt;ul&gt;
 &lt;li&gt;非空则会保存&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301151633051.png&#34; alt=&#34;image-20230115163329983&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947320.png&#34; alt=&#34;image-20230115163345743&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645872.png&#34; alt=&#34;image-20230115163329983&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301151633819.png&#34; alt=&#34;image-20230115163345743&#34;&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;SELECTDB：表示接下来要读一个数据库号&lt;/li&gt;
 &lt;li&gt;db_number：数据库号&lt;/li&gt;
@@ -825,7 +828,7 @@
 &lt;ul&gt;
 &lt;li&gt;会有一个fake client，伪客户端&lt;strong&gt;没有网络连接&lt;/strong&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301151646295.png&#34; alt=&#34;image-20230115164623225&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645412.png&#34; alt=&#34;image-20230115164623225&#34;&gt;&lt;/p&gt;
 &lt;h4 id=&#34;重写&#34;&gt;重写&lt;/h4&gt;
 &lt;blockquote&gt;
 &lt;p&gt;随着时间推移，AOF体积可能过大，并且AOF只需要记录最新数据即可，因此Redis提供了AOF重写功能。&lt;/p&gt;
@@ -839,7 +842,7 @@
 &lt;/li&gt;
 &lt;li&gt;重写在子线程中执行，执行期间：
 &lt;ul&gt;
-&lt;li&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947700.png&#34; alt=&#34;image-20230115165349941&#34;&gt;&lt;/li&gt;
+&lt;li&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301151653972.png&#34; alt=&#34;image-20230115165349941&#34;&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;写好以后直接将新AOF文件覆盖现有AOF文件&lt;/li&gt;
@@ -878,13 +881,13 @@
 &lt;li&gt;I/O多路复用程序会将套接字放进队列中，有序单个的传递给事件处理器，并且只有上一个事件处理完后，才会继续分派套接字&lt;/li&gt;
 &lt;li&gt;这些不同的事件处理器则会处理这些事件&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947345.png&#34; alt=&#34;image-20230116145611844&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947346.png&#34; alt=&#34;image-20230116145651245&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161456963.png&#34; alt=&#34;image-20230116145611844&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645140.png&#34; alt=&#34;image-20230116145651245&#34;&gt;&lt;/p&gt;
 &lt;h4 id=&#34;io多路复用底层实现&#34;&gt;I/O多路复用底层实现&lt;/h4&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Redis的I/O多路复用程序的所有功能都是通过包装常见的select、epoll、evport和kqueue这些I/O多路复用函数库来实现的&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161458294.png&#34; alt=&#34;image-20230116145808217&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645538.png&#34; alt=&#34;image-20230116145808217&#34;&gt;&lt;/p&gt;
 &lt;h4 id=&#34;完整的客户端与服务器连接例子&#34;&gt;完整的客户端与服务器连接例子&lt;/h4&gt;
 &lt;p&gt;建立连接过程&lt;/p&gt;
 &lt;ul&gt;
@@ -1076,7 +1079,7 @@
 &lt;li&gt;如果输入缓冲区过大，则释放并重新创建默认大小的输入缓冲区&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h4 id=&#34;判断是否需要持久化&#34;&gt;判断是否需要持久化&lt;/h4&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947224.png&#34; alt=&#34;image-20230116154618032&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645261.png&#34; alt=&#34;image-20230116154618032&#34;&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;两次检查：是否被延迟？是否自动保存？&lt;/li&gt;
 &lt;/ul&gt;
@@ -1124,7 +1127,7 @@
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;同步 sync&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161558833.png&#34; alt=&#34;image-20230116155847740&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645435.png&#34; alt=&#34;image-20230116155847740&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161559331.png&#34; alt=&#34;image-20230116155931283&#34;&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
@@ -1148,7 +1151,7 @@
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;!-- raw HTML omitted --&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947603.png&#34; alt=&#34;image-20230116160605183&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161606264.png&#34; alt=&#34;image-20230116160605183&#34;&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;只需要发送断线期间的数据&lt;/li&gt;
 &lt;li&gt;传输内容从RDB变成了命令&lt;/li&gt;
@@ -1161,7 +1164,7 @@
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;主服务器的复制积压缓冲区（FIFO）&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947847.png&#34; alt=&#34;image-20230116160914720&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161609816.png&#34; alt=&#34;image-20230116160914720&#34;&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;服务器运行ID（相同-&amp;gt;部分重同步；不同-&amp;gt;完整重同步）&lt;/p&gt;
@@ -1173,7 +1176,7 @@
 &lt;li&gt;从服务器之前从来没复制过：执行PSYNC?-1，调用完整重同步&lt;/li&gt;
 &lt;li&gt;从服务器之前已经复制过：调用PSYNC [runid] [offset]（主服务器判断执行完整重同步还是部分重同步）&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161615103.png&#34; alt=&#34;image-20230116161518014&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645358.png&#34; alt=&#34;image-20230116161518014&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;复制的实现过程&#34;&gt;复制的实现过程&lt;/h3&gt;
 &lt;blockquote&gt;
 &lt;p&gt;如果一切顺利⬇️&lt;/p&gt;
@@ -1207,9 +1210,9 @@
 &lt;blockquote&gt;
 &lt;p&gt;Sentinel（哨岗、哨兵）是Redis的高可用性（high availability）解决方案：由一个或多个Sentinel实例（instance）组成的Sentinel系统（system）可以监视任意多个主服务器，以及这些主服务器属下的所有从服务器，并在被监视的主服务器进入下线状态时，自动将下线主服务器属下的某个从服务器升级为新的主服务器，然后由新的主服务器代替已下线的主服务器继续处理命令请求。&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947434.png&#34; alt=&#34;image-20230116162937425&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161629531.png&#34; alt=&#34;image-20230116162937425&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161629749.png&#34; alt=&#34;image-20230116162951652&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161630158.png&#34; alt=&#34;image-20230116163003062&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645928.png&#34; alt=&#34;image-20230116163003062&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;启动并初始化sentinel&#34;&gt;启动并初始化Sentinel&lt;/h3&gt;
 &lt;h4 id=&#34;1执行命令&#34;&gt;1.执行命令&lt;/h4&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
@@ -1253,13 +1256,13 @@
 &lt;li&gt;INFO命令 10秒一次&lt;/li&gt;
 &lt;li&gt;获取主服务器信息和主服务器下的所有从服务器信息（放在主服务器实例的slaves字典）&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947673.png&#34; alt=&#34;image-20230116163737352&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161637445.png&#34; alt=&#34;image-20230116163737352&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;获取从服务器信息&#34;&gt;获取从服务器信息&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;有新的从服务器时，创建&lt;strong&gt;命令连接&lt;/strong&gt;和&lt;strong&gt;订阅连接&lt;/strong&gt;&lt;/li&gt;
 &lt;li&gt;INFO命令 10秒一次&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947799.png&#34; alt=&#34;image-20230116163951911&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645992.png&#34; alt=&#34;image-20230116163951911&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;向主服务器和从服务器发送信息&#34;&gt;向主服务器和从服务器发送信息&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;两秒一次，通过命令连接向主从服务器发送命令&lt;/li&gt;
@@ -1268,7 +1271,7 @@
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;通过_sentinel__:hello 发送（命令连接）和接收（订阅连接）信息&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947344.png&#34; alt=&#34;image-20230116173439542&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645999.png&#34; alt=&#34;image-20230116173439542&#34;&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;一个sentinel发送后，全部订阅了该频道的sentinel都会接收回复信息（广播）&lt;/p&gt;
@@ -1295,7 +1298,7 @@
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;发现新Sentinel时，二者会建立相互的&lt;strong&gt;命令连接&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947284.png&#34; alt=&#34;image-20230116174428644&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161744749.png&#34; alt=&#34;image-20230116174428644&#34;&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id=&#34;检查主观下线状态&#34;&gt;检查主观下线状态&lt;/h3&gt;
@@ -1376,7 +1379,7 @@
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;连接节点的命令：CLUSTER MEET [ip] [port] （握手）&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161820109.png&#34; alt=&#34;image-20230116182033003&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645636.png&#34; alt=&#34;image-20230116182033003&#34;&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;blockquote&gt;
@@ -1460,7 +1463,7 @@
 &lt;ul&gt;
 &lt;li&gt;单机模式下MOVED错误会被打印出来（单机：不知道），集群模式下会根据MOVED自动执行转换&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947683.png&#34; alt=&#34;image-20230116184815990&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161848095.png&#34; alt=&#34;image-20230116184815990&#34;&gt;&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;一个集群客户端通常会与集群中的多个节点创建套接字连接，而所谓的节点转向实际上就是换一个套接字来发送命令。&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -1498,7 +1501,7 @@
 &lt;/ul&gt;
 &lt;h4 id=&#34;实现原理-1&#34;&gt;实现原理&lt;/h4&gt;
 &lt;p&gt;Redis的集群管理软件redis-trib提供了重新分配所需的所有命令&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161855299.png&#34; alt=&#34;image-20230116185556173&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645145.png&#34; alt=&#34;image-20230116185556173&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;ask错误&#34;&gt;ASK错误&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;
@@ -1513,7 +1516,7 @@
 &lt;p&gt;ASKING命令唯一要做的就是打开发送该命令的客户端的REDIS_ASKING标识&lt;/p&gt;
 &lt;p&gt;在一般情况下，如果客户端向节点发送一个关于槽i的命令，而槽i又没有指派给这个节点的话，那么节点将向客户端返回一个MOVED错误&lt;/p&gt;
 &lt;p&gt;但是，如果节点的clusterState.importing_slots_from[i]&lt;strong&gt;显示节点正在导入槽i，并且发送命令的客户端带有REDIS_ASKING标识&lt;/strong&gt;，那么节点将破例执行这个关于槽i的命令一次。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947773.png&#34; alt=&#34;image-20230116190246284&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161902413.png&#34; alt=&#34;image-20230116190246284&#34;&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;REDIS_ASKING标识是一次性的&lt;/li&gt;
 &lt;/ul&gt;
@@ -1603,9 +1606,338 @@
 &lt;p&gt;通过执行SUBSCRIBE命令，客户端可以订阅一个或多个频道，从而成为这些频道的订阅者（subscriber）：每当有其他客户端向被订阅的频道发送消息（message）时，频道的所有订阅者都会收到这条消息。&lt;/p&gt;
 &lt;p&gt;除了订阅频道之外，客户端还可以通过执行PSUBSCRIBE命令订阅一个或多个模式，从而成为这些模式的订阅者：每当有其他客户端向某个频道发送消息时，消息不仅会被发送给这个频道的所有订阅者，它还会被发送给所有与这个频道相匹配的模式的订阅者。&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161932901.png&#34; alt=&#34;image-20230116193220764&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161947241.png&#34; alt=&#34;image-20230116193226869&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645840.png&#34; alt=&#34;image-20230116193220764&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301161932998.png&#34; alt=&#34;image-20230116193226869&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;频道的订阅和退订&#34;&gt;频道的订阅和退订&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;所有频道的订阅关系保存在pubsub_channels字典，key是频道，value是记录订阅该频道的客户端的链表&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645218.png&#34; alt=&#34;image-20230117152508508&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;订阅，SUBSCRIBE [channel] ：添加链表 / 添加链表节点&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;退订，UNSUBSCRIBE [channel] ：删除链表节点 / 如果链表为空则也删除键&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;模式的订阅与退订&#34;&gt;模式的订阅与退订&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;所有模式的订阅关系保存在pubsub_patterns，就是一个列表，每个节点都包含pubsubPattern结构&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;pubsubPattern记录被订阅的模式和订阅的客户端&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171529954.png&#34; alt=&#34;image-20230117152900798&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645942.png&#34; alt=&#34;image-20230117152911676&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;订阅模式 PSUBSCRIBE&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;退订模式 PUNSUBSCRIBE&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;发送消息&#34;&gt;发送消息&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;命令 PUBLISH [channel] [message]&lt;/li&gt;
+&lt;li&gt;将message发送给channel频道所有订阅者&lt;/li&gt;
+&lt;li&gt;将message发送给 与channel频道匹配的模式 的订阅者&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;查看订阅信息&#34;&gt;查看订阅信息&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;查看被订阅的频道 PUBSUB CHANNELS [pattern]（可选）&lt;/li&gt;
+&lt;li&gt;查看订阅者数量 PUBSUB NUMSUB[channel-1 channel-2&amp;hellip;channel-n]&lt;/li&gt;
+&lt;li&gt;查看服务器被订阅模式数量 PUBSUB NUMPAT&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第十九章-事务&#34;&gt;第十九章 事务&lt;/h2&gt;
+&lt;h3 id=&#34;基础命令&#34;&gt;基础命令&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;事务开始 MULTI&lt;/li&gt;
+&lt;li&gt;事务提交 EXEC&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;事务实现&#34;&gt;事务实现&lt;/h3&gt;
+&lt;h4 id=&#34;事务开始&#34;&gt;事务开始&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;MULTI将客户端从非事务状态切换到事务状态&lt;/li&gt;
+&lt;li&gt;原理：设置客户端属性中 client.flags = REDIS_MULTI&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;命令入队&#34;&gt;命令入队&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;事务状态下，四个额外命令需立刻执行：EXEC，DISCARD，WATCH，MULTI&lt;/li&gt;
+&lt;li&gt;其余命令进入FIFO事务队列并返回QUEUED回复&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171540256.png&#34; alt=&#34;image-20230117154008094&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;事务执行&#34;&gt;事务执行&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;发送EXEC命令时，服务器遍历队列，依次执行，将结果全部返回给客户端&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;watch命令实现&#34;&gt;WATCH命令实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;底层是乐观锁&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;可以在EXEC执行前监视任意数量的key&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;如果执行过程中被WATCH监视的key被修改&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;则服务器拒绝事务，返回nil&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;原理&#34;&gt;原理&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;字典 key是key，value是监视的客户端链表&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;struct&lt;/span&gt; redisDb{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// ..
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// watched_keys字典
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 保存被WATCH监视的key
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    dict* watched_keys; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// ..
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171545549.png&#34; alt=&#34;image-20230117154537398&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;监视机制触发点：所有对数据库修改的命令，执行后都会调用multi.c/touchWatchKey检查watched_keys，如果该客户端正在监视被修改的key，则会设置client.flags = REDIS_DIRTY_CAS&lt;/li&gt;
+&lt;li&gt;REDIS_DIRTY_CAS的意思是事务安全性被破坏&lt;/li&gt;
+&lt;li&gt;最后收到EXEC，服务器会根据客户端是否打开REDIS_DIRTY_CAS标识，如果打开了则拒绝执行事务&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;（保证不读到脏数据：假设客户端A在事务执行期间监视key1，而客户端B修改key1的值，则客户端A的client.flag = REDIS_DIRTY_CAS，该事务将会被拒绝）&lt;/p&gt;
+&lt;h3 id=&#34;acid性质&#34;&gt;ACID性质&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Redis的作者在事务功能的文档中解释说，不支持事务回滚是因为这种复杂的功能和Redis追求简单高效的设计主旨不相符，并且他认为，Redis事务的执行时错误通常都是编程错误产生的，这种错误通常只会出现在开发环境中，而很少会在实际的生产环境中出现，所以他认为没有必要为Redis开发事务回滚功能。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;原子性（？）：不完备，不支持回滚&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;一致性（？）：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;拒绝入队错误：有一个命令错，则拒绝整个事务执行&lt;/li&gt;
+&lt;li&gt;拒绝执行错误：但是只是错误的语句不执行&lt;/li&gt;
+&lt;li&gt;服务器停机：..不太理解书的内容，之后找博客补（感觉是没有实现一致性）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;隔离型：Redis事务是单线程，执行事务期间不会对事务进行中断，因此串行方式运行，保证隔离性（事务内部的操作与其他&lt;em&gt;事务&lt;/em&gt;是&lt;em&gt;隔离&lt;/em&gt;的，并发执行的各个事务之间不能互相干扰）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;持久性：由Redis自己的持久化模式决定&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;无持久化：会丢失&lt;/li&gt;
+&lt;li&gt;RDB：只会在特定保存条件下保存，还是没啥持久性&lt;/li&gt;
+&lt;li&gt;AOF：并且还要设置appendfsync=always，才有持久性，另外两种选项（everysec,no）都没有持久性&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第二十章-lua脚本&#34;&gt;第二十章 Lua脚本&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Redis从2.6版本开始引入对Lua脚本的支持，通过在服务器中嵌入Lua环境，Redis客户端可以使用Lua脚本，直接在服务器端原子地执行多个Redis命令。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;只是大概看看，笔记后续补上&lt;/p&gt;
+&lt;p&gt;先草率的记一下重点回顾&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;Redis服务器在启动时，会对内嵌的Lua环境执行一系列修改操作，从而确保内嵌的Lua环境可以满足Redis在功能性、安全性等方面的需要。&lt;/li&gt;
+&lt;li&gt;Redis服务器专门使用一个&lt;strong&gt;伪客户端&lt;/strong&gt;来执行Lua脚本中包含的Redis命令。&lt;/li&gt;
+&lt;li&gt;Redis使用脚本字典来保存所有被EVAL命令执行过，或者被SCRIPT LOAD命令载入过的Lua脚本，这些脚本可以用于实现SCRIPT EXISTS命令，以及实现脚本复制功能。&lt;/li&gt;
+&lt;li&gt;EVAL命令为客户端输入的脚本在Lua环境中定义一个函数，并通过调用这个函数来执行脚本。&lt;/li&gt;
+&lt;li&gt;EVALSHA命令通过直接调用Lua环境中已定义的函数来执行脚本。&lt;/li&gt;
+&lt;li&gt;SCRIPT FLUSH命令会清空服务器lua_scripts字典中保存的脚本，并重置Lua环境。&lt;/li&gt;
+&lt;li&gt;SCRIPT EXISTS命令接受一个或多个SHA1校验和为参数，并通过检查lua_scripts字典来确认校验和对应的脚本是否存在。&lt;/li&gt;
+&lt;li&gt;SCRIPT LOAD命令接受一个Lua脚本为参数，为该脚本在Lua环境中创建函数，并将脚本保存到lua_scripts字典中。&lt;/li&gt;
+&lt;li&gt;服务器在执行脚本之前，会为Lua环境设置一个超时处理钩子，当脚本出现超时运行情况时，客户端可以通过向服务器发送SCRIPT KILL命令来让钩子停止正在执行的脚本，或者发送SHUTDOWN nosave命令来让钩子关闭整个服务器。&lt;/li&gt;
+&lt;li&gt;主服务器复制EVAL、SCRIPT FLUSH、SCRIPT LOAD三个命令的方法和复制普通Redis命令一样，只要将相同的命令传播给从服务器就可以了。&lt;/li&gt;
+&lt;li&gt;主服务器在复制EVALSHA命令时，必须确保所有从服务器都已经载入了EVALSHA命令指定的SHA1校验和所对应的Lua脚本，如果不能确保这一点的话，主服务器会将EVALSHA命令转换成等效的EVAL命令，并通过传播EVAL命令来获得相同的脚本执行效果。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第二十一章-排序&#34;&gt;第二十一章 排序&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;本章主讲排序的实现&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;SORT命令可用于排序&lt;/li&gt;
+&lt;li&gt;可作用对象：列表key、集合key、有序集合key&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;sort-key命令实现&#34;&gt;SORT [key]命令实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;SORT为每个要排序的数组创建一个redisSortObject结构&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;redisObject结构和数组大小相同&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;排序过程&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;redisSortObject结构中obj指针指向各个项&lt;/li&gt;
+&lt;li&gt;遍历数组，将各个项的值转换为double类型，保存在u.score(rSO中)&lt;/li&gt;
+&lt;li&gt;对redisSortObject进行排序&lt;/li&gt;
+&lt;li&gt;排序后按顺序返回指针即可&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645988.png&#34; alt=&#34;image-20230117161326314&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;alpha选项的实现&#34;&gt;ALPHA选项的实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;SORT [key] ALPHA&lt;/li&gt;
+&lt;li&gt;可以对包含字符串的值进行排序&lt;/li&gt;
+&lt;li&gt;和值排序的区别是直接用字符串的排序算法&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171614556.png&#34; alt=&#34;image-20230117161442392&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;asc选项和desc选项的实现&#34;&gt;ASC选项和DESC选项的实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;默认情况下SORT是ASC&lt;/li&gt;
+&lt;li&gt;如果用DESC则可以改为降序&lt;/li&gt;
+&lt;li&gt;实现原理就是redisSortObject反着排序（没啥好说的）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;by选项的实现&#34;&gt;BY选项的实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;默认情况下，SORT命令使用被排序键包含的元素作为排序的权重&lt;/li&gt;
+&lt;li&gt;但是如果用BY，可以指定字符串键或者哈希键中的某些域来作为权重&lt;/li&gt;
+&lt;li&gt;原理就是把s.score的值换下&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;带有alpha选项的by选项的实现&#34;&gt;带有ALPHA选项的BY选项的实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;原理就是把s.score的值换下&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;limit选项的实现&#34;&gt;LIMIT选项的实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;LIMIT [offset] [count] (offset:跳过数量，count:要返回数量)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;LIMIT可以让SORT只返回一部分已排序元素&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;get选项的实现&#34;&gt;GET选项的实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;默认情况下，SORT命令在对键进行排序之后，总是返回key&lt;/li&gt;
+&lt;li&gt;如果用GET可以令其返回value&lt;/li&gt;
+&lt;li&gt;一个SORT可以带有多个GET命令&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;store选项的实现&#34;&gt;STORE选项的实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;默认情况下，SORT命令只向客户端返回排序结果，而不保存排序结果&lt;/li&gt;
+&lt;li&gt;STORE可以将排序结果保存在指定key（如果key已存在，会清空key的值）中，有需要可以再用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;多个选项的执行顺序&#34;&gt;多个选项的执行顺序&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;改变选项的摆放位置，除了GET，其余则不会影响执行顺序&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;排序：ALPHA, ASC, DESC, BY&lt;/li&gt;
+&lt;li&gt;限制长度：LIMIT&lt;/li&gt;
+&lt;li&gt;获取外部键：GET&lt;/li&gt;
+&lt;li&gt;保存：STORE&lt;/li&gt;
+&lt;li&gt;返回&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645257.png&#34; alt=&#34;image-20230117162506277&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第二十二章-二进制数组&#34;&gt;第二十二章 二进制数组&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;平时好像没怎么用到&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;命令：SETBIT，GETBIT，BITCOUNT，BITOP&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Redis中使用SDS结构保存位数组&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;保存位的顺序与平时相反：左低右高（目的是扩容时不对左边进行移动-&amp;gt;一般是在高位加值）&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171628712.png&#34; alt=&#34;image-20230117162818529&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171629313.png&#34; alt=&#34;image-20230117162903140&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;bitcount实现原理&#34;&gt;BITCOUNT实现原理&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;目的是统计一个位数组中非0二进制位的数目&lt;/li&gt;
+&lt;li&gt;解决方案：variable-precision SWAR算法 + Redis&lt;/li&gt;
+&lt;li&gt;数学上：“计算汉明重量”（常用于信息论、编码理论、密码学）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;variable-precision SWAR算法计算过程：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;uint32_t&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;swar&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;uint32_t&lt;/span&gt; i){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    i = (i &amp;amp; &lt;span style=&#34;color:#b452cd&#34;&gt;0x55555555&lt;/span&gt;) + ((i&amp;gt;&amp;gt;&lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt;) &amp;amp; &lt;span style=&#34;color:#b452cd&#34;&gt;0x55555555&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    i = (i &amp;amp; &lt;span style=&#34;color:#b452cd&#34;&gt;0x33333333&lt;/span&gt;) + ((i&amp;gt;&amp;gt;&lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt;) &amp;amp; &lt;span style=&#34;color:#b452cd&#34;&gt;0x33333333&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 3
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    i = (i &amp;amp; &lt;span style=&#34;color:#b452cd&#34;&gt;0x0F0F0F0F&lt;/span&gt;) + ((i&amp;gt;&amp;gt;&lt;span style=&#34;color:#b452cd&#34;&gt;4&lt;/span&gt;) &amp;amp; &lt;span style=&#34;color:#b452cd&#34;&gt;0x0F0F0F0F&lt;/span&gt;));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;// 4
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;    i = (i*(&lt;span style=&#34;color:#b452cd&#34;&gt;0x01010101&lt;/span&gt;) &amp;gt;&amp;gt; &lt;span style=&#34;color:#b452cd&#34;&gt;24&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;步骤1计算出的值i的二进制表示可以按每两个二进制位为一组进行分组，各组的十进制表示就是该组的汉明重量。&lt;/li&gt;
+&lt;li&gt;步骤2计算出的值i的二进制表示可以按每四个二进制位为一组进行分组，各组的十进制表示就是该组的汉明重量。&lt;/li&gt;
+&lt;li&gt;步骤3计算出的值i的二进制表示可以按每八个二进制位为一组进行分组，各组的十进制表示就是该组的汉明重量。&lt;/li&gt;
+&lt;li&gt;步骤4的i*0x01010101语句计算出bitarray的汉明重量并记录在二进制位的最高八位，而＞＞24语句则通过右移运算，将bitarray的汉明重量移动到最低八位，得出的结果就是bitarray的汉明重量。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171637111.png&#34; alt=&#34;image-20230117163758933&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第二十三章-慢查询日志&#34;&gt;第二十三章 慢查询日志&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Redis的慢查询日志功能用于记录执行时间超过给定时长的命令请求，用户可以通过这个功能产生的日志来监视和优化查询速度。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;slowlog-log-slower-than：超过多少微秒会被记录&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;slowlog-max-len：最多保存几条&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;慢查询日志的存储方式是链表&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;新的日志会被添加到表头&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第二十四章-监视器&#34;&gt;第二十四章 监视器&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;通过执行MONITOR命令，客户端可以将自己变为一个监视器，实时地接收并打印出服务器当前处理的命令请求的相关信息&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;每当一个客户端向服务器发送一条命令请求时，服务器除了会处理这条命令请求之外，还会将关于这条命令请求的信息发送给所有监视器&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301171645428.png&#34; alt=&#34;image-20230117164312326&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;监视器的存储方式也是链表，存在redisServer的monitors中&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
 - https://kother.top/read/redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ - Kother.</description>
         </item>
     
