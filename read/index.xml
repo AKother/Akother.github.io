@@ -7,7 +7,28 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Kother.</copyright>
-    <lastBuildDate>Sat, 14 Jan 2023 23:54:03 +0800</lastBuildDate><atom:link href="https://kother.top/read/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 18 Jan 2023 17:01:06 +0800</lastBuildDate><atom:link href="https://kother.top/read/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Spring实战 读书笔记</title>
+      <link>https://kother.top/read/spring%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Wed, 18 Jan 2023 17:01:06 +0800</pubDate>
+      
+      <guid>https://kother.top/read/spring%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+      <description>Spring实战-读书笔记 这本书此前一直没看过，写了好些个项目以后补一下，只记录一些我认为有趣/个人不会/不了解的点，该笔记不适用于快速过完全书。
+注：跳过了很多内容
+[TOC]
+第一章 Spring起步 SpringBoot构建在Spring之上，通过简化依赖管理、自动配置和运行时洞察，使Spring更加易用。
+@SpringBootApplication 放在启动类，是一个组合注解，表明这是一个SpringBoot项目
+SpringBootConfiguration：是@Configuration的特殊形式 @EnableAutoConfiguration：开启自动配置 ComponsentScan：启用组件扫描（可以通过@Component, @Controller, @Service声明其他类，并令这些类被SpringBoot发现） main()方法 调用SpringApplication中的run()方法，创建Spring应用上下文
+第二章 开发Web应用 已跳过，基础的前后端都整合在Spring中的项目，由于现在前后端分离是常态，该部分可以粗略看看
+内容包括：
+在浏览器中展现模型数据； 处理和校验表单输入； 选择视图模板库。 WebMvcConfiguration WebMvcConfigurer定义了多个方法来配置SpringMVC，尽管只是一个接口，却提供了所有方法的默认实现，只需要我们覆盖所需的方法。
+小结 Spring提供了一个强大的Web框架，名为Spring MVC，它能够用来为Spring应用开发Web前端。 Spring MVC是基于注解的，通过像@RequestMapping、@GetMapping和@PostMapping这样的注解来启用请求处理方法的声明。 大多数的请求处理方法最终会返回一个视图的逻辑名称，比如Thymeleaf模板，请求会转发到这样的视图上（同时会带有任意的模型数据）。 Spring MVC支持校验，这是通过JavaBean Validation API和Validation API的实现（如Hibernate Validator）完成的。 我们可以在WebMvcConfigurer类中通过addViewController方法注册视图控制器，以处理没有模型数据和业务逻辑的HTTP GET请求。 除了Thymeleaf之外，Spring支持各种视图方案，包括FreeMarker、Groovy Templates和Mustache。 第三章 使用数据 JDBC基础知识
+Spring Data JDBC 关注对不同的数据库类型进行持久化，比较流行的项目如下
+Spring Data JDBC：对关系型数据库进行JDBC持久化。 Spring Data JPA：对关系型数据库进行JPA持久化。 Spring Data MongoDB：持久化到Mongo文档数据库。 Spring Data Neo4j：持久化到Neo4j图数据库。 Spring Data Redis：持久化到Redis键-值存储。 Spring Data Cassandra：持久化到Cassandra列存储数据库。
+第四章 使用非关系型数据 涉及到一部分MongoDB内容 -&amp;gt; 其实可以看官网</description>
+    </item>
+    
     <item>
       <title>Redis设计与实现 读书笔记</title>
       <link>https://kother.top/read/redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
