@@ -1,0 +1,6386 @@
+<!DOCTYPE html>
+<meta name="referrer" content="no-referrer" />
+<html><head>
+<title>KOTHER'S BLOG</title>
+
+
+
+
+<style> @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&display=swap'); </style>
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="Spring微服务实战 读书笔记" />
+<meta property="og:description" content="Spring微服务实战-读书笔记 书中引言：你将学习如何使用诸如Spring Cloud、Spring Boot、Swagger、Docker、Kubernetes、ELK（Elasticsearch、Logstash和Kibana）、Stack、Grafana、Prometheus等技术来构建微服务应用程序。
+书中涵盖内容：
+微服务是什么、最佳实践，以及构建基于微服务的应用程序的设计考虑因素。 什么时候不应该构建基于微服务的应用程序。 如何使用Spring Boot框架来构建微服务。 支持微服务应用程序的核心运维模式，特别是基于云的应用程序。 Docker是什么，如何将它与基于微服务的应用程序集成。 如何使用Spring Cloud来实现本章稍后描述的运维模式。 如何创建应用程序度量，并在监控工具中可视化这些度量。 如何利用Zipkin和Sleuth实现分布式跟踪。 如何使用ELK技术栈来管理应用程序日志。 如何利用已学的知识，构建一个部署管道，在本地将服务部署到内部管理的私有云或公有云厂商所提供的环境中。 [TOC]
+第一章 欢迎迈入云世界，Spring 单体架构 所有用户界面、业务和数据库访问逻辑都打包到一个唯一的应用程序中，并部署到应用程序服务器
+更容易部署 但也更难以管理 微服务 松耦合、分布式服务 功能独立 特征
+独立部署 微服务之间的通信机制： HTTP, JSON (RESTful Api) RPC (gRPC) 消息中间件 (RabbitMQ, Kafka) 服务底层与技术实现方式无关（用Go,Java..无所谓） 对比 项目构建概览 客户端请求Keycloak，进行身份验证，获取访问令牌 客户端携带令牌向服务网关发出请求 服务网关拿到令牌，查看令牌是否有效，并询问keycloak：用户是否有权继续访问，如果有效： 组织服务更新数据，检索用户信息，将用户信息作为HTTP响应发回客户端 组织服务往Kafka topic中添加消息，目的是让订阅该主题的许可证服务知晓更改 其中服务网关与Eureka进行通信，先检索组织和许可证服务的位置，再调用特定微服务 Redis会保存许可证服务中的信息 日志管理：Elasticsearch, Logstash 云计算 本书中基础服务设施将构建到CaaS中 路由模式 安全模式 第二章 使用SpringCloud探索微服务世界 学习Spring Cloud技术 了解云原生应用程序的原则 应用十二要素应用程序最佳实践 使用Spring Cloud构建微服务 什么是SpringCloud 服务注册与发现 微服务向第三方代理注册自己，此注册过程称为服务发现
+可以通过服务发现找到服务器的IP或名称，再通过服务器的逻辑名称来调用其中的业务逻辑
+Eureka(本书使用) ZooKeeper Consul Spring Cloud LoadBalancer 负载均衡" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kother.top/read/spring%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="read" />
+<meta property="article:published_time" content="2023-01-20T19:47:50+08:00" />
+<meta property="article:modified_time" content="2023-01-20T19:47:50+08:00" /><meta property="og:site_name" content="My Blog" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring微服务实战 读书笔记"/>
+<meta name="twitter:description" content="Spring微服务实战-读书笔记 书中引言：你将学习如何使用诸如Spring Cloud、Spring Boot、Swagger、Docker、Kubernetes、ELK（Elasticsearch、Logstash和Kibana）、Stack、Grafana、Prometheus等技术来构建微服务应用程序。
+书中涵盖内容：
+微服务是什么、最佳实践，以及构建基于微服务的应用程序的设计考虑因素。 什么时候不应该构建基于微服务的应用程序。 如何使用Spring Boot框架来构建微服务。 支持微服务应用程序的核心运维模式，特别是基于云的应用程序。 Docker是什么，如何将它与基于微服务的应用程序集成。 如何使用Spring Cloud来实现本章稍后描述的运维模式。 如何创建应用程序度量，并在监控工具中可视化这些度量。 如何利用Zipkin和Sleuth实现分布式跟踪。 如何使用ELK技术栈来管理应用程序日志。 如何利用已学的知识，构建一个部署管道，在本地将服务部署到内部管理的私有云或公有云厂商所提供的环境中。 [TOC]
+第一章 欢迎迈入云世界，Spring 单体架构 所有用户界面、业务和数据库访问逻辑都打包到一个唯一的应用程序中，并部署到应用程序服务器
+更容易部署 但也更难以管理 微服务 松耦合、分布式服务 功能独立 特征
+独立部署 微服务之间的通信机制： HTTP, JSON (RESTful Api) RPC (gRPC) 消息中间件 (RabbitMQ, Kafka) 服务底层与技术实现方式无关（用Go,Java..无所谓） 对比 项目构建概览 客户端请求Keycloak，进行身份验证，获取访问令牌 客户端携带令牌向服务网关发出请求 服务网关拿到令牌，查看令牌是否有效，并询问keycloak：用户是否有权继续访问，如果有效： 组织服务更新数据，检索用户信息，将用户信息作为HTTP响应发回客户端 组织服务往Kafka topic中添加消息，目的是让订阅该主题的许可证服务知晓更改 其中服务网关与Eureka进行通信，先检索组织和许可证服务的位置，再调用特定微服务 Redis会保存许可证服务中的信息 日志管理：Elasticsearch, Logstash 云计算 本书中基础服务设施将构建到CaaS中 路由模式 安全模式 第二章 使用SpringCloud探索微服务世界 学习Spring Cloud技术 了解云原生应用程序的原则 应用十二要素应用程序最佳实践 使用Spring Cloud构建微服务 什么是SpringCloud 服务注册与发现 微服务向第三方代理注册自己，此注册过程称为服务发现
+可以通过服务发现找到服务器的IP或名称，再通过服务器的逻辑名称来调用其中的业务逻辑
+Eureka(本书使用) ZooKeeper Consul Spring Cloud LoadBalancer 负载均衡"/>
+
+
+
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-123-45', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+
+
+
+  
+
+
+
+
+
+
+      <script src="/js/toc.js"></script>
+    
+    <link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<link rel="stylesheet" href="/scss/journal.min.66cf0f76f275d011531b27e244451df2f6155c714e54ce7ef938e51869bbdf64.css" integrity="sha256-Zs8PdvJ10BFTGyfiREUd8vYVXHFOVM5&#43;&#43;TjlGGm732Q=" media="screen">
+
+
+
+<link rel="stylesheet" href="/scss/dark-mode.min.31b4f7dd2c9db4bc1f5c9be4337b86ff309731dfbc886bcb23711efe353d1000.css" integrity="sha256-MbT33SydtLwfXJvkM3uG/zCXMd&#43;8iGvLI3Ee/jU9EAA=" media="screen">
+
+
+<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Material+Icons">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="/vendor/js/md5.min.js"></script><script>
+  var gitalk = new Gitalk({
+  clientID: 'ee22eaa3184cbf1df6d9',
+  clientSecret: '00bb1d24a9cfdc647db6e565549bc405f57c5dd1',
+  repo: 'Akother.github.io',
+  owner: 'Akother',
+  admin: ['Akother'],
+  id: md5(location.pathname),
+  distractionFreeMode: 'false'
+  });
+  window.onload = function () {
+        gitalk.render('gitalk-container')
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div id="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://kother.top">
+    
+        <div class="nav-title">
+            Kother&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            记录点喜欢的.
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/post">
+                博客
+            </a>
+            
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/read">
+                阅读
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+
+    </div>
+    
+</div><div id="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring%e5%be%ae%e6%9c%8d%e5%8a%a1%e5%ae%9e%e6%88%98-%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#spring微服务实战-读书笔记-nav`)" id="spring微服务实战-读书笔记-nav">
+									Spring微服务实战-读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e6%ac%a2%e8%bf%8e%e8%bf%88%e5%85%a5%e4%ba%91%e4%b8%96%e7%95%8cspring" onclick="onNavClick(`#第一章-欢迎迈入云世界spring-nav`)" id="第一章-欢迎迈入云世界spring-nav">
+									第一章 欢迎迈入云世界，Spring
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%95%e4%bd%93%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#单体架构-nav`)" id="单体架构-nav">
+									单体架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#微服务-nav`)" id="微服务-nav">
+									微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e6%af%94" onclick="onNavClick(`#对比-nav`)" id="对比-nav">
+									对比
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%a1%b9%e7%9b%ae%e6%9e%84%e5%bb%ba%e6%a6%82%e8%a7%88" onclick="onNavClick(`#项目构建概览-nav`)" id="项目构建概览-nav">
+									项目构建概览
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%91%e8%ae%a1%e7%ae%97" onclick="onNavClick(`#云计算-nav`)" id="云计算-nav">
+									云计算
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%b7%af%e7%94%b1%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#路由模式-nav`)" id="路由模式-nav">
+									路由模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%89%e5%85%a8%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#安全模式-nav`)" id="安全模式-nav">
+									安全模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-%e4%bd%bf%e7%94%a8springcloud%e6%8e%a2%e7%b4%a2%e5%be%ae%e6%9c%8d%e5%8a%a1%e4%b8%96%e7%95%8c" onclick="onNavClick(`#第二章-使用springcloud探索微服务世界-nav`)" id="第二章-使用springcloud探索微服务世界-nav">
+									第二章 使用SpringCloud探索微服务世界
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%80%e4%b9%88%e6%98%afspringcloud" onclick="onNavClick(`#什么是springcloud-nav`)" id="什么是springcloud-nav">
+									什么是SpringCloud
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%8d%e5%8a%a1%e6%b3%a8%e5%86%8c%e4%b8%8e%e5%8f%91%e7%8e%b0" onclick="onNavClick(`#服务注册与发现-nav`)" id="服务注册与发现-nav">
+									服务注册与发现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-loadbalancer" onclick="onNavClick(`#spring-cloud-loadbalancer-nav`)" id="spring-cloud-loadbalancer-nav">
+									Spring Cloud LoadBalancer
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-gateway" onclick="onNavClick(`#spring-cloud-gateway-nav`)" id="spring-cloud-gateway-nav">
+									Spring Cloud Gateway
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-stream" onclick="onNavClick(`#spring-cloud-stream-nav`)" id="spring-cloud-stream-nav">
+									Spring Cloud Stream
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-sleuth" onclick="onNavClick(`#spring-cloud-sleuth-nav`)" id="spring-cloud-sleuth-nav">
+									Spring Cloud Sleuth
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-security" onclick="onNavClick(`#spring-cloud-security-nav`)" id="spring-cloud-security-nav">
+									Spring Cloud Security
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8d%81%e4%ba%8c%e8%a6%81%e7%b4%a0%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f" onclick="onNavClick(`#十二要素应用程序-nav`)" id="十二要素应用程序-nav">
+									十二要素应用程序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%a3%e7%a0%81%e5%ba%93" onclick="onNavClick(`#代码库-nav`)" id="代码库-nav">
+									代码库
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%be%9d%e8%b5%96" onclick="onNavClick(`#依赖-nav`)" id="依赖-nav">
+									依赖
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%85%8d%e7%bd%ae" onclick="onNavClick(`#配置-nav`)" id="配置-nav">
+									配置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%90%8e%e7%ab%af%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#后端服务-nav`)" id="后端服务-nav">
+									后端服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9e%84%e5%bb%ba%e5%8f%91%e5%b8%83%e5%92%8c%e8%bf%90%e8%a1%8c" onclick="onNavClick(`#构建发布和运行-nav`)" id="构建发布和运行-nav">
+									构建、发布和运行
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#进程-nav`)" id="进程-nav">
+									进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ab%af%e5%8f%a3%e7%bb%91%e5%ae%9a" onclick="onNavClick(`#端口绑定-nav`)" id="端口绑定-nav">
+									端口绑定
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b9%b6%e5%8f%91" onclick="onNavClick(`#并发-nav`)" id="并发-nav">
+									并发
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e4%bb%bb%e6%84%8f%e5%a4%84%e7%bd%ae" onclick="onNavClick(`#可任意处置-nav`)" id="可任意处置-nav">
+									可任意处置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%80%e5%8f%91%e7%8e%af%e5%a2%83%e7%94%9f%e4%ba%a7%e7%8e%af%e5%a2%83%e7%ad%89%e5%90%8c" onclick="onNavClick(`#开发环境生产环境等同-nav`)" id="开发环境生产环境等同-nav">
+									开发环境/生产环境等同
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%97%a5%e5%bf%97" onclick="onNavClick(`#日志-nav`)" id="日志-nav">
+									日志
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ae%a1%e7%90%86%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#管理进程-nav`)" id="管理进程-nav">
+									管理进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-boot%e6%9e%84%e5%bb%ba%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#第三章-使用spring-boot构建微服务-nav`)" id="第三章-使用spring-boot构建微服务-nav">
+									第三章 使用Spring Boot构建微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%a6%82%e4%bd%95%e8%ae%be%e8%ae%a1%e5%be%ae%e6%9c%8d%e5%8a%a1%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#如何设计微服务架构-nav`)" id="如何设计微服务架构-nav">
+									如何设计微服务架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#o-stock%e5%8d%95%e4%bd%93%e6%9e%b6%e6%9e%84%e8%bf%81%e7%a7%bb%e5%be%ae%e6%9c%8d%e5%8a%a1%e5%88%86%e6%9e%90" onclick="onNavClick(`#o-stock单体架构迁移微服务分析-nav`)" id="o-stock单体架构迁移微服务分析-nav">
+									O-stock单体架构迁移微服务分析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%83%8c%e6%99%af" onclick="onNavClick(`#背景-nav`)" id="背景-nav">
+									背景
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bb%ba%e7%ab%8b%e6%9c%8d%e5%8a%a1%e7%b2%92%e5%ba%a6" onclick="onNavClick(`#建立服务粒度-nav`)" id="建立服务粒度-nav">
+									建立服务粒度
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e4%b9%89%e6%9c%8d%e5%8a%a1%e6%8e%a5%e5%8f%a3" onclick="onNavClick(`#定义服务接口-nav`)" id="定义服务接口-nav">
+									定义服务接口
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%95%e6%97%b6%e4%b8%8d%e7%94%a8%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#何时不用微服务-nav`)" id="何时不用微服务-nav">
+									何时不用微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e6%98%afjson" onclick="onNavClick(`#为什么是json-nav`)" id="为什么是json-nav">
+									为什么是JSON？
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-%e6%ac%a2%e8%bf%8e%e6%9d%a5%e5%88%b0docker" onclick="onNavClick(`#第四章-欢迎来到docker-nav`)" id="第四章-欢迎来到docker-nav">
+									第四章 欢迎来到Docker
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%b9%e5%99%a8%e5%92%8c%e8%99%9a%e6%8b%9f%e6%9c%ba%e7%9a%84%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#容器和虚拟机的区别-nav`)" id="容器和虚拟机的区别-nav">
+									容器和虚拟机的区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#docker%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#docker架构-nav`)" id="docker架构-nav">
+									Docker架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#dockerfile" onclick="onNavClick(`#dockerfile-nav`)" id="dockerfile-nav">
+									Dockerfile
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#docker-compose" onclick="onNavClick(`#docker-compose-nav`)" id="docker-compose-nav">
+									Docker compose
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud-config%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%ab%af%e6%8e%a7%e5%88%b6%e9%85%8d%e7%bd%ae" onclick="onNavClick(`#第五章-使用spring-cloud-config服务器端控制配置-nav`)" id="第五章-使用spring-cloud-config服务器端控制配置-nav">
+									第五章 使用Spring Cloud Config服务器端控制配置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%85%8d%e7%bd%ae%e7%ae%a1%e7%90%86%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#配置管理架构-nav`)" id="配置管理架构-nav">
+									配置管理架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e4%b9%89%e6%a0%b8%e5%bf%83%e9%85%8d%e7%bd%ae" onclick="onNavClick(`#定义核心配置-nav`)" id="定义核心配置-nav">
+									定义核心配置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-config-demo" onclick="onNavClick(`#spring-cloud-config-demo-nav`)" id="spring-cloud-config-demo-nav">
+									Spring Cloud Config Demo
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#configurationproperties" onclick="onNavClick(`#configurationproperties-nav`)" id="configurationproperties-nav">
+									@ConfigurationProperties
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#refreshscope" onclick="onNavClick(`#refreshscope-nav`)" id="refreshscope-nav">
+									@RefreshScope
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8git" onclick="onNavClick(`#使用git-nav`)" id="使用git-nav">
+									使用git
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#hashicorp-vault" onclick="onNavClick(`#hashicorp-vault-nav`)" id="hashicorp-vault-nav">
+									HashiCorp Vault
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#命令-nav`)" id="命令-nav">
+									命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%bf%e9%97%ae%e5%9c%b0%e5%9d%80" onclick="onNavClick(`#访问地址-nav`)" id="访问地址-nav">
+									访问地址
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%b0%8f%e7%bb%93" onclick="onNavClick(`#小结-nav`)" id="小结-nav">
+									小结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-%e5%85%b3%e4%ba%8e%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0" onclick="onNavClick(`#第六章-关于服务发现-nav`)" id="第六章-关于服务发现-nav">
+									第六章 关于服务发现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0%e5%be%88%e9%87%8d%e8%a6%81" onclick="onNavClick(`#为什么服务发现很重要-nav`)" id="为什么服务发现很重要-nav">
+									为什么服务发现很重要
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%a0%e7%bb%9f%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#传统模型-nav`)" id="传统模型-nav">
+									传统模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#服务发现架构-nav`)" id="服务发现架构-nav">
+									服务发现架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9b%9b%e4%b8%aa%e9%97%ae%e9%a2%98" onclick="onNavClick(`#四个问题-nav`)" id="四个问题-nav">
+									四个问题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%a2%e6%88%b7%e7%ab%af%e8%b4%9f%e8%bd%bd%e5%9d%87%e8%a1%a1" onclick="onNavClick(`#客户端负载均衡-nav`)" id="客户端负载均衡-nav">
+									客户端负载均衡
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#eureka%e5%ae%9e%e6%88%98demo" onclick="onNavClick(`#eureka实战demo-nav`)" id="eureka实战demo-nav">
+									Eureka实战Demo
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#过程-nav`)" id="过程-nav">
+									过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#enableeurekaserver" onclick="onNavClick(`#enableeurekaserver-nav`)" id="enableeurekaserver-nav">
+									@EnableEurekaServer
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#enablediscoveryclient" onclick="onNavClick(`#enablediscoveryclient-nav`)" id="enablediscoveryclient-nav">
+									@EnableDiscoveryClient
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%80%e5%90%afloadbalancer" onclick="onNavClick(`#开启loadbalancer-nav`)" id="开启loadbalancer-nav">
+									开启LoadBalancer
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8netflix-feign" onclick="onNavClick(`#使用netflix-feign-nav`)" id="使用netflix-feign-nav">
+									使用Netflix Feign
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93" onclick="onNavClick(`#总结-nav`)" id="总结-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud%e5%92%8cresilience4j%e7%9a%84%e5%bc%b9%e6%80%a7%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#第七章-使用spring-cloud和resilience4j的弹性模式-nav`)" id="第七章-使用spring-cloud和resilience4j的弹性模式-nav">
+									第七章 使用Spring Cloud和Resilience4j的弹性模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%a2%e6%88%b7%e7%ab%af%e5%bc%b9%e6%80%a7%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#客户端弹性模式-nav`)" id="客户端弹性模式-nav">
+									客户端弹性模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0resilience4j" onclick="onNavClick(`#实现resilience4j-nav`)" id="实现resilience4j-nav">
+									实现Resilience4j
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e6%96%ad%e8%b7%af%e5%99%a8-circuitbreaker" onclick="onNavClick(`#实现断路器-circuitbreaker-nav`)" id="实现断路器-circuitbreaker-nav">
+									实现断路器 @CircuitBreaker
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%90%8e%e5%a4%87%e6%96%b9%e6%b3%95-fallbackmethod" onclick="onNavClick(`#实现后备方法-fallbackmethod-nav`)" id="实现后备方法-fallbackmethod-nav">
+									实现后备方法 fallbackMethod
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e8%88%b1%e5%a3%81%e6%a8%a1%e5%bc%8f-bulkhead" onclick="onNavClick(`#实现舱壁模式-bulkhead-nav`)" id="实现舱壁模式-bulkhead-nav">
+									实现舱壁模式 @Bulkhead
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e9%87%8d%e8%af%95%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#实现重试模式-nav`)" id="实现重试模式-nav">
+									实现重试模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e9%99%90%e6%b5%81%e5%99%a8%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#实现限流器模式-nav`)" id="实现限流器模式-nav">
+									实现限流器模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#threadlocal%e5%92%8cresilience4j" onclick="onNavClick(`#threadlocal和resilience4j-nav`)" id="threadlocal和resilience4j-nav">
+									ThreadLocal和Resilience4j
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-1" onclick="onNavClick(`#总结-1-nav`)" id="总结-1-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud-gateway%e8%bf%9b%e8%a1%8c%e6%9c%8d%e5%8a%a1%e8%b7%af%e7%94%b1" onclick="onNavClick(`#第八章-使用spring-cloud-gateway进行服务路由-nav`)" id="第八章-使用spring-cloud-gateway进行服务路由-nav">
+									第八章 使用Spring Cloud Gateway进行服务路由
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%9c%80%e8%a6%81%e7%bd%91%e5%85%b3" onclick="onNavClick(`#为什么需要网关-nav`)" id="为什么需要网关-nav">
+									为什么需要网关？
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%85%8d%e7%bd%ae%e8%b7%af%e7%94%b1" onclick="onNavClick(`#配置路由-nav`)" id="配置路由-nav">
+									配置路由
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%80%9a%e8%bf%87%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0%e8%87%aa%e5%8a%a8%e6%98%a0%e5%b0%84" onclick="onNavClick(`#通过服务发现自动映射-nav`)" id="通过服务发现自动映射-nav">
+									通过服务发现自动映射
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0%e6%89%8b%e5%8a%a8%e6%98%a0%e5%b0%84%e8%b7%af%e7%94%b1" onclick="onNavClick(`#使用服务发现手动映射路由-nav`)" id="使用服务发现手动映射路由-nav">
+									使用服务发现手动映射路由
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%96%ad%e8%a8%80%e5%92%8c%e8%bf%87%e6%bb%a4%e5%99%a8%e5%b7%a5%e5%8e%82" onclick="onNavClick(`#断言和过滤器工厂-nav`)" id="断言和过滤器工厂-nav">
+									断言和过滤器工厂
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%ae%9a%e4%b9%89%e8%bf%87%e6%bb%a4%e5%99%a8" onclick="onNavClick(`#自定义过滤器-nav`)" id="自定义过滤器-nav">
+									自定义过滤器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-2" onclick="onNavClick(`#总结-2-nav`)" id="总结-2-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b9%9d%e7%ab%a0-%e4%bf%9d%e6%8a%a4%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#第九章-保护微服务-nav`)" id="第九章-保护微服务-nav">
+									第九章 保护微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#oauth" onclick="onNavClick(`#oauth-nav`)" id="oauth-nav">
+									OAuth
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#keycloak%e7%ae%80%e4%bb%8b" onclick="onNavClick(`#keycloak简介-nav`)" id="keycloak简介-nav">
+									Keycloak简介
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bf%9d%e6%8a%a4%e5%8d%95%e4%b8%aa%e7%ab%af%e7%82%b9" onclick="onNavClick(`#保护单个端点-nav`)" id="保护单个端点-nav">
+									保护单个端点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%a0%e6%92%ad%e8%ae%bf%e9%97%ae%e4%bb%a4%e7%89%8c" onclick="onNavClick(`#传播访问令牌-nav`)" id="传播访问令牌-nav">
+									传播访问令牌
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-3" onclick="onNavClick(`#总结-3-nav`)" id="总结-3-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud-stream%e7%9a%84%e4%ba%8b%e4%bb%b6%e9%a9%b1%e5%8a%a8%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#第十章-使用spring-cloud-stream的事件驱动架构-nav`)" id="第十章-使用spring-cloud-stream的事件驱动架构-nav">
+									第十章 使用Spring Cloud Stream的事件驱动架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e5%90%8c%e6%ad%a5%e8%af%b7%e6%b1%82-%e5%93%8d%e5%ba%94%e6%9d%a5%e4%bc%a0%e8%be%be%e7%8a%b6%e6%80%81%e5%8f%98%e5%8c%96" onclick="onNavClick(`#使用同步请求-响应来传达状态变化-nav`)" id="使用同步请求-响应来传达状态变化-nav">
+									使用同步请求-响应来传达状态变化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e6%b6%88%e6%81%af%e4%bc%a0%e9%80%92%e6%9d%a5%e4%bc%a0%e8%be%be%e7%8a%b6%e6%80%81%e6%9b%b4%e6%94%b9" onclick="onNavClick(`#使用消息传递来传达状态更改-nav`)" id="使用消息传递来传达状态更改-nav">
+									使用消息传递来传达状态更改
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%a5%bd%e5%a4%84" onclick="onNavClick(`#好处-nav`)" id="好处-nav">
+									好处
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%ba%e7%82%b9" onclick="onNavClick(`#缺点-nav`)" id="缺点-nav">
+									缺点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-stream%e7%ae%80%e4%bb%8b" onclick="onNavClick(`#spring-cloud-stream简介-nav`)" id="spring-cloud-stream简介-nav">
+									Spring Cloud Stream简介
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%84%e4%bb%b6" onclick="onNavClick(`#组件-nav`)" id="组件-nav">
+									组件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#demo" onclick="onNavClick(`#demo-nav`)" id="demo-nav">
+									Demo
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e5%86%99%e7%94%9f%e4%ba%a7%e8%80%85" onclick="onNavClick(`#编写生产者-nav`)" id="编写生产者-nav">
+									编写生产者
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e5%86%99%e6%b6%88%e8%b4%b9%e8%80%85" onclick="onNavClick(`#编写消费者-nav`)" id="编写消费者-nav">
+									编写消费者
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e4%b9%89%e8%87%aa%e5%ae%9a%e4%b9%89%e9%80%9a%e9%81%93" onclick="onNavClick(`#定义自定义通道-nav`)" id="定义自定义通道-nav">
+									定义自定义通道
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-4" onclick="onNavClick(`#总结-4-nav`)" id="总结-4-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%80%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud-sleuth%e5%92%8czipkin%e8%bf%9b%e8%a1%8c%e5%88%86%e5%b8%83%e5%bc%8f%e8%b7%9f%e8%b8%aa" onclick="onNavClick(`#第十一章-使用spring-cloud-sleuth和zipkin进行分布式跟踪-nav`)" id="第十一章-使用spring-cloud-sleuth和zipkin进行分布式跟踪-nav">
+									第十一章 使用Spring Cloud Sleuth和Zipkin进行分布式跟踪
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#使用方式-nav`)" id="使用方式-nav">
+									使用方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e6%88%90%e6%97%a5%e5%bf%97%e8%81%9a%e5%90%88" onclick="onNavClick(`#集成日志聚合-nav`)" id="集成日志聚合-nav">
+									集成日志聚合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#elk%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#elk实现-nav`)" id="elk实现-nav">
+									ELK实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#logstash" onclick="onNavClick(`#logstash-nav`)" id="logstash-nav">
+									Logstash
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b3%e8%81%94id" onclick="onNavClick(`#关联id-nav`)" id="关联id-nav">
+									关联ID
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-5" onclick="onNavClick(`#总结-5-nav`)" id="总结-5-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%ba%8c%e7%ab%a0-%e9%83%a8%e7%bd%b2%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#第十二章-部署微服务-nav`)" id="第十二章-部署微服务-nav">
+									第十二章 部署微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%89%e7%a7%8d%e6%b5%8b%e8%af%95%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#三种测试类型-nav`)" id="三种测试类型-nav">
+									三种测试类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#eks%e9%83%a8%e7%bd%b2" onclick="onNavClick(`#eks部署-nav`)" id="eks部署-nav">
+									EKS部署
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jenkins" onclick="onNavClick(`#jenkins-nav`)" id="jenkins-nav">
+									Jenkins
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a type="button" class="pagination-action" id="darkModeToggleButton">
+            <span class="material-icons pagination-action-icon" id="darkModeToggleIcon">
+                dark_mode
+            </span>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" id="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/post">
+                    博客
+                </a>
+                
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/read">
+                    阅读
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring%e5%be%ae%e6%9c%8d%e5%8a%a1%e5%ae%9e%e6%88%98-%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#spring微服务实战-读书笔记-nav`)" id="spring微服务实战-读书笔记-nav">
+									Spring微服务实战-读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e6%ac%a2%e8%bf%8e%e8%bf%88%e5%85%a5%e4%ba%91%e4%b8%96%e7%95%8cspring" onclick="onNavClick(`#第一章-欢迎迈入云世界spring-nav`)" id="第一章-欢迎迈入云世界spring-nav">
+									第一章 欢迎迈入云世界，Spring
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%95%e4%bd%93%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#单体架构-nav`)" id="单体架构-nav">
+									单体架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#微服务-nav`)" id="微服务-nav">
+									微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e6%af%94" onclick="onNavClick(`#对比-nav`)" id="对比-nav">
+									对比
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%a1%b9%e7%9b%ae%e6%9e%84%e5%bb%ba%e6%a6%82%e8%a7%88" onclick="onNavClick(`#项目构建概览-nav`)" id="项目构建概览-nav">
+									项目构建概览
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%91%e8%ae%a1%e7%ae%97" onclick="onNavClick(`#云计算-nav`)" id="云计算-nav">
+									云计算
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%b7%af%e7%94%b1%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#路由模式-nav`)" id="路由模式-nav">
+									路由模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%89%e5%85%a8%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#安全模式-nav`)" id="安全模式-nav">
+									安全模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-%e4%bd%bf%e7%94%a8springcloud%e6%8e%a2%e7%b4%a2%e5%be%ae%e6%9c%8d%e5%8a%a1%e4%b8%96%e7%95%8c" onclick="onNavClick(`#第二章-使用springcloud探索微服务世界-nav`)" id="第二章-使用springcloud探索微服务世界-nav">
+									第二章 使用SpringCloud探索微服务世界
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%80%e4%b9%88%e6%98%afspringcloud" onclick="onNavClick(`#什么是springcloud-nav`)" id="什么是springcloud-nav">
+									什么是SpringCloud
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%8d%e5%8a%a1%e6%b3%a8%e5%86%8c%e4%b8%8e%e5%8f%91%e7%8e%b0" onclick="onNavClick(`#服务注册与发现-nav`)" id="服务注册与发现-nav">
+									服务注册与发现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-loadbalancer" onclick="onNavClick(`#spring-cloud-loadbalancer-nav`)" id="spring-cloud-loadbalancer-nav">
+									Spring Cloud LoadBalancer
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-gateway" onclick="onNavClick(`#spring-cloud-gateway-nav`)" id="spring-cloud-gateway-nav">
+									Spring Cloud Gateway
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-stream" onclick="onNavClick(`#spring-cloud-stream-nav`)" id="spring-cloud-stream-nav">
+									Spring Cloud Stream
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-sleuth" onclick="onNavClick(`#spring-cloud-sleuth-nav`)" id="spring-cloud-sleuth-nav">
+									Spring Cloud Sleuth
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-security" onclick="onNavClick(`#spring-cloud-security-nav`)" id="spring-cloud-security-nav">
+									Spring Cloud Security
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8d%81%e4%ba%8c%e8%a6%81%e7%b4%a0%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f" onclick="onNavClick(`#十二要素应用程序-nav`)" id="十二要素应用程序-nav">
+									十二要素应用程序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%a3%e7%a0%81%e5%ba%93" onclick="onNavClick(`#代码库-nav`)" id="代码库-nav">
+									代码库
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%be%9d%e8%b5%96" onclick="onNavClick(`#依赖-nav`)" id="依赖-nav">
+									依赖
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%85%8d%e7%bd%ae" onclick="onNavClick(`#配置-nav`)" id="配置-nav">
+									配置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%90%8e%e7%ab%af%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#后端服务-nav`)" id="后端服务-nav">
+									后端服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9e%84%e5%bb%ba%e5%8f%91%e5%b8%83%e5%92%8c%e8%bf%90%e8%a1%8c" onclick="onNavClick(`#构建发布和运行-nav`)" id="构建发布和运行-nav">
+									构建、发布和运行
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#进程-nav`)" id="进程-nav">
+									进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ab%af%e5%8f%a3%e7%bb%91%e5%ae%9a" onclick="onNavClick(`#端口绑定-nav`)" id="端口绑定-nav">
+									端口绑定
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%b9%b6%e5%8f%91" onclick="onNavClick(`#并发-nav`)" id="并发-nav">
+									并发
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e4%bb%bb%e6%84%8f%e5%a4%84%e7%bd%ae" onclick="onNavClick(`#可任意处置-nav`)" id="可任意处置-nav">
+									可任意处置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%80%e5%8f%91%e7%8e%af%e5%a2%83%e7%94%9f%e4%ba%a7%e7%8e%af%e5%a2%83%e7%ad%89%e5%90%8c" onclick="onNavClick(`#开发环境生产环境等同-nav`)" id="开发环境生产环境等同-nav">
+									开发环境/生产环境等同
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%97%a5%e5%bf%97" onclick="onNavClick(`#日志-nav`)" id="日志-nav">
+									日志
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ae%a1%e7%90%86%e8%bf%9b%e7%a8%8b" onclick="onNavClick(`#管理进程-nav`)" id="管理进程-nav">
+									管理进程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-boot%e6%9e%84%e5%bb%ba%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#第三章-使用spring-boot构建微服务-nav`)" id="第三章-使用spring-boot构建微服务-nav">
+									第三章 使用Spring Boot构建微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%a6%82%e4%bd%95%e8%ae%be%e8%ae%a1%e5%be%ae%e6%9c%8d%e5%8a%a1%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#如何设计微服务架构-nav`)" id="如何设计微服务架构-nav">
+									如何设计微服务架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#o-stock%e5%8d%95%e4%bd%93%e6%9e%b6%e6%9e%84%e8%bf%81%e7%a7%bb%e5%be%ae%e6%9c%8d%e5%8a%a1%e5%88%86%e6%9e%90" onclick="onNavClick(`#o-stock单体架构迁移微服务分析-nav`)" id="o-stock单体架构迁移微服务分析-nav">
+									O-stock单体架构迁移微服务分析
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%83%8c%e6%99%af" onclick="onNavClick(`#背景-nav`)" id="背景-nav">
+									背景
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bb%ba%e7%ab%8b%e6%9c%8d%e5%8a%a1%e7%b2%92%e5%ba%a6" onclick="onNavClick(`#建立服务粒度-nav`)" id="建立服务粒度-nav">
+									建立服务粒度
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e4%b9%89%e6%9c%8d%e5%8a%a1%e6%8e%a5%e5%8f%a3" onclick="onNavClick(`#定义服务接口-nav`)" id="定义服务接口-nav">
+									定义服务接口
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%95%e6%97%b6%e4%b8%8d%e7%94%a8%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#何时不用微服务-nav`)" id="何时不用微服务-nav">
+									何时不用微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e6%98%afjson" onclick="onNavClick(`#为什么是json-nav`)" id="为什么是json-nav">
+									为什么是JSON？
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-%e6%ac%a2%e8%bf%8e%e6%9d%a5%e5%88%b0docker" onclick="onNavClick(`#第四章-欢迎来到docker-nav`)" id="第四章-欢迎来到docker-nav">
+									第四章 欢迎来到Docker
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%b9%e5%99%a8%e5%92%8c%e8%99%9a%e6%8b%9f%e6%9c%ba%e7%9a%84%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#容器和虚拟机的区别-nav`)" id="容器和虚拟机的区别-nav">
+									容器和虚拟机的区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#docker%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#docker架构-nav`)" id="docker架构-nav">
+									Docker架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#dockerfile" onclick="onNavClick(`#dockerfile-nav`)" id="dockerfile-nav">
+									Dockerfile
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#docker-compose" onclick="onNavClick(`#docker-compose-nav`)" id="docker-compose-nav">
+									Docker compose
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud-config%e6%9c%8d%e5%8a%a1%e5%99%a8%e7%ab%af%e6%8e%a7%e5%88%b6%e9%85%8d%e7%bd%ae" onclick="onNavClick(`#第五章-使用spring-cloud-config服务器端控制配置-nav`)" id="第五章-使用spring-cloud-config服务器端控制配置-nav">
+									第五章 使用Spring Cloud Config服务器端控制配置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%85%8d%e7%bd%ae%e7%ae%a1%e7%90%86%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#配置管理架构-nav`)" id="配置管理架构-nav">
+									配置管理架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e4%b9%89%e6%a0%b8%e5%bf%83%e9%85%8d%e7%bd%ae" onclick="onNavClick(`#定义核心配置-nav`)" id="定义核心配置-nav">
+									定义核心配置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-config-demo" onclick="onNavClick(`#spring-cloud-config-demo-nav`)" id="spring-cloud-config-demo-nav">
+									Spring Cloud Config Demo
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#configurationproperties" onclick="onNavClick(`#configurationproperties-nav`)" id="configurationproperties-nav">
+									@ConfigurationProperties
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#refreshscope" onclick="onNavClick(`#refreshscope-nav`)" id="refreshscope-nav">
+									@RefreshScope
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8git" onclick="onNavClick(`#使用git-nav`)" id="使用git-nav">
+									使用git
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#hashicorp-vault" onclick="onNavClick(`#hashicorp-vault-nav`)" id="hashicorp-vault-nav">
+									HashiCorp Vault
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#命令-nav`)" id="命令-nav">
+									命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%bf%e9%97%ae%e5%9c%b0%e5%9d%80" onclick="onNavClick(`#访问地址-nav`)" id="访问地址-nav">
+									访问地址
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%b0%8f%e7%bb%93" onclick="onNavClick(`#小结-nav`)" id="小结-nav">
+									小结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-%e5%85%b3%e4%ba%8e%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0" onclick="onNavClick(`#第六章-关于服务发现-nav`)" id="第六章-关于服务发现-nav">
+									第六章 关于服务发现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0%e5%be%88%e9%87%8d%e8%a6%81" onclick="onNavClick(`#为什么服务发现很重要-nav`)" id="为什么服务发现很重要-nav">
+									为什么服务发现很重要
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%a0%e7%bb%9f%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#传统模型-nav`)" id="传统模型-nav">
+									传统模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#服务发现架构-nav`)" id="服务发现架构-nav">
+									服务发现架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%9b%9b%e4%b8%aa%e9%97%ae%e9%a2%98" onclick="onNavClick(`#四个问题-nav`)" id="四个问题-nav">
+									四个问题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%a2%e6%88%b7%e7%ab%af%e8%b4%9f%e8%bd%bd%e5%9d%87%e8%a1%a1" onclick="onNavClick(`#客户端负载均衡-nav`)" id="客户端负载均衡-nav">
+									客户端负载均衡
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#eureka%e5%ae%9e%e6%88%98demo" onclick="onNavClick(`#eureka实战demo-nav`)" id="eureka实战demo-nav">
+									Eureka实战Demo
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#过程-nav`)" id="过程-nav">
+									过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#enableeurekaserver" onclick="onNavClick(`#enableeurekaserver-nav`)" id="enableeurekaserver-nav">
+									@EnableEurekaServer
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#enablediscoveryclient" onclick="onNavClick(`#enablediscoveryclient-nav`)" id="enablediscoveryclient-nav">
+									@EnableDiscoveryClient
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bc%80%e5%90%afloadbalancer" onclick="onNavClick(`#开启loadbalancer-nav`)" id="开启loadbalancer-nav">
+									开启LoadBalancer
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8netflix-feign" onclick="onNavClick(`#使用netflix-feign-nav`)" id="使用netflix-feign-nav">
+									使用Netflix Feign
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93" onclick="onNavClick(`#总结-nav`)" id="总结-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud%e5%92%8cresilience4j%e7%9a%84%e5%bc%b9%e6%80%a7%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#第七章-使用spring-cloud和resilience4j的弹性模式-nav`)" id="第七章-使用spring-cloud和resilience4j的弹性模式-nav">
+									第七章 使用Spring Cloud和Resilience4j的弹性模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%a2%e6%88%b7%e7%ab%af%e5%bc%b9%e6%80%a7%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#客户端弹性模式-nav`)" id="客户端弹性模式-nav">
+									客户端弹性模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0resilience4j" onclick="onNavClick(`#实现resilience4j-nav`)" id="实现resilience4j-nav">
+									实现Resilience4j
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e6%96%ad%e8%b7%af%e5%99%a8-circuitbreaker" onclick="onNavClick(`#实现断路器-circuitbreaker-nav`)" id="实现断路器-circuitbreaker-nav">
+									实现断路器 @CircuitBreaker
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%90%8e%e5%a4%87%e6%96%b9%e6%b3%95-fallbackmethod" onclick="onNavClick(`#实现后备方法-fallbackmethod-nav`)" id="实现后备方法-fallbackmethod-nav">
+									实现后备方法 fallbackMethod
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e8%88%b1%e5%a3%81%e6%a8%a1%e5%bc%8f-bulkhead" onclick="onNavClick(`#实现舱壁模式-bulkhead-nav`)" id="实现舱壁模式-bulkhead-nav">
+									实现舱壁模式 @Bulkhead
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e9%87%8d%e8%af%95%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#实现重试模式-nav`)" id="实现重试模式-nav">
+									实现重试模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e9%99%90%e6%b5%81%e5%99%a8%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#实现限流器模式-nav`)" id="实现限流器模式-nav">
+									实现限流器模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#threadlocal%e5%92%8cresilience4j" onclick="onNavClick(`#threadlocal和resilience4j-nav`)" id="threadlocal和resilience4j-nav">
+									ThreadLocal和Resilience4j
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-1" onclick="onNavClick(`#总结-1-nav`)" id="总结-1-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud-gateway%e8%bf%9b%e8%a1%8c%e6%9c%8d%e5%8a%a1%e8%b7%af%e7%94%b1" onclick="onNavClick(`#第八章-使用spring-cloud-gateway进行服务路由-nav`)" id="第八章-使用spring-cloud-gateway进行服务路由-nav">
+									第八章 使用Spring Cloud Gateway进行服务路由
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%9c%80%e8%a6%81%e7%bd%91%e5%85%b3" onclick="onNavClick(`#为什么需要网关-nav`)" id="为什么需要网关-nav">
+									为什么需要网关？
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%85%8d%e7%bd%ae%e8%b7%af%e7%94%b1" onclick="onNavClick(`#配置路由-nav`)" id="配置路由-nav">
+									配置路由
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%80%9a%e8%bf%87%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0%e8%87%aa%e5%8a%a8%e6%98%a0%e5%b0%84" onclick="onNavClick(`#通过服务发现自动映射-nav`)" id="通过服务发现自动映射-nav">
+									通过服务发现自动映射
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e6%9c%8d%e5%8a%a1%e5%8f%91%e7%8e%b0%e6%89%8b%e5%8a%a8%e6%98%a0%e5%b0%84%e8%b7%af%e7%94%b1" onclick="onNavClick(`#使用服务发现手动映射路由-nav`)" id="使用服务发现手动映射路由-nav">
+									使用服务发现手动映射路由
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%96%ad%e8%a8%80%e5%92%8c%e8%bf%87%e6%bb%a4%e5%99%a8%e5%b7%a5%e5%8e%82" onclick="onNavClick(`#断言和过滤器工厂-nav`)" id="断言和过滤器工厂-nav">
+									断言和过滤器工厂
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%ae%9a%e4%b9%89%e8%bf%87%e6%bb%a4%e5%99%a8" onclick="onNavClick(`#自定义过滤器-nav`)" id="自定义过滤器-nav">
+									自定义过滤器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-2" onclick="onNavClick(`#总结-2-nav`)" id="总结-2-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b9%9d%e7%ab%a0-%e4%bf%9d%e6%8a%a4%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#第九章-保护微服务-nav`)" id="第九章-保护微服务-nav">
+									第九章 保护微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#oauth" onclick="onNavClick(`#oauth-nav`)" id="oauth-nav">
+									OAuth
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#keycloak%e7%ae%80%e4%bb%8b" onclick="onNavClick(`#keycloak简介-nav`)" id="keycloak简介-nav">
+									Keycloak简介
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bf%9d%e6%8a%a4%e5%8d%95%e4%b8%aa%e7%ab%af%e7%82%b9" onclick="onNavClick(`#保护单个端点-nav`)" id="保护单个端点-nav">
+									保护单个端点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%a0%e6%92%ad%e8%ae%bf%e9%97%ae%e4%bb%a4%e7%89%8c" onclick="onNavClick(`#传播访问令牌-nav`)" id="传播访问令牌-nav">
+									传播访问令牌
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-3" onclick="onNavClick(`#总结-3-nav`)" id="总结-3-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud-stream%e7%9a%84%e4%ba%8b%e4%bb%b6%e9%a9%b1%e5%8a%a8%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#第十章-使用spring-cloud-stream的事件驱动架构-nav`)" id="第十章-使用spring-cloud-stream的事件驱动架构-nav">
+									第十章 使用Spring Cloud Stream的事件驱动架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e5%90%8c%e6%ad%a5%e8%af%b7%e6%b1%82-%e5%93%8d%e5%ba%94%e6%9d%a5%e4%bc%a0%e8%be%be%e7%8a%b6%e6%80%81%e5%8f%98%e5%8c%96" onclick="onNavClick(`#使用同步请求-响应来传达状态变化-nav`)" id="使用同步请求-响应来传达状态变化-nav">
+									使用同步请求-响应来传达状态变化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e6%b6%88%e6%81%af%e4%bc%a0%e9%80%92%e6%9d%a5%e4%bc%a0%e8%be%be%e7%8a%b6%e6%80%81%e6%9b%b4%e6%94%b9" onclick="onNavClick(`#使用消息传递来传达状态更改-nav`)" id="使用消息传递来传达状态更改-nav">
+									使用消息传递来传达状态更改
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%a5%bd%e5%a4%84" onclick="onNavClick(`#好处-nav`)" id="好处-nav">
+									好处
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%ba%e7%82%b9" onclick="onNavClick(`#缺点-nav`)" id="缺点-nav">
+									缺点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#spring-cloud-stream%e7%ae%80%e4%bb%8b" onclick="onNavClick(`#spring-cloud-stream简介-nav`)" id="spring-cloud-stream简介-nav">
+									Spring Cloud Stream简介
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bb%84%e4%bb%b6" onclick="onNavClick(`#组件-nav`)" id="组件-nav">
+									组件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#demo" onclick="onNavClick(`#demo-nav`)" id="demo-nav">
+									Demo
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e5%86%99%e7%94%9f%e4%ba%a7%e8%80%85" onclick="onNavClick(`#编写生产者-nav`)" id="编写生产者-nav">
+									编写生产者
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%96%e5%86%99%e6%b6%88%e8%b4%b9%e8%80%85" onclick="onNavClick(`#编写消费者-nav`)" id="编写消费者-nav">
+									编写消费者
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9a%e4%b9%89%e8%87%aa%e5%ae%9a%e4%b9%89%e9%80%9a%e9%81%93" onclick="onNavClick(`#定义自定义通道-nav`)" id="定义自定义通道-nav">
+									定义自定义通道
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-4" onclick="onNavClick(`#总结-4-nav`)" id="总结-4-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%80%e7%ab%a0-%e4%bd%bf%e7%94%a8spring-cloud-sleuth%e5%92%8czipkin%e8%bf%9b%e8%a1%8c%e5%88%86%e5%b8%83%e5%bc%8f%e8%b7%9f%e8%b8%aa" onclick="onNavClick(`#第十一章-使用spring-cloud-sleuth和zipkin进行分布式跟踪-nav`)" id="第十一章-使用spring-cloud-sleuth和zipkin进行分布式跟踪-nav">
+									第十一章 使用Spring Cloud Sleuth和Zipkin进行分布式跟踪
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%bf%e7%94%a8%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#使用方式-nav`)" id="使用方式-nav">
+									使用方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e6%88%90%e6%97%a5%e5%bf%97%e8%81%9a%e5%90%88" onclick="onNavClick(`#集成日志聚合-nav`)" id="集成日志聚合-nav">
+									集成日志聚合
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#elk%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#elk实现-nav`)" id="elk实现-nav">
+									ELK实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#logstash" onclick="onNavClick(`#logstash-nav`)" id="logstash-nav">
+									Logstash
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b3%e8%81%94id" onclick="onNavClick(`#关联id-nav`)" id="关联id-nav">
+									关联ID
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%80%bb%e7%bb%93-5" onclick="onNavClick(`#总结-5-nav`)" id="总结-5-nav">
+									总结
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%ba%8c%e7%ab%a0-%e9%83%a8%e7%bd%b2%e5%be%ae%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#第十二章-部署微服务-nav`)" id="第十二章-部署微服务-nav">
+									第十二章 部署微服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%89%e7%a7%8d%e6%b5%8b%e8%af%95%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#三种测试类型-nav`)" id="三种测试类型-nav">
+									三种测试类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#eks%e9%83%a8%e7%bd%b2" onclick="onNavClick(`#eks部署-nav`)" id="eks部署-nav">
+									EKS部署
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#jenkins" onclick="onNavClick(`#jenkins-nav`)" id="jenkins-nav">
+									Jenkins
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div id="drawer-mask" v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav id="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div id="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a id="navTitle" class="navbar-brand" href="https://kother.top">
+            Kother&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" id="darkModeToggleButton2">
+            <i class="material-icons" id="darkModeToggleIcon2">
+                dark_mode
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" id="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://kother.top">
+        <div class="single-column-header-title">Kother&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">记录点喜欢的.</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+                <div id="streamContainer" class="stream-container">
+
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    Spring微服务实战 读书笔记
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-01-20 19:47
+                        </time>
+                        
+
+                        
+
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="spring微服务实战-读书笔记">Spring微服务实战-读书笔记</h1>
+<blockquote>
+<p>书中引言：你将学习如何使用诸如Spring Cloud、Spring Boot、Swagger、Docker、Kubernetes、ELK（Elasticsearch、Logstash和Kibana）、Stack、Grafana、Prometheus等技术来构建微服务应用程序。</p>
+<p>书中涵盖内容：</p>
+<ul>
+<li>微服务是什么、最佳实践，以及构建基于微服务的应用程序的设计考虑因素。</li>
+<li>什么时候不应该构建基于微服务的应用程序。</li>
+<li>如何使用Spring Boot框架来构建微服务。</li>
+<li>支持微服务应用程序的核心运维模式，特别是基于云的应用程序。</li>
+<li>Docker是什么，如何将它与基于微服务的应用程序集成。</li>
+<li>如何使用Spring Cloud来实现本章稍后描述的运维模式。</li>
+<li>如何创建应用程序度量，并在监控工具中可视化这些度量。</li>
+<li>如何利用Zipkin和Sleuth实现分布式跟踪。</li>
+<li>如何使用ELK技术栈来管理应用程序日志。</li>
+<li>如何利用已学的知识，构建一个部署管道，在本地将服务部署到内部管理的私有云或公有云厂商所提供的环境中。</li>
+</ul>
+</blockquote>
+<p>[TOC]</p>
+<h2 id="第一章-欢迎迈入云世界spring">第一章 欢迎迈入云世界，Spring</h2>
+<h3 id="单体架构">单体架构</h3>
+<p>所有用户界面、业务和数据库访问逻辑都打包到一个唯一的应用程序中，并部署到应用程序服务器</p>
+<ul>
+<li>更容易部署</li>
+<li>但也更难以管理</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948344.png" alt="image-20230118173558181"></p>
+<h3 id="微服务">微服务</h3>
+<ul>
+<li>松耦合、分布式服务</li>
+<li>功能独立</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948126.png" alt="image-20230118173651954"></p>
+<p><strong>特征</strong></p>
+<ul>
+<li>独立部署</li>
+<li>微服务之间的通信机制：
+<ul>
+<li>HTTP, JSON (RESTful Api)</li>
+<li>RPC (gRPC)</li>
+<li>消息中间件 (RabbitMQ, Kafka)</li>
+</ul>
+</li>
+<li>服务底层与技术实现方式无关（用Go,Java..无所谓）</li>
+</ul>
+<h3 id="对比">对比</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948672.png" alt="image-20230118173842951"></p>
+<h3 id="项目构建概览">项目构建概览</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301181743648.png" alt="image-20230118174313608"></p>
+<ul>
+<li>客户端请求Keycloak，进行身份验证，获取访问令牌</li>
+<li>客户端携带令牌向服务网关发出请求
+<ul>
+<li>服务网关拿到令牌，查看令牌是否有效，并询问keycloak：用户是否有权继续访问，如果有效：
+<ul>
+<li>组织服务更新数据，检索用户信息，将用户信息作为HTTP响应发回客户端</li>
+<li>组织服务往Kafka topic中添加消息，目的是让订阅该主题的许可证服务知晓更改</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>其中服务网关与Eureka进行通信，先检索组织和许可证服务的位置，再调用特定微服务</li>
+<li>Redis会保存许可证服务中的信息</li>
+<li>日志管理：Elasticsearch, Logstash</li>
+</ul>
+<h3 id="云计算">云计算</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301181901069.png" alt="image-20230118190112036"></p>
+<ul>
+<li>本书中基础服务设施将构建到CaaS中</li>
+</ul>
+<h3 id="路由模式">路由模式</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948409.png" alt="image-20230118190624244"></p>
+<h3 id="安全模式">安全模式</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948932.png" alt="image-20230118190743463"></p>
+<h2 id="第二章-使用springcloud探索微服务世界">第二章 使用SpringCloud探索微服务世界</h2>
+<blockquote>
+<ul>
+<li>学习Spring Cloud技术</li>
+<li>了解云原生应用程序的原则</li>
+<li>应用十二要素应用程序最佳实践</li>
+<li>使用Spring Cloud构建微服务</li>
+</ul>
+</blockquote>
+<h3 id="什么是springcloud">什么是SpringCloud</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301181911982.png" alt="image-20230118191158938"></p>
+<h3 id="服务注册与发现">服务注册与发现</h3>
+<blockquote>
+<p>微服务向第三方代理注册自己，此注册过程称为服务发现</p>
+</blockquote>
+<p>可以通过服务发现找到服务器的IP或名称，再通过服务器的逻辑名称来调用其中的业务逻辑</p>
+<ul>
+<li>Eureka(本书使用)</li>
+<li>ZooKeeper</li>
+<li>Consul</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948661.png" alt="image-20230118202649861"></p>
+<h3 id="spring-cloud-loadbalancer">Spring Cloud LoadBalancer</h3>
+<blockquote>
+<p>负载均衡</p>
+</blockquote>
+<ul>
+<li>Resilience4：轻松实现客户端弹性模式（断路器、重试、舱壁模式）</li>
+</ul>
+<h3 id="spring-cloud-gateway">Spring Cloud Gateway</h3>
+<blockquote>
+<p>网关</p>
+</blockquote>
+<p>调用服务前必须通过的“门”，可以强制执行一些调用服务前操作：安全授权、验证、内容过滤、路由规则等</p>
+<ul>
+<li>Spring Cloud Gateway</li>
+</ul>
+<h3 id="spring-cloud-stream">Spring Cloud Stream</h3>
+<blockquote>
+<p>消息集成支持技术</p>
+</blockquote>
+<ul>
+<li>支持快速整合RabbitMQ、Kafka</li>
+</ul>
+<h3 id="spring-cloud-sleuth">Spring Cloud Sleuth</h3>
+<blockquote>
+<p>日志跟踪</p>
+</blockquote>
+<ul>
+<li>Spring Cloud Sleuth支持唯一跟踪ID自动添加到日志生成语句中</li>
+<li>ELK：Elasticsearch(搜索分析引擎), Logstash(数据处理管道)，, Kibana(可视化界面)</li>
+</ul>
+<h3 id="spring-cloud-security">Spring Cloud Security</h3>
+<blockquote>
+<p>验证与授权</p>
+</blockquote>
+<ul>
+<li>基于令牌</li>
+<li>支持JWT（OAuth2）</li>
+</ul>
+<h3 id="十二要素应用程序">十二要素应用程序</h3>
+<blockquote>
+<p>构建云原生微服务时的最佳实践</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948002.png" alt="image-20230118192457791"></p>
+<h4 id="代码库">代码库</h4>
+<ul>
+<li>多个环境可以共享一个代码库</li>
+<li>每个微服务都应该有独立的、支持版本控制的代码库</li>
+<li>代码库不与其他微服务共享</li>
+</ul>
+<h4 id="依赖">依赖</h4>
+<ul>
+<li>比如Maven &ndash;&gt; 始终使用相同的库版本构建服务</li>
+</ul>
+<h4 id="配置">配置</h4>
+<ul>
+<li>不推荐源代码中放嵌入式配置</li>
+<li>配置最好与可部署的微服务完全分离</li>
+</ul>
+<h4 id="后端服务">后端服务</h4>
+<ul>
+<li>是应用程序通过网络来互相调用的服务</li>
+<li>最好是第三方通信实现，通信更改后不影响程序代码</li>
+</ul>
+<h4 id="构建发布和运行">构建、发布和运行</h4>
+<ul>
+<li>将构建、发布和运行三个阶段分离</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301181930823.png" alt="image-20230118193000771"></p>
+<h4 id="进程">进程</h4>
+<ul>
+<li>微服务始终无状态，只关注请求信息</li>
+<li>所有要存储的数据放入缓存或数据库中（以防丢失）</li>
+</ul>
+<h4 id="端口绑定">端口绑定</h4>
+<ul>
+<li>特定端口发布特定服务</li>
+</ul>
+<h4 id="并发">并发</h4>
+<ul>
+<li>垂直扩展：基础设施++</li>
+<li>水平扩展：应用程序实例++</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301181932107.png" alt="image-20230118193207068"></p>
+<h4 id="可任意处置">可任意处置</h4>
+<ul>
+<li><strong>移除失效微服务不会影响其他服务</strong></li>
+<li>弹性扩展、支持快速部署和配置更改</li>
+<li>随时启动和停止都没有问题</li>
+</ul>
+<h4 id="开发环境生产环境等同">开发环境/生产环境等同</h4>
+<ul>
+<li>多个环境（开发、测试、生产）尽量保持一致性</li>
+</ul>
+<h4 id="日志">日志</h4>
+<ul>
+<li>ELK如下</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948988.png" alt="image-20230118193427725"></p>
+<h4 id="管理进程">管理进程</h4>
+<ul>
+<li>通过脚本执行管理任务（比如数据迁移、转换）</li>
+<li>比起人工方式，脚本方式减少工作量、可重复</li>
+</ul>
+<h2 id="第三章-使用spring-boot构建微服务">第三章 使用Spring Boot构建微服务</h2>
+<h3 id="如何设计微服务架构">如何设计微服务架构</h3>
+<ul>
+<li>分析业务问题</li>
+<li>建立服务粒度</li>
+<li>定义服务接口</li>
+</ul>
+<h3 id="o-stock单体架构迁移微服务分析">O-stock单体架构迁移微服务分析</h3>
+<h4 id="背景">背景</h4>
+<blockquote>
+<p>目的：将其迁移为微服务架构</p>
+</blockquote>
+<p>很常规的单体：所有业务需求访问同一个程序、同一个库</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301181943051.png" alt="image-20230118194317020"></p>
+<blockquote>
+<p>通过这样做，我们可以将O-stock问题域分解为候选微服务。
+● 我们要把Emma管理的<strong>合同信息存储在哪里</strong>？
+● 我们要在<strong>哪里存储许可证信息</strong>？<strong>如何管理</strong>许可证信息（成本、许可证类型、许可证所有者和许可证合同）？
+● Jenny在电脑上设置许可证。我们要在哪里存储这些资产？
+● 考虑前面提到的所有概念，我们可以看到许可证属于一个拥有多个资产的组织，是吧？那么，我们要在哪里存储<strong>组织信息</strong>呢？</p>
+</blockquote>
+<ul>
+<li>关键元素：合同、许可证、组织信息</li>
+<li>关键词汇：管理、存储位置&hellip;</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301181946975.png" alt="image-20230118194626921"></p>
+<blockquote>
+<p>以上为四个潜在微服务</p>
+</blockquote>
+<h4 id="建立服务粒度">建立服务粒度</h4>
+<ul>
+<li>重点关注<strong>服务如何互相交互</strong></li>
+<li>开始时服务可以大一些，后续慢慢重构为更小服务（防止复杂性提前出现）</li>
+</ul>
+<blockquote>
+<p>**什么是糟糕的微服务？如何知道微服务的大小是否合适？**如果微服务过于粗粒度，可能会看到以下现象：
+● 一个服务承担过多的职责
+● 一个服务跨大量表来管理数据（微服务拥有的表应该3～5个）
+● 一个服务的测试用例太多</p>
+<p><strong>如果微服务过于细粒度会怎么样呢？</strong>
+● 如果一切都成为微服务，从服务中组合出业务逻辑就会变得既复杂又困难。
+● 微服务彼此间严重相互依赖。在问题域的某一部分中，微服务相互来回调用以完成单个用户请求。
+● 微服务成为简单CRUD（Create、Read、Update、Delete）服务的集合。</p>
+</blockquote>
+<h4 id="定义服务接口">定义服务接口</h4>
+<blockquote>
+<p>目的：使服务方便理解和使用</p>
+</blockquote>
+<ul>
+<li>REST</li>
+<li>使用URI来传达意图</li>
+<li>JSON</li>
+<li>HTTP状态码</li>
+</ul>
+<h4 id="何时不用微服务">何时不用微服务</h4>
+<blockquote>
+<p>微服务不一定好</p>
+</blockquote>
+<ul>
+<li>微服务复杂性更高，如果很介意，不要考虑</li>
+<li>微服务部署在容器中，可能要单独搭建、维护容器服务器</li>
+<li>小应用也不用考虑微服务</li>
+<li>如果对数据和事务的一致性要求很高，慎重考虑微服务</li>
+</ul>
+<h3 id="为什么是json">为什么是JSON？</h3>
+<blockquote>
+<p>为什么微服务HTTP之间消息发送选JSON？</p>
+</blockquote>
+<ul>
+<li>JSON轻量</li>
+<li>JSON阅读性高</li>
+<li>JSON是JS的默认序列化协议</li>
+</ul>
+<h2 id="第四章-欢迎来到docker">第四章 欢迎来到Docker</h2>
+<blockquote>
+<p>近年来，容器的概念变得越来越流行，在软件架构中的地位从“最好有”变成了“必须要有”。容器的使用是一种敏捷而有用的方式，可以将任何软件从一个平台迁移和实施到另一个平台（例如，从开发人员的机器迁移到物理或虚拟企业服务器）。我们可以用更小、适应性更强的虚拟化软件容器替代传统的Web服务器模型，这些容器为我们的微服务提供速度、可移植性和可伸缩性等优势。</p>
+</blockquote>
+<h3 id="容器和虚拟机的区别">容器和虚拟机的区别</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301182032181.png" alt="image-20230118203231129"></p>
+<ul>
+<li>容器使用“容器引擎”，不需要客体操作系统和虚拟机管理系统</li>
+</ul>
+<blockquote>
+<ul>
+<li>容器可以在任何地方运行，这有助于开发和实现，并提高了可移植性。</li>
+<li>容器提供了创建可预测环境的能力，这些环境与其他应用程序完全隔离。</li>
+<li>容器可以比虚拟机更快地启动和停止，这使得它们成为云原生是可行的。</li>
+<li>容器是可伸缩的，可以主动调度和管理，以优化资源利用，提高在其中运行的应用程序的性能和可维护性。</li>
+<li>我们可以在最小数量的服务器上实现最大数量的应用程序。</li>
+</ul>
+</blockquote>
+<h3 id="docker架构">Docker架构</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948118.png" alt="image-20230118203550796"></p>
+<h3 id="dockerfile">Dockerfile</h3>
+<ul>
+<li>内容：用来创建和准备镜像的指令列表</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948397.png" alt="image-20230118203818795"></p>
+<h3 id="docker-compose">Docker compose</h3>
+<ul>
+<li>用于设计和构建微服务的脚本</li>
+<li>使用步骤
+<ul>
+<li>创建 docker-compose.yml</li>
+<li>检查文件有效性 docker-compose config</li>
+<li>启动服务 docker-compose up</li>
+</ul>
+</li>
+</ul>
+<h2 id="第五章-使用spring-cloud-config服务器端控制配置">第五章 使用Spring Cloud Config服务器端控制配置</h2>
+<blockquote>
+<p>本章主要内容
+● 将服务配置与服务代码分开
+● 配置Spring Cloud Config服务器端
+● 将Spring Boot微服务与配置服务器端集成
+● 加密敏感属性
+● 将Spring Cloud Config服务器端与HashiCorp Vault集成</p>
+</blockquote>
+<h3 id="配置管理架构">配置管理架构</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948733.png" alt="image-20230118223930370"></p>
+<ul>
+<li>配置文件存放在数据库</li>
+<li>配置管理服务是 微服务 与 配置数据库 的中介，负责通知微服务</li>
+</ul>
+<h3 id="定义核心配置">定义核心配置</h3>
+<blockquote>
+<p>Spring Cloud Config的服务端核心配置文件</p>
+<p>这个文件可以是以下文件中的一个：application.properties、application.yml、bootstrap.properties或bootstrap.yml</p>
+</blockquote>
+<ul>
+<li>bootstrap在application.*文件之前加载</li>
+</ul>
+<h3 id="spring-cloud-config-demo">Spring Cloud Config Demo</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301182312057.png" alt="image-20230118231219004"></p>
+<ul>
+<li>使用PostgreSQL作为配置文件的存储数据库</li>
+</ul>
+<h4 id="configurationproperties">@ConfigurationProperties</h4>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@ConfigurationProperties</span>(prefix = <span style="color:#cd5555">&#34;example&#34;</span>) <span style="color:#228b22">// 提取所有example属性
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#707a7c">@Getter</span> 
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@Setter</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">ServiceConfig</span>{
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">private</span> String property;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="refreshscope">@RefreshScope</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@SpringBootApplication</span>
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@RefreshScope</span> <span style="color:#228b22">// 强制重新读取配置文件
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">LicenseServiceApplication</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">main</span>(String[] args) {
+</span></span><span style="display:flex;"><span>		SpringApplication.<span style="color:#658b00">run</span>(LicenseServiceApplication.<span style="color:#658b00">class</span>, args);
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>只会重新加载应用程序中自定义的Spring配置</li>
+</ul>
+<h3 id="使用git">使用git</h3>
+<p>文件：Spring Cloud bootstrap.yml</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">spring</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span><span style="color:#8b008b;font-weight:bold">application</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">      </span><span style="color:#8b008b;font-weight:bold">name</span>:<span style="color:#bbb"> </span>config-server<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span><span style="color:#8b008b;font-weight:bold">profiles</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">      </span><span style="color:#8b008b;font-weight:bold">active</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">       </span>- native, git    ⇽---  映射所有profile（这是一个逗号分隔的列表）<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span><span style="color:#8b008b;font-weight:bold">cloud</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">      </span><span style="color:#8b008b;font-weight:bold">config</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">         </span><span style="color:#8b008b;font-weight:bold">server</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">            </span><span style="color:#8b008b;font-weight:bold">native</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">               </span><span style="color:#8b008b;font-weight:bold">search-locations</span>:<span style="color:#bbb"> </span>classpath:/config<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">            </span><span style="color:#8b008b;font-weight:bold">git</span>:<span style="color:#bbb">    </span>⇽---  告诉Spring Cloud Config使用Git作为后端存储库<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">               </span><span style="color:#8b008b;font-weight:bold">uri</span>:<span style="color:#bbb"> </span>https://github.com/ihuaylupo/<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">                       </span>config.git    ⇽---  告诉Spring Cloud Config到Git存储库的URL<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">               </span><span style="color:#8b008b;font-weight:bold">searchPaths</span>:<span style="color:#bbb"> </span>licensingservice    ⇽---  告诉Spring Cloud Config使用Git中的哪个路径来查找配置文件<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">server</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">    </span><span style="color:#8b008b;font-weight:bold">port</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">8071</span><span style="color:#bbb">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="hashicorp-vault">HashiCorp Vault</h3>
+<h4 id="命令">命令</h4>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker run -d -p 8200:8200 --name vault -e <span style="color:#cd5555">&#39;VAULT_DEV_ROOT_TOKEN_ID=myroot&#39;</span> -e <span style="color:#cd5555">&#39;VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200&#39;</span> vault
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="访问地址">访问地址</h4>
+<p>http://localhost:8200/ui/vault/auth</p>
+<h3 id="小结">小结</h3>
+<ul>
+<li>Spring Cloud配置服务器端（又称Spring Cloud Config服务器端，或者简称Config服务器端）允许使用环境特定值设置应用程序属性。</li>
+<li>Spring使用profile来启动服务，以确定要从Spring Cloud Config服务检索哪些环境属性。</li>
+<li>Spring Cloud Config服务可以使用基于文件、基于Git或基于Vault的应用程序配置存储库来存储应用程序属性。</li>
+<li>Spring Cloud Config服务允许使用对称加密和非对称加密对敏感属性文件进行加密。</li>
+</ul>
+<h2 id="第六章-关于服务发现">第六章 关于服务发现</h2>
+<blockquote>
+<p>● 为什么服务发现对基于云的应用程序很重要
+● 服务发现与负载均衡器的优缺点
+● 建立一个Spring Netflix Eureka服务器端
+● 通过Eureka注册一个基于Spring Boot的微服务
+● 使用Spring Cloud LoadBalancer库来完成客户端负载均衡</p>
+</blockquote>
+<h3 id="为什么服务发现很重要">为什么服务发现很重要</h3>
+<ul>
+<li>可以快速对服务器进行水平伸缩（增加/删除实例服务器数量）</li>
+<li>提高应用程序弹性，移除不可用服务</li>
+</ul>
+<h3 id="传统模型">传统模型</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201455471.png" alt="image-20230120145551349"></p>
+<p><strong>对于微服务来说，传统模型存在什么问题？</strong></p>
+<ul>
+<li>单点故障：负载均衡器一挂则挂，并且是集中阻塞点</li>
+<li>静态管理：比如数据库，添加新路由（服务器）方法是通过专用API</li>
+<li>映射到物理服务：服务的映射规则必须手动定义和部署，增加复杂度</li>
+<li>新实例需要手动注册：传统场景中，新实例启动时不会自动完成注册</li>
+</ul>
+<h3 id="服务发现架构">服务发现架构</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201500632.png" alt="image-20230120150007582"></p>
+<h4 id="四个问题">四个问题</h4>
+<ul>
+<li>注册：新服务上线时，如何发现服务代理，并进行注册</li>
+<li>查找：服务客户端如何查找服务信息</li>
+<li>共享：服务发现的节点之间如何共享服务信息</li>
+<li>健康：服务如何将它们的“健康信息”传递给服务发现</li>
+</ul>
+<h3 id="客户端负载均衡">客户端负载均衡</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201503880.png" alt="image-20230120150337830"></p>
+<ul>
+<li>所有服务都会在客户端第一次调用时，缓存在本机器上</li>
+<li>客户端需要调用时，先从缓存中查找，方式是“轮询”或其他简单算法，这样使得客户端不必每次调用都询问服务发现</li>
+<li>如果调用失败，则说明缓存失效，客户端联系服务发现并刷新节点</li>
+<li>客户端会定期与服务发现联系并更新缓存</li>
+</ul>
+<h3 id="eureka实战demo">Eureka实战Demo</h3>
+<blockquote>
+<p>在本章中，我们不打算使用Ribbon。Ribbon是事实上的客户端负载均衡器，用于使用Spring Cloud的应用程序之间基于REST的通信。虽然Netflix Ribbon客户端负载均衡是一个稳定的解决方案，但它现在已经进入了维护模式，所以很遗憾，它将不再被开发。</p>
+<p>本章技术：</p>
+<p>Netflix Eureka</p>
+<p>Spring Cloud LoadBalancer</p>
+</blockquote>
+<h4 id="过程">过程</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201511445.png" alt="image-20230120151138410"></p>
+<ul>
+<li>
+<p>服务器启动时向Eureka注册，告诉Eureka自己的物理位置和端口号，以及自己设定的服务ID</p>
+<blockquote>
+<p>每次服务注册需要30秒的时间才能显示在Eureka服务中，这是因为Eureka需要从服务接收3次连续心跳包ping，每次心跳包ping间隔10秒，然后才能使用这个服务</p>
+</blockquote>
+</li>
+<li>
+<p>当A服务希望调用B服务时，LoadBalancer联系Eureka检索服务信息，并在本地缓存</p>
+<blockquote>
+<p>LoadBalancer会定期对Eureka服务器进行ping，并更新缓存</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="enableeurekaserver">@EnableEurekaServer</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@SpringBootApplication</span>
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@EnableEurekaServer</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">EurekaServerApplication</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">main</span>(String[] args) {
+</span></span><span style="display:flex;"><span>		SpringApplication.<span style="color:#658b00">run</span>(EurekaServerApplication.<span style="color:#658b00">class</span>, args);
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="enablediscoveryclient">@EnableDiscoveryClient</h3>
+<ul>
+<li>
+<p>@EnableDiscoveryClient注解是Spring Cloud的触发器，其作用是使应用程序能够使用Discovery Client和Spring Cloud LoadBalancer库。</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@SpringBootApplication</span>
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@RefreshScope</span>
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@EnableDiscoveryClient</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">//为了在代码中使用Feign客户端
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#707a7c">@EnableFeignClients</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">LicenseServiceApplication</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>   <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">main</span>(String[] args) {
+</span></span><span style="display:flex;"><span>      SpringApplication.<span style="color:#658b00">run</span>(LicenseServiceApplication.<span style="color:#658b00">class</span>, args);
+</span></span><span style="display:flex;"><span>   }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>此处并没有负载均衡</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>  <span style="color:#228b22">//获取组织服务的所有实例的列表
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        List&lt;ServiceInstance&gt; instances = discoveryClient.<span style="color:#658b00">getInstances</span>(<span style="color:#cd5555">&#34;organization-service&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> (instances.<span style="color:#658b00">size</span>()==0) <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">null</span>;
+</span></span><span style="display:flex;"><span>   <span style="color:#228b22">//检索服务端点
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>   String serviceUri = String.<span style="color:#658b00">format</span>(<span style="color:#cd5555">&#34;%s/v1/organization/%s&#34;</span>,instances.<span style="color:#658b00">get</span>(0).<span style="color:#658b00">getUri</span>().<span style="color:#658b00">toString</span>(), organizationId);
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<h3 id="开启loadbalancer">开启LoadBalancer</h3>
+<p>在启动类中：</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#228b22">//获取组织服务的所有实例的列表
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#707a7c">@LoadBalanced</span>
+</span></span><span style="display:flex;"><span><span style="color:#707a7c">@Bean</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> RestTemplate <span style="color:#008b45">getRestTemplate</span>(){
+</span></span><span style="display:flex;"><span>   <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">new</span> RestTemplate();
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>调用时用@Autowired即可</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@Component</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">OrganizationRestTemplateClient</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Autowired</span>
+</span></span><span style="display:flex;"><span>    RestTemplate restTemplate;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> Organization <span style="color:#008b45">getOrganization</span>(String organizationId){
+</span></span><span style="display:flex;"><span>        ResponseEntity&lt;Organization&gt; restExchange =
+</span></span><span style="display:flex;"><span>                restTemplate.<span style="color:#658b00">exchange</span>(
+</span></span><span style="display:flex;"><span>                        <span style="color:#228b22">//在使用Load Balancer支持的RestTemplate时，使用Eureka服务ID来构建目标URL
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>                        <span style="color:#cd5555">&#34;http://organization-service/v1/organization/{organizationId}&#34;</span>,
+</span></span><span style="display:flex;"><span>                        HttpMethod.<span style="color:#658b00">GET</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">null</span>, Organization.<span style="color:#658b00">class</span>, organizationId);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> restExchange.<span style="color:#658b00">getBody</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="使用netflix-feign">使用Netflix Feign</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#228b22">// 启动类中标注
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#707a7c">@EnableFeignClients</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#228b22">//向Feign标识服务
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#707a7c">@FeignClient</span>(<span style="color:#cd5555">&#34;organization-service&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">interface</span> <span style="color:#008b45;font-weight:bold">OrganizationFeignClient</span> { <span style="color:#228b22">// 变为接口
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">//定义端点的路径和动作
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#707a7c">@RequestMapping</span>(
+</span></span><span style="display:flex;"><span>            method= RequestMethod.<span style="color:#658b00">GET</span>,
+</span></span><span style="display:flex;"><span>            value=<span style="color:#cd5555">&#34;/v1/organization/{organizationId}&#34;</span>,
+</span></span><span style="display:flex;"><span>            consumes=<span style="color:#cd5555">&#34;application/json&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">//定义传入端点的参数
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    Organization <span style="color:#008b45">getOrganization</span>(<span style="color:#707a7c">@PathVariable</span>(<span style="color:#cd5555">&#34;organizationId&#34;</span>) String organizationId);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>@FeignClient(&ldquo;service-name&rdquo;)</li>
+<li>状态码4xx~5xx会被映射为FeignException</li>
+</ul>
+<h3 id="总结">总结</h3>
+<p>● 我们使用服务发现模式来抽象服务的物理位置。
+● 诸如Eureka这样的服务发现引擎可以在不影响服务客户端的情况下，无缝地向环境中添加和从环境中移除服务实例。
+● 通过在进行服务调用的客户端中缓存服务的物理位置，客户端负载均衡可以提供额外的性能和弹性。
+● Eureka是Netflix项目，在与Spring Cloud一起使用时，很容易建立和配置。
+● 你可以使用Spring Cloud和Netflix Eureka中的这3种不同机制调用服务：Spring Cloud Discovery Client、Spring Cloud支持Load Balancer的RestTemplate以及Netflix的Feign客户端。</p>
+<h2 id="第七章-使用spring-cloud和resilience4j的弹性模式">第七章 使用Spring Cloud和Resilience4j的弹性模式</h2>
+<blockquote>
+<p>● 实现断路器模式、后备模式和舱壁模式
+● 使用断路器模式来保护客户端资源
+● 当远程服务失败时使用Resilience4j
+● 实现Resilience4j的舱壁模式来隔离远程资源调用
+● 调节Resilience4j的断路器和舱壁的实现
+● 定制Resilience4j的并发策略</p>
+<p>在使用Resilience4j之前，我们使用的是Hystrix，这是在微服务中实现弹性模式的最常见的Java库之一。Hystrix目前处于维护模式，这意味着它不再包含新特性，因此最推荐使用的替代库之一是Resilience4j。</p>
+</blockquote>
+<h3 id="客户端弹性模式">客户端弹性模式</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201549147.png" alt="image-20230120154935073"></p>
+<ul>
+<li>快速失败：减少资源消耗</li>
+<li>断路器：
+<ul>
+<li>调用时间过长：中断调用</li>
+<li>调用失败次数过多：采取快速失败，阻止该调用</li>
+</ul>
+</li>
+<li>后背：调用失败时尝试其他方式</li>
+<li>舱壁：隔离每个远程线程并分配到对应线程池，不至于拖垮</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948601.png" alt="image-20230120155442940"></p>
+<h3 id="实现resilience4j">实现Resilience4j</h3>
+<p>包含以下五个功能：</p>
+<p>● 断路器——当被调用的服务发生失败时，停止发出请求。</p>
+<p>● 舱壁——限制传出的并发服务请求数以避免过载。</p>
+<p>● 后备——为失败的请求设置备用路径</p>
+<p>● 重试——在服务暂时失败时重试服务。</p>
+<p>● 限流——限制一个服务在一定时间内接收的调用数。</p>
+<blockquote>
+<p>配置相关都可以在配置文件中设置</p>
+</blockquote>
+<h4 id="实现断路器-circuitbreaker">实现断路器 @CircuitBreaker</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201558611.png" alt="image-20230120155849535"></p>
+<ul>
+<li>
+<p>三种状态：闭合、断开、半断开</p>
+</li>
+<li>
+<p>@CircuitBreaker包装方法</p>
+<ul>
+<li>动态生成代理，代理包装方法（线程池接管）</li>
+<li>如果只使用@CircuitBreaker，是默认配置，但最好<strong>自定义</strong>（Config服务端 / 配置文件）</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#228b22">// fallbackMethod : 后备策略（方法）
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#707a7c">@CircuitBreaker</span>(name = <span style="color:#cd5555">&#34;licenseService&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">public</span> List&lt;License&gt; <span style="color:#008b45">getLicensesByOrganization</span>(String organizationId) <span style="color:#8b008b;font-weight:bold">throws</span> TimeoutException {
+</span></span><span style="display:flex;"><span>		logger.<span style="color:#658b00">debug</span>(<span style="color:#cd5555">&#34;getLicensesByOrganization Correlation id: {}&#34;</span>,
+</span></span><span style="display:flex;"><span>				UserContextHolder.<span style="color:#658b00">getContext</span>().<span style="color:#658b00">getCorrelationId</span>());
+</span></span><span style="display:flex;"><span>		randomlyRunLong();
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">return</span> licenseRepository.<span style="color:#658b00">findByOrganizationId</span>(organizationId);
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="实现后备方法-fallbackmethod">实现后备方法 fallbackMethod</h4>
+<ul>
+<li>原方法需要与后备方法在同一个类中</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#228b22">// fallbackMethod : 后备策略（方法）
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#707a7c">@CircuitBreaker</span>(name = <span style="color:#cd5555">&#34;licenseService&#34;</span>, fallbackMethod = <span style="color:#cd5555">&#34;buildFallbackLicenseList&#34;</span>)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>定义后备方法</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">private</span> List&lt;License&gt; <span style="color:#008b45">buildFallbackLicenseList</span>(String organizationId, Throwable t){
+</span></span><span style="display:flex;"><span>		List&lt;License&gt; fallbackList = <span style="color:#8b008b;font-weight:bold">new</span> ArrayList&lt;&gt;();
+</span></span><span style="display:flex;"><span>		License license = <span style="color:#8b008b;font-weight:bold">new</span> License();
+</span></span><span style="display:flex;"><span>		license.<span style="color:#658b00">setLicenseId</span>(<span style="color:#cd5555">&#34;0000000-00-00000&#34;</span>);
+</span></span><span style="display:flex;"><span>		license.<span style="color:#658b00">setOrganizationId</span>(organizationId);
+</span></span><span style="display:flex;"><span>		license.<span style="color:#658b00">setProductName</span>(<span style="color:#cd5555">&#34;Sorry no licensing information currently available&#34;</span>);
+</span></span><span style="display:flex;"><span>		fallbackList.<span style="color:#658b00">add</span>(license);
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">return</span> fallbackList;
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="实现舱壁模式-bulkhead">实现舱壁模式 @Bulkhead</h4>
+<blockquote>
+<p>负责并发调用的数量</p>
+</blockquote>
+<ul>
+<li>实现1:信号量舱壁（默认） -&gt; 记录数量，数量到限制则拒绝</li>
+<li>实现2:线程池舱壁 -&gt; 线程池和队列都满了则拒绝</li>
+</ul>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#228b22">// 使用线程池舱壁
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#707a7c">@Bulkhead</span>(name = <span style="color:#cd5555">&#34;bulkheadLicenseService&#34;</span>, type= Type.<span style="color:#658b00">THREADPOOL</span>, fallbackMethod = <span style="color:#cd5555">&#34;buildFallbackLicenseList&#34;</span>)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="实现重试模式">实现重试模式</h4>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@Retry</span>(name = <span style="color:#cd5555">&#34;retryLicenseService&#34;</span>, fallbackMethod = <span style="color:#cd5555">&#34;buildFallbackLicenseList&#34;</span>)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="实现限流器模式">实现限流器模式</h4>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@RateLimiter</span>(name = <span style="color:#cd5555">&#34;licenseService&#34;</span>, fallbackMethod = <span style="color:#cd5555">&#34;buildFallbackLicenseList&#34;</span>)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="threadlocal和resilience4j">ThreadLocal和Resilience4j</h3>
+<blockquote>
+<p>实例：</p>
+<p>在基于REST的环境中，我们通常希望将上下文信息传递给服务调用，这将有助于在运维上管理该服务。例如，可以在REST调用的HTTP首部中传递关联ID（correlation ID）或验证令牌，然后将其传播到下游服务调用。关联ID允许我们有一个唯一的标识符，该标识符可用于在单个事务中跨多个服务调用进行跟踪。
+为了让关联ID在服务调用中的任何地方都可用，我们可以使用Spring Filter类来拦截REST服务中的每个调用，并从传入的HTTP请求中检索关联ID，然后将此上下文信息存储在自定义的UserContext对象中。之后，每当我们的代码需要在我们的REST服务调用中访问这个关联ID时，就可以从ThreadLocal存储变量中检索UserContext并读取该值。</p>
+</blockquote>
+<ul>
+<li>利用ThreadLocal传递线程变量值</li>
+</ul>
+<h3 id="总结-1">总结</h3>
+<p>● 在设计高度分布式的应用程序（如微服务）时，必须考虑客户端弹性。
+● 服务的彻底故障（如服务器崩溃）是很容易检测和处理的。
+● 一个性能不佳的服务可能会引起资源耗尽的连锁效应，因为调用客户端中的线程会在等待服务完成时被阻塞。
+● 3种核心客户端弹性模式分别是断路器模式、后备模式和舱壁模式。
+● 断路器模式试图杀死运行缓慢和降级的系统调用，这样调用就会快速失败，并防止资源耗尽。
+● 后备模式让我们可以在远程服务调用失败或调用的断路器失败的情况下，定义替代代码路径。
+● 舱壁模式通过将对远程服务的调用隔离到它们自己的线程池中，使远程资源调用彼此分离。就算一组服务调用失败，这些失败也不会导致应用程序容器中的所有资源耗尽。
+● 限流器模式限制给定时间段内的总调用数。
+● Resilience4j允许我们同时堆叠和使用多个模式。
+● 重试模式负责在服务暂时失败时进行尝试。
+● 舱壁模式和限流器模式之间的主要区别在于，舱壁模式负责限制一次并发调用的数量，而限流器模式负责限制给定时间内的总调用数。
+● Spring Cloud和Resilience4j库提供断路器模式、后备模式、舱壁模式、重试模式、限流器模式的实现。
+● Resilience4j库是高度可配置的，可以在全局、类和线程池级别设置。</p>
+<h2 id="第八章-使用spring-cloud-gateway进行服务路由">第八章 使用Spring Cloud Gateway进行服务路由</h2>
+<blockquote>
+<p>● 结合微服务使用服务网关
+● 使用Spring Cloud Gateway实现服务网关
+● 在网关中映射微服务路由
+● 构建过滤器以使用关联ID并进行跟踪</p>
+<p>Spring Cloud Gateway是非阻塞网关、是反向代理</p>
+</blockquote>
+<h3 id="为什么需要网关">为什么需要网关？</h3>
+<ul>
+<li>保证服务中某些都需要被实现的功能，都能被实现（防止开发人员忘记）</li>
+<li>将公有部分提取出来（避免框架中公有代码+++，减耦合）</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948010.png" alt="image-20230120162839632"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201628926.png" alt="image-20230120162844859"></p>
+<h3 id="配置路由">配置路由</h3>
+<h4 id="通过服务发现自动映射">通过服务发现自动映射</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948720.png" alt="image-20230120163455814"></p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201635746.png" alt="image-20230120163501674"></p>
+<ul>
+<li>好处：随意添加实例，不需修改网关（gateway会与eureka通信）</li>
+</ul>
+<h4 id="使用服务发现手动映射路由">使用服务发现手动映射路由</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948249.png" alt="image-20230120163554061"></p>
+<h3 id="断言和过滤器工厂">断言和过滤器工厂</h3>
+<ul>
+<li>内置的过滤器工厂让我们可以在代码中注入策略执行点，并以一致的方式对所有服务调用执行大量操作</li>
+<li>内置断言是让我们可以在执行或处理请求之前检查请求是否满足一组条件的对象。</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201638485.png" alt="image-20230120163845368"></p>
+<ul>
+<li>外部发送请求</li>
+<li>网关处理器验证请求路径是否与路由配置匹配</li>
+<li>如果匹配，则将请求转发到为特定路由准备的特定过滤器</li>
+</ul>
+<h3 id="自定义过滤器">自定义过滤器</h3>
+<blockquote>
+<p>前置过滤器不能做重定向</p>
+</blockquote>
+<ul>
+<li>前置过滤器：调用前</li>
+<li>后置过滤器：调用后</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201641096.png" alt="image-20230120164145018"></p>
+<p>O-Stack中的使用</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201642088.png" alt="image-20230120164237015"></p>
+<ul>
+<li>全局通用ID用于跨多个微服务来跟踪用户请求</li>
+</ul>
+<blockquote>
+<p>● 跟踪过滤器——跟踪过滤器是一个前置过滤器，它确保从网关流出的每个请求都有一个与其相关的关联ID。关联ID是在执行客户请求时执行的所有微服务中都会携带的唯一ID。关联ID允许我们跟踪一个调用经过一系列微服务调用发生的事件链。
+● 目标服务——目标服务可以是组织服务也可以是许可证服务，它们都接收HTTP请求首部中的关联ID。
+● 响应过滤器——响应过滤器是一个后置过滤器，它将把与服务调用相关的关联ID注入发送回客户端的HTTP响应首部中。这样，客户端就可以访问与其发出的请求相关联的关联ID。</p>
+<p>具体流程可以看代码</p>
+</blockquote>
+<h3 id="总结-2">总结</h3>
+<p>● Spring Cloud使构建服务网关变得十分简单。
+● Spring Cloud Gateway包含一组内置的断言和过滤器工厂。
+● 断言是允许我们在执行或处理请求之前检查请求是否满足一组条件的对象。
+● 过滤器允许我们修改传入的HTTP请求和传出的HTTP响应。
+● Spring Cloud Gateway与Netflix的Eureka服务器集成，可以自动将通过Eureka注册的服务映射到路由。
+● 使用Spring Cloud Gateway可以在应用程序的配置文件中手动定义路由映射。
+● 通过使用Spring Cloud Config服务器端，可以动态地重新加载路由映射，而无须重新启动Gateway服务器。
+● Spring Cloud Gateway支持通过过滤器实现自定义业务逻辑。使用Spring Cloud Gateway可以创建前置过滤器和后置过滤器。
+● 前置过滤器可用于生成一个关联ID，该关联ID可以注入流经网关的每个服务中。
+● 后置过滤器可用于将关联ID注入每个HTTP服务响应，并返回给服务客户端。</p>
+<h2 id="第九章-保护微服务">第九章 保护微服务</h2>
+<blockquote>
+<p>● 了解安全在微服务环境中的重要性
+● 认识OAuth2标准和OpenID
+● 建立和配置Keycloak
+● 使用Keycloak执行身份认证和授权
+● 使用Keycloak保护Spring微服务
+● 在服务之间传播访问令牌</p>
+<p>本章技术：Spring Cloud Security, Keycloak</p>
+</blockquote>
+<h3 id="oauth">OAuth</h3>
+<blockquote>
+<p>OAuth2是一个基于令牌的安全框架，<strong>它描述了授权的模式</strong>，但没有定义如何实际执行身份认证。相反，它允许用户通过第三方认证服务对自己进行身份认证，这种第三方认证服务称为身份供应商（identity provider，IdP）。如果用户成功通过身份认证，他们会收到一个必须随每个请求一起发送的令牌。然后令牌可以被传回身份认证服务进行身份认证。</p>
+</blockquote>
+<p>类型：</p>
+<ul>
+<li>密码</li>
+<li>客户端凭据</li>
+<li>授权码</li>
+<li>隐式</li>
+</ul>
+<h3 id="keycloak简介">Keycloak简介</h3>
+<blockquote>
+<p>● 它集中身份认证并支持单点登录（single sign-on，SSO）身份认证；
+● 它让开发人员可以专注于业务功能，而不必担心授权和身份认证等安全方面；
+● 它支持双因子身份认证；
+● 它兼容LDAP；
+● 它提供了几个适配器来轻松地保护应用程序和服务器端；
+● 它支持自定义密码策略。</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948898.png" alt="image-20230120170052858"></p>
+<h3 id="保护单个端点">保护单个端点</h3>
+<p>● 将Keycloak服务添加到Docker
+● 建立一个Keycloak服务并注册一个O-stock应用程序作为一个已授权的应用程序，它可以对用户身份进行身份认证和授权
+● 使用Spring Security来保护O-stock服务。使用Postman模拟登录的用户对Keycloak服务进行身份认证
+● 保护许可证服务和组织服务，使它们只能被已通过身份认证的用户调用。、</p>
+<h3 id="传播访问令牌">传播访问令牌</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201716484.png" alt="image-20230120171610380"></p>
+<ul>
+<li>访问令牌可以添加到http的header中</li>
+<li>服务之间会传递令牌</li>
+<li>令牌都需要到Keycloak中确认</li>
+</ul>
+<h3 id="总结-3">总结</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201723303.png" alt="image-20230120172304246"></p>
+<p>● OAuth2是一个基于令牌的身份认证框架，它为保护Web服务调用提供了不同的机制，这些机制称为授权（grant）。
+● OpenID Connect（OIDC）是OAuth2框架之上的一层，它提供关于谁登录到应用程序（身份）的身份认证和简介信息。
+● Keycloak是用于微服务和应用程序的开源身份和访问管理解决方案。Keycloak的主要目标是在很少或没有代码的情况下，促进对服务和应用程序的保护。
+● 每个应用程序可以拥有自己的Keycloak应用程序名称和密钥。
+● 每个服务必须定义角色可以采取的动作。
+● Spring Cloud Security支持JSON Web Token（JWT）规范。使用JWT，可以将自定义字段注入规范中。
+● 保护微服务涉及的不仅仅是使用身份认证和授权。
+● 在生产环境中，我们应该使用HTTPS来对服务间的所有调用进行加密。
+● 使用服务网关来缩小可以到达服务的访问点的数量。
+● 通过限制运行服务的操作系统上的入站端口和出站端口数来限制服务的攻击面。</p>
+<h2 id="第十章-使用spring-cloud-stream的事件驱动架构">第十章 使用Spring Cloud Stream的事件驱动架构</h2>
+<blockquote>
+<p>● 使用Spring Cloud Stream简化事件处理
+● 配置Spring Cloud Stream
+● 使用Spring Cloud Stream和Kafka发布消息
+● 使用Spring Cloud Stream和Kafka消费消息
+● 使用Spring Cloud Stream、Kafka和Redis实现分布式缓存</p>
+<p>使用异步消息在应用程序之间进行通信并不新鲜，新鲜的是使用消息实现事件通信的概念，这些事件代表了状态的变化。这个概念称为事件驱动架构（event-driven architecture，EDA），也被称为消息驱动架构（message-driven architecture，MDA）。</p>
+<p>基于EDA的方法允许我们构建高度解耦的系统，它可以对变更做出反应，而不需要与特定的库或服务紧密耦合。当与微服务结合后，EDA允许我们通过仅让服务监听由应用程序发出的事件流（消息）的方式，迅速地向应用程序中添加新功能。</p>
+<p>本章技术：Spring Cloud Stream, Kafka</p>
+</blockquote>
+<h3 id="使用同步请求-响应来传达状态变化">使用同步请求-响应来传达状态变化</h3>
+<blockquote>
+<p>Redis实现</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948637.png" alt="image-20230120172843551"></p>
+<ul>
+<li>存在问题
+<ul>
+<li>组织服务和许可证服务紧耦合</li>
+<li>如果想为组织服务添加新的消费者，就需要修改相关代码</li>
+<li>直接通信可能会同时影响两个服务的效率</li>
+<li>Redis单点故障问题</li>
+</ul>
+</li>
+</ul>
+<h3 id="使用消息传递来传达状态更改">使用消息传递来传达状态更改</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201733135.png" alt="image-20230120173314051"></p>
+<h4 id="好处">好处</h4>
+<ul>
+<li>减少耦合，组织服务与许可证服务通过Topic间接联系</li>
+<li>两个服务不会互相拖垮</li>
+<li>可以很简单的添加新消费者：监听Topic即可，不影响原有代码</li>
+</ul>
+<h4 id="缺点">缺点</h4>
+<blockquote>
+<p>架构复杂性增加，要考虑的变多了</p>
+</blockquote>
+<ul>
+<li>消息可能不按顺序处理</li>
+<li>消息可能不会立刻被接受</li>
+<li>消息可能丢失</li>
+<li>消息发送失败的处理机制&hellip;.</li>
+</ul>
+<h3 id="spring-cloud-stream简介">Spring Cloud Stream简介</h3>
+<blockquote>
+<p>Spring Cloud Stream是一个由注解驱动的框架，通过它我们可以在Spring应用程序中轻松地构建消息发布者和消费者。</p>
+<p>Spring Cloud Stream还允许我们抽象出正在使用的消息传递平台的实现细节。我们可以通过Spring Cloud Stream使用多个消息平台，包括Apache Kafka项目和RabbitMQ，而平台的具体实现细节则被排除在应用程序代码之外。在应用程序中实现消息发布和消费是通过平台无关的Spring接口实现的。</p>
+</blockquote>
+<h4 id="组件">组件</h4>
+<ul>
+<li>发射器：接收对象，将其序列化后发送到通道</li>
+<li>通道：对队列的抽象</li>
+<li>绑定器：与消息平台对话（比如Kafka, RabbitMQ）</li>
+<li>接收器：接收序列化内容，将其反序列化为对象</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948059.png" alt="image-20230120174037937"></p>
+<h3 id="demo">Demo</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948435.png" alt="image-20230120174155139"></p>
+<h4 id="编写生产者">编写生产者</h4>
+<p>开启消息绑定代理</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>@EnableBinding(Source.class)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>配置文件内容</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-properties" data-lang="properties"><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.bindings.output.destination</span>=<span style="color:#cd5555">orgChangeTopic</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.bindings.output.content-type</span>=<span style="color:#cd5555">application/json</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.kafka.binder.zkNodes</span>=<span style="color:#cd5555">kafka</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.kafka.binder.brokers</span>=<span style="color:#cd5555">kafka</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>发布消息配置</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#228b22">// 适用于发布到单个通道
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#707a7c">@Component</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">SimpleSourceBean</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> Source source;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#8b008b;font-weight:bold">final</span> Logger logger = LoggerFactory.<span style="color:#658b00">getLogger</span>(SimpleSourceBean.<span style="color:#658b00">class</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#008b45">SimpleSourceBean</span>(Source source){
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">this</span>.<span style="color:#658b00">source</span> = source;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">publishOrganizationChange</span>(String action, String organizationId){
+</span></span><span style="display:flex;"><span>       logger.<span style="color:#658b00">debug</span>(<span style="color:#cd5555">&#34;Sending Kafka message {} for Organization Id: {}&#34;</span>, action, organizationId);
+</span></span><span style="display:flex;"><span>        OrganizationChangeModel change =  <span style="color:#8b008b;font-weight:bold">new</span> OrganizationChangeModel(
+</span></span><span style="display:flex;"><span>                OrganizationChangeModel.<span style="color:#658b00">class</span>.<span style="color:#658b00">getTypeName</span>(),
+</span></span><span style="display:flex;"><span>                action,
+</span></span><span style="display:flex;"><span>                organizationId,
+</span></span><span style="display:flex;"><span>                UserContext.<span style="color:#658b00">getCorrelationId</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        source.<span style="color:#658b00">output</span>().<span style="color:#658b00">send</span>(MessageBuilder.<span style="color:#658b00">withPayload</span>(change).<span style="color:#658b00">build</span>());
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>调用publishOrganizationChange发布消息到通道中</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>        simpleSourceBean.<span style="color:#658b00">publishOrganizationChange</span>(<span style="color:#cd5555">&#34;SAVE&#34;</span>, organization.<span style="color:#658b00">getId</span>());
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="编写消费者">编写消费者</h4>
+<p>开启消息监听绑定</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@EnableBinding</span>(Sink.<span style="color:#658b00">class</span>)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>配置文件内容</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-properties" data-lang="properties"><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.bindings.inboundOrgChanges.destination</span>= <span style="color:#cd5555">orgChangeTopic</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.bindings.inboundOrgChanges.content-type</span>= <span style="color:#cd5555">application/json</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.bindings.inboundOrgChanges.group</span>= <span style="color:#cd5555">licensingGroup  </span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.kafka.binder.zkNodes</span>=<span style="color:#cd5555">kafka</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.kafka.binder.brokers</span>=<span style="color:#cd5555">kafka</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>group用于标记消费者组</li>
+<li>一个服务可能有多个实例，希望只有一个实例来消费消息时，可以用到group -&gt; 将这些实例放进一个组中</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201755827.png" alt="image-20230120175532732"></p>
+<h3 id="定义自定义通道">定义自定义通道</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">interface</span> <span style="color:#008b45;font-weight:bold">CustomChannels</span> {
+</span></span><span style="display:flex;"><span>   
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Input</span>(<span style="color:#cd5555">&#34;inboundOrgChanges&#34;</span>) <span style="color:#228b22">// 命名通道
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    SubscribableChannel <span style="color:#008b45">orgs</span>();
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>新增配置</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-properties" data-lang="properties"><span style="display:flex;"><span><span style="color:#658b00">//</span> <span style="color:#cd5555">..</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.bindings.inboundOrgChanges.destination</span>=<span style="color:#cd5555">orgChangeTopic</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.bindings.inboundOrgChanges.content-type</span>=<span style="color:#cd5555">application/json</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.bindings.inboundOrgChanges.group</span>=<span style="color:#cd5555">licensingGroup</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.kafka.binder.zkNodes</span>=<span style="color:#cd5555">localhost</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">spring.cloud.stream.kafka.binder.brokers</span>=<span style="color:#cd5555">localhost</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>监听自定义通道</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@EnableBinding</span>(CustomChannels.<span style="color:#658b00">class</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">OrganizationChangeHandler</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">private</span> <span style="color:#8b008b;font-weight:bold">static</span> <span style="color:#8b008b;font-weight:bold">final</span> Logger logger = LoggerFactory.<span style="color:#658b00">getLogger</span>(OrganizationChangeHandler.<span style="color:#658b00">class</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@StreamListener</span>(<span style="color:#cd5555">&#34;inboundOrgChanges&#34;</span>) <span style="color:#228b22">// 绑定通道
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">loggerSink</span>(OrganizationChangeModel organization) {
+</span></span><span style="display:flex;"><span>        logger.<span style="color:#658b00">debug</span>(<span style="color:#cd5555">&#34;Received a message of type &#34;</span> + organization.<span style="color:#658b00">getType</span>());
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">switch</span>(organization.<span style="color:#658b00">getAction</span>()){
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#cd5555">&#34;GET&#34;</span>:
+</span></span><span style="display:flex;"><span>                logger.<span style="color:#658b00">debug</span>(<span style="color:#cd5555">&#34;Received a GET event from the organization service for organization id {}&#34;</span>, organization.<span style="color:#658b00">getOrganizationId</span>());
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#cd5555">&#34;SAVE&#34;</span>:
+</span></span><span style="display:flex;"><span>                logger.<span style="color:#658b00">debug</span>(<span style="color:#cd5555">&#34;Received a SAVE event from the organization service for organization id {}&#34;</span>, organization.<span style="color:#658b00">getOrganizationId</span>());
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#cd5555">&#34;UPDATE&#34;</span>:
+</span></span><span style="display:flex;"><span>                logger.<span style="color:#658b00">debug</span>(<span style="color:#cd5555">&#34;Received a UPDATE event from the organization service for organization id {}&#34;</span>, organization.<span style="color:#658b00">getOrganizationId</span>());
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">case</span> <span style="color:#cd5555">&#34;DELETE&#34;</span>:
+</span></span><span style="display:flex;"><span>                logger.<span style="color:#658b00">debug</span>(<span style="color:#cd5555">&#34;Received a DELETE event from the organization service for organization id {}&#34;</span>, organization.<span style="color:#658b00">getOrganizationId</span>());
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">default</span>:
+</span></span><span style="display:flex;"><span>                logger.<span style="color:#658b00">error</span>(<span style="color:#cd5555">&#34;Received an UNKNOWN event from the organization service of type {}&#34;</span>, organization.<span style="color:#658b00">getType</span>());
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="总结-4">总结</h3>
+<p>● 使用消息传递的异步通信是微服务架构的关键部分。
+● 在应用程序中使用消息传递可以使服务伸缩并且变得更具容错性。
+● Spring Cloud Stream通过使用简单的注解以及抽象出底层消息平台的特定平台细节来简化消息的生产和消费。
+● Spring Cloud Stream消息发射器是一个带注解的Java方法，用于将消息发布到消息代理的队列中。
+● Spring Cloud Stream消息接收器是一个带注解的Java方法，它接收消息代理队列上的消息。</p>
+<h2 id="第十一章-使用spring-cloud-sleuth和zipkin进行分布式跟踪">第十一章 使用Spring Cloud Sleuth和Zipkin进行分布式跟踪</h2>
+<blockquote>
+<p>● 使用Spring Cloud Sleuth将跟踪信息注入服务调用
+● 使用日志聚合来查看分布式事务的日志
+● 实时转换、搜索、分析和可视化日志数据
+● 理解跨多个微服务调用的用户事务
+● 使用Spring Cloud Sleuth和Zipkin定制跟踪信息</p>
+<p>Zipkin是一个分布式跟踪平台，通过它我们可以跟踪跨多个服务调用的事务。Zipkin能够让我们以图形方式查看事务占用的时间量，并分解在调用中涉及的每个微服务所用的时间。在微服务架构中，Zipkin是识别性能问题的宝贵工具。</p>
+</blockquote>
+<blockquote>
+<p>本章技术：Spring Cloud Sleuth, Zipkin</p>
+</blockquote>
+<p>第八章那些关联ID检查、生成、转发调用等都可以由Spring Cloud Sleuth接管</p>
+<p>通过将Spring Cloud Sleuth添加到微服务中，可以：</p>
+<ul>
+<li>在关联ID不存在的情况下透明地创建一个关联ID并将其注入我们的服务调用中；</li>
+<li>管理关联ID到出站服务调用的传播，以便自动添加事务的关联ID；</li>
+<li>将关联信息添加到Spring的MDC日志记录，以便Spring Boot默认的SL4J和Logback实现自动记录生成的关联ID；</li>
+<li>可选地，将服务调用中的跟踪信息发布到Zipkin分布式跟踪平台。</li>
+</ul>
+<h3 id="使用方式">使用方式</h3>
+<p>给微服务都添加pom依赖后，Sleuth会为日志自动添加如下跟踪信息</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948496.png" alt="image-20230120192102926"></p>
+<h3 id="集成日志聚合">集成日志聚合</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201922837.png" alt="image-20230120192217731"></p>
+<h3 id="elk实现">ELK实现</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948043.png" alt="image-20230120192255907"></p>
+<ul>
+<li>Logstash：过滤、转换数据</li>
+<li>Elasticsearch：以可搜索格式索引并存储数据，供搜索</li>
+<li>Kibana：可视化</li>
+</ul>
+<h4 id="logstash">Logstash</h4>
+<ul>
+<li>输入：如GitHub、HTTP、TCP和Kafka等</li>
+<li>输出：如CSV、Elasticsearch、email、file、MongoDB、Redis和stdout等</li>
+<li>可选：过滤器插件</li>
+<li>都是以插件形式</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948085.png" alt="image-20230120192629385"></p>
+<h3 id="关联id">关联ID</h3>
+<p>在gateway中实现Filter</p>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#707a7c">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">public</span> <span style="color:#8b008b;font-weight:bold">class</span> <span style="color:#008b45;font-weight:bold">ResponseFilter</span> {
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">final</span> Logger logger =LoggerFactory.<span style="color:#658b00">getLogger</span>(ResponseFilter.<span style="color:#658b00">class</span>);
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Autowired</span>
+</span></span><span style="display:flex;"><span>   Tracer tracer;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Autowired</span>
+</span></span><span style="display:flex;"><span>	FilterUtils filterUtils;
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#707a7c">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">public</span> GlobalFilter <span style="color:#008b45">postGlobalFilter</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> (exchange, chain) -&gt; {
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">return</span> chain.<span style="color:#658b00">filter</span>(exchange).<span style="color:#658b00">then</span>(Mono.<span style="color:#658b00">fromRunnable</span>(() -&gt; {
+</span></span><span style="display:flex;"><span>            	  String traceId = tracer.<span style="color:#658b00">currentSpan</span>().<span style="color:#658b00">context</span>().<span style="color:#658b00">traceIdString</span>();
+</span></span><span style="display:flex;"><span>            	  logger.<span style="color:#658b00">debug</span>(<span style="color:#cd5555">&#34;Adding the correlation id to the outbound headers. {}&#34;</span>, traceId);
+</span></span><span style="display:flex;"><span>                  exchange.<span style="color:#658b00">getResponse</span>().<span style="color:#658b00">getHeaders</span>().<span style="color:#658b00">add</span>(FilterUtils.<span style="color:#658b00">CORRELATION_ID</span>, traceId);
+</span></span><span style="display:flex;"><span>                  logger.<span style="color:#658b00">debug</span>(<span style="color:#cd5555">&#34;Completing outgoing request for {}.&#34;</span>, exchange.<span style="color:#658b00">getRequest</span>().<span style="color:#658b00">getURI</span>());
+</span></span><span style="display:flex;"><span>              }));
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="总结-5">总结</h3>
+<blockquote>
+<p>zipkin没细看</p>
+</blockquote>
+<p>● Spring Cloud Sleuth允许我们无缝地将跟踪信息（关联ID）添加到我们的微服务调用中。
+● 关联ID可用于在多个服务之间链接日志条目。这使我们能够观察单个事务中涉及的所有服务的事务行为。
+● 虽然关联ID功能强大，但是我们仍然需要将此概念与日志聚合平台结合使用，以便从多个来源获取日志，然后搜索和查询它们的内容。
+● 我们可以将Docker容器与日志聚合平台集成，来捕获所有应用程序日志记录数据。
+● 我们将Docker容器与ELK技术栈（Elasticsearch、Logstash和Kibana）集成在一起。这使我们能够转换、存储、可视化和查询来自我们的服务的日志数据。
+● 虽然统一的日志记录平台很重要，但通过事务的微服务来可视化地跟踪事务的能力也是一个有价值的工具。
+● Zipkin让我们可以查看服务和事务流之间存在的依赖关系，并了解用户事务中涉及的每个微服务的性能特征。
+● Spring Cloud Sleuth很容易与Zipkin集成。Zipkin自动从HTTP调用捕获跟踪数据，这将成为启用Spring Cloud Sleuth的服务中使用的入站/出站消息通道。
+● Spring Cloud Sleuth将每个服务调用映射到一个跨度的概念。然后可以使用Zipkin来查看一个跨度的性能。
+● Spring Cloud Sleuth和Zipkin还允许我们定义自己的自定义跨度，以便我们了解基于非Spring的资源（如Postgres或Redis等数据库服务器）的性能。</p>
+<h2 id="第十二章-部署微服务">第十二章 部署微服务</h2>
+<blockquote>
+<p>本章主要内容
+● 理解为什么DevOps运动对微服务至关重要
+● 配置O-stock服务使用的核心亚马逊基础设施
+● 将O-stock服务手动部署到亚马逊
+● 为服务设计构建/部署管道
+● 将基础设施视为代码
+● 将应用程序部署到云</p>
+</blockquote>
+<h3 id="三种测试类型">三种测试类型</h3>
+<ul>
+<li>单元测试</li>
+<li>集成测试</li>
+<li>平台测试</li>
+</ul>
+<h3 id="eks部署">EKS部署</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201948315.png" alt="image-20230120194216339"></p>
+<h3 id="jenkins">Jenkins</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301201943585.png" alt="image-20230120194349482"></p>
+
+                    
+                    <HR width="100%" id="EOF">
+		    <p style="color:#777;">上次修改於 2023-01-20</p>
+                    
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			下回<br>已經到底啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="/read/spring%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
+			上回<br>Spring实战 读书笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+<div id="gitalk-container"></div>
+
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+
+
+                    </div>
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+</div>
+            </div>
+    
+    <script src="/js/journal.js"></script></body>
+</html>

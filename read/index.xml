@@ -7,7 +7,23 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Kother.</copyright>
-    <lastBuildDate>Wed, 18 Jan 2023 17:01:06 +0800</lastBuildDate><atom:link href="https://kother.top/read/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 20 Jan 2023 19:47:50 +0800</lastBuildDate><atom:link href="https://kother.top/read/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Spring微服务实战 读书笔记</title>
+      <link>https://kother.top/read/spring%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Fri, 20 Jan 2023 19:47:50 +0800</pubDate>
+      
+      <guid>https://kother.top/read/spring%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+      <description>Spring微服务实战-读书笔记 书中引言：你将学习如何使用诸如Spring Cloud、Spring Boot、Swagger、Docker、Kubernetes、ELK（Elasticsearch、Logstash和Kibana）、Stack、Grafana、Prometheus等技术来构建微服务应用程序。
+书中涵盖内容：
+微服务是什么、最佳实践，以及构建基于微服务的应用程序的设计考虑因素。 什么时候不应该构建基于微服务的应用程序。 如何使用Spring Boot框架来构建微服务。 支持微服务应用程序的核心运维模式，特别是基于云的应用程序。 Docker是什么，如何将它与基于微服务的应用程序集成。 如何使用Spring Cloud来实现本章稍后描述的运维模式。 如何创建应用程序度量，并在监控工具中可视化这些度量。 如何利用Zipkin和Sleuth实现分布式跟踪。 如何使用ELK技术栈来管理应用程序日志。 如何利用已学的知识，构建一个部署管道，在本地将服务部署到内部管理的私有云或公有云厂商所提供的环境中。 [TOC]
+第一章 欢迎迈入云世界，Spring 单体架构 所有用户界面、业务和数据库访问逻辑都打包到一个唯一的应用程序中，并部署到应用程序服务器
+更容易部署 但也更难以管理 微服务 松耦合、分布式服务 功能独立 特征
+独立部署 微服务之间的通信机制： HTTP, JSON (RESTful Api) RPC (gRPC) 消息中间件 (RabbitMQ, Kafka) 服务底层与技术实现方式无关（用Go,Java..无所谓） 对比 项目构建概览 客户端请求Keycloak，进行身份验证，获取访问令牌 客户端携带令牌向服务网关发出请求 服务网关拿到令牌，查看令牌是否有效，并询问keycloak：用户是否有权继续访问，如果有效： 组织服务更新数据，检索用户信息，将用户信息作为HTTP响应发回客户端 组织服务往Kafka topic中添加消息，目的是让订阅该主题的许可证服务知晓更改 其中服务网关与Eureka进行通信，先检索组织和许可证服务的位置，再调用特定微服务 Redis会保存许可证服务中的信息 日志管理：Elasticsearch, Logstash 云计算 本书中基础服务设施将构建到CaaS中 路由模式 安全模式 第二章 使用SpringCloud探索微服务世界 学习Spring Cloud技术 了解云原生应用程序的原则 应用十二要素应用程序最佳实践 使用Spring Cloud构建微服务 什么是SpringCloud 服务注册与发现 微服务向第三方代理注册自己，此注册过程称为服务发现
+可以通过服务发现找到服务器的IP或名称，再通过服务器的逻辑名称来调用其中的业务逻辑
+Eureka(本书使用) ZooKeeper Consul Spring Cloud LoadBalancer 负载均衡</description>
+    </item>
+    
     <item>
       <title>Spring实战 读书笔记</title>
       <link>https://kother.top/read/spring%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
