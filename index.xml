@@ -25,6 +25,613 @@
     
     
         <item>
+        <title>Redis实战 读书笔记</title>
+        <link>https://kother.top/read/redis%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+        <pubDate>Thu, 26 Jan 2023 20:19:30 +0800</pubDate>
+        
+        <guid>https://kother.top/read/redis%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+        <description>Kother&#39;s Blog https://kother.top/read/redis%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;redis实战-读书笔记&#34;&gt;Redis实战-读书笔记&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;该书深入浅出地介绍了 Redis 的字符串、列表、散列、集合、有序集合等五种结构， 并通过文章聚合网站、cookie、购物车、网页缓存、日志、计数器、IP 所属地址查询程序、自动补全、分布式锁、计数信号量、任务队列、消息队列、搜索程序、广告定向程序、社交网站等一系列实用示例展示了 Redis 的用法。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;[TOC]&lt;/p&gt;
+&lt;h2 id=&#34;第一章-初识redis&#34;&gt;第一章 初识Redis&lt;/h2&gt;
+&lt;h3 id=&#34;文章排名实战&#34;&gt;文章排名实战&lt;/h3&gt;
+&lt;h4 id=&#34;目的&#34;&gt;目的&lt;/h4&gt;
+&lt;p&gt;单纯用Redis实现文章排行榜，根据文字的发布时间和投票数量计算出评分，根据评分对文章进行排名和展示。&lt;/p&gt;
+&lt;h4 id=&#34;数据结构&#34;&gt;数据结构&lt;/h4&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;内容&lt;/th&gt;
+&lt;th&gt;数据结构类型&lt;/th&gt;
+&lt;th&gt;图例&lt;/th&gt;
+&lt;th&gt;备注&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;文章信息&lt;/td&gt;
+&lt;td&gt;Hash&lt;/td&gt;
+&lt;td&gt;&lt;!-- raw HTML omitted --&gt;&lt;/td&gt;
+&lt;td&gt;根据文章ID获取文章内容&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;根据发布时间排序的文章&lt;/td&gt;
+&lt;td&gt;ZSet&lt;/td&gt;
+&lt;td&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301211604470.png&#34; alt=&#34;image-20230121160414443&#34;&gt;&lt;/td&gt;
+&lt;td&gt;快速获取时间排序&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;根据评分排序的文章&lt;/td&gt;
+&lt;td&gt;ZSet&lt;/td&gt;
+&lt;td&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301211604247.png&#34; alt=&#34;image-20230121160419228&#34;&gt;&lt;/td&gt;
+&lt;td&gt;快速获取评分排序&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;已投票用户&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262019831.png&#34; alt=&#34;image-20230121160518941&#34;&gt;&lt;/td&gt;
+&lt;td&gt;每个文章都有这个集合，判断已投票过的用户，文章发布一周后自动删除&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;实现功能&#34;&gt;实现功能&lt;/h3&gt;
+&lt;h4 id=&#34;发布文章&#34;&gt;发布文章&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262019181.png&#34; alt=&#34;image-20230121160900933&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;用户投票给文章&#34;&gt;用户投票给文章&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262019091.png&#34; alt=&#34;image-20230121160847986&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;获取文章&#34;&gt;获取文章&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;zrevrange:返回有序集key中指定区间内的成员。其中成员的位置按score值从大到小来排列。具有相同score值的成员按字典序的逆序排列。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262019428.png&#34; alt=&#34;image-20230121161032855&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;对文章进行分组&#34;&gt;对文章进行分组&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262019731.png&#34; alt=&#34;image-20230121161534620&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;从群组中获取一页文章&#34;&gt;从群组中获取一页文章&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;可设置缓存，60s过期（缓存一致性问题：新发文章可能60s内看不到）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301211616856.png&#34; alt=&#34;image-20230121161649832&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;意义&#34;&gt;意义&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;ZSet可以用于[快速获取排名]功能&lt;/li&gt;
+&lt;li&gt;ZSet的ZINTERSTORE命令可以取集合和有序集合的交集，如果将集合中放入特定topic的文章，再与score结合，可以实现[获取特定主题中的文章，按评分排序]&lt;/li&gt;
+&lt;li&gt;实现功能的同时还可以实现缓存&lt;/li&gt;
+&lt;li&gt;唯一性ID通过计数器执行INCR完成&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第二章-使用redis构建web应用&#34;&gt;第二章 使用Redis构建Web应用&lt;/h2&gt;
+&lt;h3 id=&#34;登录cookie&#34;&gt;登录cookie&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Cookie类型&lt;/th&gt;
+&lt;th&gt;简介&lt;/th&gt;
+&lt;th&gt;缺点&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;签名Cookie&lt;/td&gt;
+&lt;td&gt;用户信息（可能包含签名）都存在Cookie中&lt;/td&gt;
+&lt;td&gt;可能忘记，安全漏洞&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;令牌Cookie&lt;/td&gt;
+&lt;td&gt;存储一段随机数字作为令牌，服务器根据该令牌获得用户信息&lt;/td&gt;
+&lt;td&gt;服务器中要存更多信息&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h4 id=&#34;目的-1&#34;&gt;目的&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;大多数关系型数据库都比较慢&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;利用Redis优化Cookie功能&lt;/p&gt;
+&lt;h4 id=&#34;实现功能-1&#34;&gt;实现功能&lt;/h4&gt;
+&lt;h5 id=&#34;校验cookie&#34;&gt;校验cookie&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262019289.png&#34; alt=&#34;image-20230121162854249&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;更新cookie&#34;&gt;更新cookie&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;每次用户浏览页面都会更新cookie&lt;/li&gt;
+&lt;li&gt;更新内容：时间戳，浏览过的商品&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301211629645.png&#34; alt=&#34;image-20230121162957618&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;定期清理cookie&#34;&gt;定期清理cookie&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;移除cookie的同时要移除对应的用户信息&lt;/li&gt;
+&lt;li&gt;当然也可以在添加时直接设置expire，但是定期清理可以插入更多业务逻辑，比如将数据导入到数据库中以后作分析等&amp;hellip;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301211631153.png&#34; alt=&#34;image-20230121163152130&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;实现购物车&#34;&gt;实现购物车&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;参考资料 &lt;a href=&#34;https://ynfatal.github.io/2019/08/17/SpringBoot2/SpringBoot2%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%B9%9D%E7%AF%87Redis%E5%AE%9E%E7%8E%B0%E8%B4%AD%E7%89%A9%E8%BD%A6/&#34;&gt;Redis 实现购物车&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;数据结构-1&#34;&gt;数据结构&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;购物车hash:[cookie, [商品ID，商品订购数量]..]&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;实现功能-2&#34;&gt;实现功能&lt;/h4&gt;
+&lt;h5 id=&#34;添加购物车&#34;&gt;添加购物车&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262019039.png&#34; alt=&#34;image-20230121163553033&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;清空购物车&#34;&gt;清空购物车&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;del&gt;书中：清cookie时也清购物车&lt;/del&gt;&lt;/li&gt;
+&lt;li&gt;个人认为不用清理，保存在Redis中即可&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301211637700.png&#34; alt=&#34;image-20230121163741662&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;网页缓存&#34;&gt;网页缓存&lt;/h3&gt;
+&lt;p&gt;缓存不被频繁载入的内容，网页加载时直接从Redis中拿&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020084.png&#34; alt=&#34;image-20230121164243135&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第三章-redis命令&#34;&gt;第三章 Redis命令&lt;/h2&gt;
+&lt;h3 id=&#34;string&#34;&gt;String&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#658b00&#34;&gt;set&lt;/span&gt; name cxx
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;get name
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;getrange name &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; -1 字符串分段
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;getset name new_cxx 设置值，返回旧值
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mset key1 key2 批量设置
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mget key1 key2 批量获取
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;setnx key value 不存在就插入（not exists）
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;setex key &lt;span style=&#34;color:#658b00&#34;&gt;time&lt;/span&gt; value 过期时间（expire）
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;setrange key index value 从index开始替换value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;incr age 递增
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;incrby age &lt;span style=&#34;color:#b452cd&#34;&gt;10&lt;/span&gt; 递增
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;decr age 递减
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;decrby age &lt;span style=&#34;color:#b452cd&#34;&gt;10&lt;/span&gt; 递减
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;incrbyfloat 增减浮点数
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;append 追加
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;strlen 长度
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;getbit/setbit/bitcount/bitop 位操作
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;list&#34;&gt;List&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;存储信息，最近浏览过的文章，常用联系人信息&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lpush mylist a b c 左插入
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;rpush mylist x y z 右插入
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lrange mylist &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; -1 数据集合
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lpop mylist 弹出元素
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;rpop mylist 弹出元素
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;llen mylist 长度
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lrem mylist count value 删除
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lindex mylist &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; 指定索引的值
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lset mylist &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; n 索引设值
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ltrim mylist &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;4&lt;/span&gt; 删除key
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;linsert mylist before a 插入
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;linsert mylist after a 插入
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;rpoplpush list list2 转移列表的数据
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;set&#34;&gt;Set&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;投票、点赞记录，分组，抽奖（spop）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sadd myset redis
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;smembers myset 数据集合
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;srem myset set1 删除
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sismember myset set1 判断元素是否在集合中
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;scard key_name 个数
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sdiff | sinter | sunion 操作：集合间运算：差集 | 交集 | 并集
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;srandmember 随机获取集合中的元素
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;spop 从集合中弹出一个元素
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;zset&#34;&gt;ZSet&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;排序&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zadd zset &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; one
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zadd zset &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; two
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zadd zset &lt;span style=&#34;color:#b452cd&#34;&gt;3&lt;/span&gt; three
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zincrby zset &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; one 增长分数
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zscore zset two 获取分数
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zrange zset &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; -1 withscores 范围值
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zrangebyscore zset &lt;span style=&#34;color:#b452cd&#34;&gt;10&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;25&lt;/span&gt; withscores 指定范围的值
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zrangebyscore zset &lt;span style=&#34;color:#b452cd&#34;&gt;10&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;25&lt;/span&gt; withscores limit &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; 分页
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Zrevrangebyscore zset &lt;span style=&#34;color:#b452cd&#34;&gt;10&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;25&lt;/span&gt; withscores 指定范围的值
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;zcard zset 元素数量
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Zcount zset 获得指定分数范围内的元素个数
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Zrem zset one two 删除一个或多个元素
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Zremrangebyrank zset &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; 按照排名范围删除元素
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Zremrangebyscore zset &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; 按照分数范围删除元素
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Zrank zset &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; -1 分数最小的元素排名为0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Zrevrank zset &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; -1 分数最大的元素排名为0
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;hash&#34;&gt;Hash&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;存储相关联的信息&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hset myhash name cxx
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hget myhash name
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hmset myhash name cxx age &lt;span style=&#34;color:#b452cd&#34;&gt;25&lt;/span&gt; note &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;i am notes&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hmget myhash name age note
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hgetall myhash 获取所有的键值对
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hexists myhash name 检测键是否存在
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hsetnx myhash score &lt;span style=&#34;color:#b452cd&#34;&gt;100&lt;/span&gt; 设置不存在的
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hincrby myhash id &lt;span style=&#34;color:#b452cd&#34;&gt;1&lt;/span&gt; 递增
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hdel myhash name 删除
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hkeys myhash 只取key
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hvals myhash 只取value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hlen myhash 长度
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;如果散列的值很大，可以不直接用HGETALL（可能会导致阻塞），而是先用HKEYS取出所有键，再遍历，用HGET取出其中值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;发布与订阅&#34;&gt;发布与订阅&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;订阅频道：subscribe chat1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;发布消息：publish chat1 &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;hell0 ni hao&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;查看频道：pubsub channels
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;查看某个频道的订阅者数量: pubsub numsub chat1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;退订指定频道： unsubscrible chat1 , punsubscribe java.*
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;订阅一组频道： psubscribe java.*
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;sort&#34;&gt;Sort&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sort mylist 排序
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sort mylist alpha desc limit &lt;span style=&#34;color:#b452cd&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#b452cd&#34;&gt;2&lt;/span&gt; 字母排序
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sort list by it:* desc by命令
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sort list by it:* desc get it:* get参数
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sort list by it:* desc get it:* store sorc:result sort命令之store参数：表示把sort查询的结果集保存起来
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;第四章-数据安全与性能保障&#34;&gt;第四章 数据安全与性能保障&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;RDB、AOF、主从复制、事务，这里不多写，详细了解可以看《Redis设计与实现》这本书，讲的很清晰&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Redis中用的是乐观锁：使用WATCH，在数据被修改的情况下才通知执行了WATCH命令的客户端。 用以提高效率。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;第五章-使用redis构建支持程序&#34;&gt;第五章 使用Redis构建支持程序&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020199.png&#34; alt=&#34;image-20230123192330434&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;计数器和统计数据&#34;&gt;计数器和统计数据&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;比如统计网站点击量&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.jianshu.com/p/294444f7ff5a&#34;&gt;Redis实现用户访问量&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Hash / HyperLoglog&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第六章-使用redis构建应用程序组件&#34;&gt;第六章 使用Redis构建应用程序组件&lt;/h2&gt;
+&lt;h3 id=&#34;自动补全&#34;&gt;自动补全&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;快速查找所需搜索内容&amp;ndash;&amp;gt;热点&amp;hellip;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;自动补全最近联系人&#34;&gt;自动补全最近联系人&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;匹配主要是在代码中实现，因为列表内容比较少&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301231926972.png&#34; alt=&#34;image-20230123192610922&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;添加&#34;&gt;添加&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;搜索时，查找目前联系人是否已在list中，如果在则移出&lt;/li&gt;
+&lt;li&gt;将该联系人放在列表最前面&lt;/li&gt;
+&lt;li&gt;如果列表数超过100，移除最后边的联系人，使列表大小为100&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;删除&#34;&gt;删除&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;查找目前联系人，lrem即可&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;过滤&#34;&gt;过滤&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://juejin.cn/post/6844903968976420871&#34;&gt;Google 搜索的即时自动补全功能究竟是如何“工作”的？&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;先获取整个最近联系人列表&lt;/li&gt;
+&lt;li&gt;匹配筛选（代码实现），返回过滤后的结果&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;自动补全通讯录&#34;&gt;自动补全通讯录&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;匹配在Redis中用ZSet实现，提高效率&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;每个名字的分值都为0，有序集合会根据字符串的二进制顺序排序&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;分布式锁&#34;&gt;分布式锁&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;为什么选用Redis构建分布式锁？&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;分布式锁需要全局可见&lt;/li&gt;
+&lt;li&gt;Redis比较快&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;SETNX：Set not exists，当键不存在时为键设置值&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;单个redis实例&#34;&gt;单个Redis实例&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;设置锁（带有超时时间）&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301231947848.png&#34; alt=&#34;image-20230123194714790&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;释放锁&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301231949601.png&#34; alt=&#34;image-20230123194938552&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;集群模式&#34;&gt;集群模式&lt;/h4&gt;
+&lt;h3 id=&#34;计数信号量&#34;&gt;计数信号量&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;计数信号量用于让多个客户端同时访问相同信息（读锁），还可以限制一个资源最多被多少个进程访问&lt;/p&gt;
+&lt;p&gt;与锁的区别：进程获取锁失败可能会等待，而获取信号量失败则会立刻返回（fail-fast）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;超时构建信号量&#34;&gt;超时构建信号量&lt;/h4&gt;
+&lt;p&gt;同上面分布式锁，使用EXPIRE即可&lt;/p&gt;
+&lt;h4 id=&#34;有序集合构建信号量&#34;&gt;有序集合构建信号量&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020980.png&#34; alt=&#34;image-20230123195258346&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;成员是进程的唯一标识符&lt;/li&gt;
+&lt;li&gt;score是尝试获取信号量时间戳&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;获取信号量&#34;&gt;获取信号量&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301231954655.png&#34; alt=&#34;image-20230123195413612&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;排名低于可获取的信号量总数则取得信号量&lt;/li&gt;
+&lt;li&gt;获取失败则移除ZSet中自己的标识符&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;释放信号量&#34;&gt;释放信号量&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301231955385.png&#34; alt=&#34;image-20230123195522337&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;存在问题&#34;&gt;存在问题&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;分布式情况会受主机时间影响，各个进程系统时间未必相同 &amp;ndash;&amp;gt; 不公平的锁&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;公平信号量&#34;&gt;公平信号量&lt;/h4&gt;
+&lt;p&gt;为了避免系统时间带来的不公平影响，对上诉信号量模式修改如下&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;新增规则：增加一个计数器，最先对计数器自增的客户端可以获得信号量&lt;/li&gt;
+&lt;li&gt;新增“信号量拥有者”ZSet，成员为进程唯一标识符，计数器的值为score，通过检查rank来判断进程是否取得信号量&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301231959440.png&#34; alt=&#34;image-20230123195957394&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;获取信号量-1&#34;&gt;获取信号量&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020982.png&#34; alt=&#34;image-20230123200233017&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;释放信号量-1&#34;&gt;释放信号量&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020426.png&#34; alt=&#34;image-20230123200358214&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;消除竞争条件&#34;&gt;消除竞争条件&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;自增计数器和将标识符添加到ZSet这两个操作并非原子的，存在竞争条件&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020498.png&#34; alt=&#34;image-20230123200639182&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;解决方法：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;加一个短暂超时锁（保证原子性），成功获取锁后，再执行信号量获取操作&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301232008952.png&#34; alt=&#34;image-20230123200804899&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;任务队列&#34;&gt;任务队列&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;普通队列：list&lt;/li&gt;
+&lt;li&gt;优先级队列：可以用ZSet；也可以用书中的“多个队列”，然后用&lt;code&gt;BLPOP LIST1 LIST2 .. LISTN TIMEOUT &lt;/code&gt;，只有优先级高的队列为空，才能弹出优先级低的元素&lt;/li&gt;
+&lt;li&gt;延迟队列：ZSet，其中score为时间戳&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;消息拉取&#34;&gt;消息拉取&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;自定义，以实现用户离线情况下消息不丢失。订阅和发布在连接故障的情况下会丢失信息。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;单接收者&#34;&gt;单接收者&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301232018528.png&#34; alt=&#34;image-20230123201854465&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;list实现&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;多接收者&#34;&gt;多接收者&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;ZSet，可以实现群聊&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020607.png&#34; alt=&#34;image-20230123202019884&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;每个群组都有一个自己的ZSet，记录成员和当前成员接收的最大消息ID（score）&lt;/li&gt;
+&lt;li&gt;用户也都有一个自己的ZSet，用来记录参与的所有群组，score也是当前用户在该群中最大的消息ID&lt;/li&gt;
+&lt;li&gt;消息集合也需要用ZSet，获取某个ID范围消息：&lt;code&gt;ZRANGEBYSCORE key minScore maxScore&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;创建聊天会话&#34;&gt;创建聊天会话&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020377.png&#34; alt=&#34;image-20230123202203069&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;发送消息&#34;&gt;发送消息&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020052.png&#34; alt=&#34;image-20230123202325075&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;获取消息&#34;&gt;获取消息&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;../../../../../../Library/Application%2520Support/typora-user-images/image-20230123202530041.png&#34; alt=&#34;image-20230123202530041&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;遍历该用户群组，取出每个群组的未读消息&lt;/li&gt;
+&lt;li&gt;更新该用户最新阅读到的消息ID&lt;/li&gt;
+&lt;li&gt;清除已经被所有人阅读过的消息（感觉不用。保留历史记录也可以的）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;加入群组&#34;&gt;加入群组&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020393.png&#34; alt=&#34;image-20230123202858848&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;离开群组&#34;&gt;离开群组&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301232029904.png&#34; alt=&#34;image-20230123202936842&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第七章-基于搜索的应用程序&#34;&gt;第七章 基于搜索的应用程序&lt;/h2&gt;
+&lt;h3 id=&#34;redis实现搜索&#34;&gt;Redis实现搜索&lt;/h3&gt;
+&lt;h4 id=&#34;反向索引&#34;&gt;反向索引&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020157.png&#34; alt=&#34;image-20230123203649692&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在搜索前就建好&lt;/li&gt;
+&lt;li&gt;从文档中提取单词，并为该单词创建一个Set，记录有哪些文档出现过该单词&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;基本索引过程&#34;&gt;基本索引过程&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301232036204.png&#34; alt=&#34;image-20230123203640146&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;基本搜索操作&#34;&gt;基本搜索操作&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;取交集：SINTER 和 SINTERSTORE&lt;/li&gt;
+&lt;li&gt;取并集（多个同义词搜索）：SUNION 和 SUNIONSTORE&lt;/li&gt;
+&lt;li&gt;取差集：SDIFF 和 SDIFFSTORE&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020462.png&#34; alt=&#34;image-20230123204113567&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;搜索函数实现&#34;&gt;搜索函数实现&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020956.png&#34; alt=&#34;image-20230123204352327&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;实现职位搜索&#34;&gt;实现职位搜索&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;求职者拥有的全部技能为ZSet，技能对应的职业集合为ZSet&lt;/li&gt;
+&lt;li&gt;使用ZUNIONSTORE，计算出求职者对每个职位的得分，得分即满足了多少该职位所需要的技能&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301232058323.png&#34; alt=&#34;image-20230123205803250&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第八章-构建简单的社交网站&#34;&gt;第八章 构建简单的社交网站&lt;/h2&gt;
+&lt;h3 id=&#34;可以参考的功能&#34;&gt;可以参考的功能&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;私人用户，关注这些用户需要经过主人批准&lt;/li&gt;
+&lt;li&gt;状态消息收藏&lt;/li&gt;
+&lt;li&gt;用户之间可以进行私聊&lt;/li&gt;
+&lt;li&gt;对消息进行回复将产生对话流（评论）&lt;/li&gt;
+&lt;li&gt;可以转发状态消息&lt;/li&gt;
+&lt;li&gt;使用@指定用户或用#标记话题&lt;/li&gt;
+&lt;li&gt;记录用户使用@指定了谁&lt;/li&gt;
+&lt;li&gt;针对广告行为和滥用行为的投诉和管理机制&lt;/li&gt;
+&lt;li&gt;对消息进行赞或“+1”&lt;/li&gt;
+&lt;li&gt;根据重要性对消息进行排序&lt;/li&gt;
+&lt;li&gt;可以对用户进行分组，只有组员可以关注组内消息（类似豆瓣..），小组可以公开、私密..&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;用户和状态&#34;&gt;用户和状态&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301241354132.png&#34; alt=&#34;image-20230124135422014&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用Hash来存储信息&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;关注者列表和正在关注列表&#34;&gt;关注者列表和正在关注列表&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020843.png&#34; alt=&#34;image-20230124135938118&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;关注实现&#34;&gt;关注实现&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;更新关注者和被关注者的集合&lt;/li&gt;
+&lt;li&gt;修改关注数量和被关注数量&lt;/li&gt;
+&lt;li&gt;关注者新的主页需要可以立刻看见被关注者发布的消息（更新）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301241402387.png&#34; alt=&#34;image-20230124140233307&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;取消关注&#34;&gt;取消关注&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;更新关注者和被关注者的集合&lt;/li&gt;
+&lt;li&gt;修改关注数量和被关注数量&lt;/li&gt;
+&lt;li&gt;关注者新的主页不能看见被取消关注者发布的消息&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301262020633.png&#34; alt=&#34;image-20230124140359319&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;发布状态消息&#34;&gt;发布状态消息&lt;/h3&gt;
+&lt;h4 id=&#34;更新用户的个人时间线&#34;&gt;更新用户的个人时间线&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;判断创建消息能否成功&lt;/li&gt;
+&lt;li&gt;如果成功，将新状态消息放到个人时间线中，并推送给关注者&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301241406124.png&#34; alt=&#34;image-20230124140619040&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;更新关注者的主页时间线&#34;&gt;更新关注者的主页时间线&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;只先更新1000个关注者的主页&lt;/li&gt;
+&lt;li&gt;如果超过1000，则放入延迟队列中执行&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;../../../../../../Library/Application%2520Support/typora-user-images/image-20230124140747462.png&#34; alt=&#34;image-20230124140747462&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第十章-扩展redis&#34;&gt;第十章 扩展Redis&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;变为从服务器&lt;code&gt;slaveof host port&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;断开与主服务器的连接&lt;code&gt;slaveof no one&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+- https://kother.top/read/redis%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ - Kother.</description>
+        </item>
+    
+    
+    
+        <item>
         <title>Spring微服务实战 读书笔记</title>
         <link>https://kother.top/read/spring%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
         <pubDate>Fri, 20 Jan 2023 19:47:50 +0800</pubDate>
@@ -11911,162 +12518,6 @@ UNIX系统的&lt;strong&gt;vmstat命令和Windows系统的perfmon工具&lt;/stro
 &lt;li&gt;【难度：🌟🌟🌟🌟】依赖里面的 Lambda 表达式内的逻辑怎么执行？&lt;/li&gt;
 &lt;/ol&gt;
 - https://kother.top/post/%E9%98%BF%E9%87%8C%E8%BF%9B%E8%A1%8C%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E7%9A%84%E6%96%B9%E6%B3%95-%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/ - Kother.</description>
-        </item>
-    
-    
-    
-        <item>
-        <title>ACM模式 Java</title>
-        <link>https://kother.top/post/acm%E6%A8%A1%E5%BC%8F-java/</link>
-        <pubDate>Fri, 06 Jan 2023 17:59:34 +0800</pubDate>
-        
-        <guid>https://kother.top/post/acm%E6%A8%A1%E5%BC%8F-java/</guid>
-        <description>Kother&#39;s Blog https://kother.top/post/acm%E6%A8%A1%E5%BC%8F-java/ -&lt;p&gt;记一些ACM模式下Java的输入输出&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://www.nowcoder.com/exam/test/64972323/detail?pid=27976983#question&#34;&gt;牛客练习平台&lt;/a&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;java.io.*&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;java.util.*&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;// 类名称必须采用public class Main方式命名
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Main&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;(String[] args) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Scanner scanner = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; Scanner(&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; BufferedInputStream(System.&lt;span style=&#34;color:#658b00&#34;&gt;in&lt;/span&gt;)); &lt;span style=&#34;color:#228b22&#34;&gt;// 更快一点
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// Scanner scanner = new Scanner(System.in);
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; a = scanner.&lt;span style=&#34;color:#658b00&#34;&gt;nextInt&lt;/span&gt;();          &lt;span style=&#34;color:#228b22&#34;&gt;// 读入数字
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;double&lt;/span&gt; b = scanner.&lt;span style=&#34;color:#658b00&#34;&gt;nextDouble&lt;/span&gt;();    &lt;span style=&#34;color:#228b22&#34;&gt;// 读入浮点数
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        String s = scanner.&lt;span style=&#34;color:#658b00&#34;&gt;next&lt;/span&gt;();          &lt;span style=&#34;color:#228b22&#34;&gt;// 读入字符串
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 判断是否有下一个输入
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        scanner.&lt;span style=&#34;color:#658b00&#34;&gt;hasNextInt&lt;/span&gt;();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        scanner.&lt;span style=&#34;color:#658b00&#34;&gt;hasNextDouble&lt;/span&gt;();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        scanner.&lt;span style=&#34;color:#658b00&#34;&gt;hasNext&lt;/span&gt;();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 输出函数
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        System.&lt;span style=&#34;color:#658b00&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;print&lt;/span&gt;(a);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        System.&lt;span style=&#34;color:#658b00&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;println&lt;/span&gt;(b);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        System.&lt;span style=&#34;color:#658b00&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;format&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;%.2f, %s&amp;#34;&lt;/span&gt;, 1.&lt;span style=&#34;color:#658b00&#34;&gt;0&lt;/span&gt; * a / b, s);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// example1 : 读入多个整数
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;while&lt;/span&gt;(scanner.&lt;span style=&#34;color:#658b00&#34;&gt;hasNext&lt;/span&gt;()){
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; score = scanner.&lt;span style=&#34;color:#658b00&#34;&gt;nextInt&lt;/span&gt;();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// example2 : 已知字符串数目，读入多行字符串
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; num = scanner.&lt;span style=&#34;color:#658b00&#34;&gt;nextInt&lt;/span&gt;();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = 0; i &amp;lt; num; i++) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            String str = scanner.&lt;span style=&#34;color:#658b00&#34;&gt;next&lt;/span&gt;();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// example3 : 读取二维数组
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;while&lt;/span&gt;(scanner.&lt;span style=&#34;color:#658b00&#34;&gt;hasNext&lt;/span&gt;()){
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; r = scanner.&lt;span style=&#34;color:#658b00&#34;&gt;nextInt&lt;/span&gt;();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; c = scanner.&lt;span style=&#34;color:#658b00&#34;&gt;nextInt&lt;/span&gt;();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;[][] matrix = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt;[r][c];
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            scanner.&lt;span style=&#34;color:#658b00&#34;&gt;nextLine&lt;/span&gt;(); &lt;span style=&#34;color:#228b22&#34;&gt;// 跳换行符
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = 0; i &amp;lt; r; i++){
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; j = 0; j &amp;lt; c; j++){
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    matrix[i][j] = scanner.&lt;span style=&#34;color:#658b00&#34;&gt;nextInt&lt;/span&gt;();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301141347414.png&#34; alt=&#34;image-20230114134755375&#34;&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#008b45;text-decoration:underline&#34;&gt;java.util.Scanner&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;Main&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;main&lt;/span&gt;(String[] args) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Scanner in = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; Scanner(System.&lt;span style=&#34;color:#658b00&#34;&gt;in&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 一行行读
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;while&lt;/span&gt;(in.&lt;span style=&#34;color:#658b00&#34;&gt;hasNextLine&lt;/span&gt;()){
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            String[] temp = in.&lt;span style=&#34;color:#658b00&#34;&gt;nextLine&lt;/span&gt;().&lt;span style=&#34;color:#658b00&#34;&gt;split&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34; &amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; sum = 0;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;for&lt;/span&gt;(&lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;int&lt;/span&gt; i = 0; i &amp;lt; temp.&lt;span style=&#34;color:#658b00&#34;&gt;length&lt;/span&gt;; i++){
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                sum += Integer.&lt;span style=&#34;color:#658b00&#34;&gt;parseInt&lt;/span&gt;(temp[i]);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            System.&lt;span style=&#34;color:#658b00&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;println&lt;/span&gt;(sum);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;- https://kother.top/post/acm%E6%A8%A1%E5%BC%8F-java/ - Kother.</description>
         </item>
     
     
