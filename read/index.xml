@@ -7,7 +7,16 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Kother.</copyright>
-    <lastBuildDate>Fri, 20 Jan 2023 19:47:50 +0800</lastBuildDate><atom:link href="https://kother.top/read/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 26 Jan 2023 20:20:42 +0800</lastBuildDate><atom:link href="https://kother.top/read/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Netty、Redis、Zookeeper高并发实战 读书笔记</title>
+      <link>https://kother.top/read/nettyrediszookeeper%E9%AB%98%E5%B9%B6%E5%8F%91%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Thu, 26 Jan 2023 20:20:42 +0800</pubDate>
+      
+      <guid>https://kother.top/read/nettyrediszookeeper%E9%AB%98%E5%B9%B6%E5%8F%91%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>Spring微服务实战 读书笔记</title>
       <link>https://kother.top/read/spring%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
@@ -160,6 +169,20 @@ MySQL备份与恢复 数据丢失应用场景 （1）人为操作失误造成某
 数据库的物理对象主要由数据库的物理数据文件、日志文件及配置文件等组成。在MySQL数据库中，除了MySQL系统共有的一些日志文件和系统表的数据文件之外，每一种存储引擎还会有不太一样的物理对象
 MyISAM存储引擎文件的物理文件比较集中，而且不支持事务没有REDO和UNDO日志，对数据一致性的要求也并不是特别高，所以MyISAM存储引擎表的物理备份也比较简单，只要将MyISAM的物理文件复制出来即可。
 mysqlhotcopy是一个用perl编写的使用程序，其主要实现原理实际上就是先锁住（LOCK）表，然后执行FLUSH TABLES动作，该正常关闭的表正常关闭，该进行flush同步的数据都进行同步，然后通过执行OS级别的复制（cp等）命令，将须要备份的表或数据库的所有物理文件都复制到指定的备份集位置。</description>
+    </item>
+    
+    <item>
+      <title>Redis实战 读书笔记</title>
+      <link>https://kother.top/read/redis%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kother.top/read/redis%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+      <description>Redis实战-读书笔记 该书深入浅出地介绍了 Redis 的字符串、列表、散列、集合、有序集合等五种结构， 并通过文章聚合网站、cookie、购物车、网页缓存、日志、计数器、IP 所属地址查询程序、自动补全、分布式锁、计数信号量、任务队列、消息队列、搜索程序、广告定向程序、社交网站等一系列实用示例展示了 Redis 的用法。
+[TOC]
+第一章 初识Redis 文章排名实战 目的 单纯用Redis实现文章排行榜，根据文字的发布时间和投票数量计算出评分，根据评分对文章进行排名和展示。
+数据结构 内容 数据结构类型 图例 备注 文章信息 Hash 根据文章ID获取文章内容 根据发布时间排序的文章 ZSet 快速获取时间排序 根据评分排序的文章 ZSet 快速获取评分排序 已投票用户 Set 每个文章都有这个集合，判断已投票过的用户，文章发布一周后自动删除 实现功能 发布文章 用户投票给文章 获取文章 zrevrange:返回有序集key中指定区间内的成员。其中成员的位置按score值从大到小来排列。具有相同score值的成员按字典序的逆序排列。 对文章进行分组 从群组中获取一页文章 可设置缓存，60s过期（缓存一致性问题：新发文章可能60s内看不到） 意义 ZSet可以用于[快速获取排名]功能 ZSet的ZINTERSTORE命令可以取集合和有序集合的交集，如果将集合中放入特定topic的文章，再与score结合，可以实现[获取特定主题中的文章，按评分排序] 实现功能的同时还可以实现缓存 唯一性ID通过计数器执行INCR完成 第二章 使用Redis构建Web应用 登录cookie Cookie类型 简介 缺点 签名Cookie 用户信息（可能包含签名）都存在Cookie中 可能忘记，安全漏洞 令牌Cookie 存储一段随机数字作为令牌，服务器根据该令牌获得用户信息 服务器中要存更多信息 目的 大多数关系型数据库都比较慢
+利用Redis优化Cookie功能
+实现功能 校验cookie 更新cookie 每次用户浏览页面都会更新cookie 更新内容：时间戳，浏览过的商品 定期清理cookie 移除cookie的同时要移除对应的用户信息 当然也可以在添加时直接设置expire，但是定期清理可以插入更多业务逻辑，比如将数据导入到数据库中以后作分析等&amp;hellip;. 实现购物车 参考资料 Redis 实现购物车</description>
     </item>
     
   </channel>

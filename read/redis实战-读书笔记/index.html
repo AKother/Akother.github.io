@@ -1,0 +1,3636 @@
+<!DOCTYPE html>
+<meta name="referrer" content="no-referrer" />
+<html><head>
+<title>KOTHER'S BLOG</title>
+
+
+
+
+<style> @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&display=swap'); </style>
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="Redis实战 读书笔记" />
+<meta property="og:description" content="Redis实战-读书笔记 该书深入浅出地介绍了 Redis 的字符串、列表、散列、集合、有序集合等五种结构， 并通过文章聚合网站、cookie、购物车、网页缓存、日志、计数器、IP 所属地址查询程序、自动补全、分布式锁、计数信号量、任务队列、消息队列、搜索程序、广告定向程序、社交网站等一系列实用示例展示了 Redis 的用法。
+[TOC]
+第一章 初识Redis 文章排名实战 目的 单纯用Redis实现文章排行榜，根据文字的发布时间和投票数量计算出评分，根据评分对文章进行排名和展示。
+数据结构 内容 数据结构类型 图例 备注 文章信息 Hash 根据文章ID获取文章内容 根据发布时间排序的文章 ZSet 快速获取时间排序 根据评分排序的文章 ZSet 快速获取评分排序 已投票用户 Set 每个文章都有这个集合，判断已投票过的用户，文章发布一周后自动删除 实现功能 发布文章 用户投票给文章 获取文章 zrevrange:返回有序集key中指定区间内的成员。其中成员的位置按score值从大到小来排列。具有相同score值的成员按字典序的逆序排列。 对文章进行分组 从群组中获取一页文章 可设置缓存，60s过期（缓存一致性问题：新发文章可能60s内看不到） 意义 ZSet可以用于[快速获取排名]功能 ZSet的ZINTERSTORE命令可以取集合和有序集合的交集，如果将集合中放入特定topic的文章，再与score结合，可以实现[获取特定主题中的文章，按评分排序] 实现功能的同时还可以实现缓存 唯一性ID通过计数器执行INCR完成 第二章 使用Redis构建Web应用 登录cookie Cookie类型 简介 缺点 签名Cookie 用户信息（可能包含签名）都存在Cookie中 可能忘记，安全漏洞 令牌Cookie 存储一段随机数字作为令牌，服务器根据该令牌获得用户信息 服务器中要存更多信息 目的 大多数关系型数据库都比较慢
+利用Redis优化Cookie功能
+实现功能 校验cookie 更新cookie 每次用户浏览页面都会更新cookie 更新内容：时间戳，浏览过的商品 定期清理cookie 移除cookie的同时要移除对应的用户信息 当然也可以在添加时直接设置expire，但是定期清理可以插入更多业务逻辑，比如将数据导入到数据库中以后作分析等&hellip;. 实现购物车 参考资料 Redis 实现购物车" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kother.top/read/redis%E5%AE%9E%E6%88%98-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="read" />
+
+<meta property="og:site_name" content="My Blog" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Redis实战 读书笔记"/>
+<meta name="twitter:description" content="Redis实战-读书笔记 该书深入浅出地介绍了 Redis 的字符串、列表、散列、集合、有序集合等五种结构， 并通过文章聚合网站、cookie、购物车、网页缓存、日志、计数器、IP 所属地址查询程序、自动补全、分布式锁、计数信号量、任务队列、消息队列、搜索程序、广告定向程序、社交网站等一系列实用示例展示了 Redis 的用法。
+[TOC]
+第一章 初识Redis 文章排名实战 目的 单纯用Redis实现文章排行榜，根据文字的发布时间和投票数量计算出评分，根据评分对文章进行排名和展示。
+数据结构 内容 数据结构类型 图例 备注 文章信息 Hash 根据文章ID获取文章内容 根据发布时间排序的文章 ZSet 快速获取时间排序 根据评分排序的文章 ZSet 快速获取评分排序 已投票用户 Set 每个文章都有这个集合，判断已投票过的用户，文章发布一周后自动删除 实现功能 发布文章 用户投票给文章 获取文章 zrevrange:返回有序集key中指定区间内的成员。其中成员的位置按score值从大到小来排列。具有相同score值的成员按字典序的逆序排列。 对文章进行分组 从群组中获取一页文章 可设置缓存，60s过期（缓存一致性问题：新发文章可能60s内看不到） 意义 ZSet可以用于[快速获取排名]功能 ZSet的ZINTERSTORE命令可以取集合和有序集合的交集，如果将集合中放入特定topic的文章，再与score结合，可以实现[获取特定主题中的文章，按评分排序] 实现功能的同时还可以实现缓存 唯一性ID通过计数器执行INCR完成 第二章 使用Redis构建Web应用 登录cookie Cookie类型 简介 缺点 签名Cookie 用户信息（可能包含签名）都存在Cookie中 可能忘记，安全漏洞 令牌Cookie 存储一段随机数字作为令牌，服务器根据该令牌获得用户信息 服务器中要存更多信息 目的 大多数关系型数据库都比较慢
+利用Redis优化Cookie功能
+实现功能 校验cookie 更新cookie 每次用户浏览页面都会更新cookie 更新内容：时间戳，浏览过的商品 定期清理cookie 移除cookie的同时要移除对应的用户信息 当然也可以在添加时直接设置expire，但是定期清理可以插入更多业务逻辑，比如将数据导入到数据库中以后作分析等&hellip;. 实现购物车 参考资料 Redis 实现购物车"/>
+
+
+
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-123-45', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+
+
+
+  
+
+
+
+
+
+
+      <script src="/js/toc.js"></script>
+    
+    <link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<link rel="stylesheet" href="/scss/journal.min.66cf0f76f275d011531b27e244451df2f6155c714e54ce7ef938e51869bbdf64.css" integrity="sha256-Zs8PdvJ10BFTGyfiREUd8vYVXHFOVM5&#43;&#43;TjlGGm732Q=" media="screen">
+
+
+
+<link rel="stylesheet" href="/scss/dark-mode.min.31b4f7dd2c9db4bc1f5c9be4337b86ff309731dfbc886bcb23711efe353d1000.css" integrity="sha256-MbT33SydtLwfXJvkM3uG/zCXMd&#43;8iGvLI3Ee/jU9EAA=" media="screen">
+
+
+<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Material+Icons">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="/vendor/js/md5.min.js"></script><script>
+  var gitalk = new Gitalk({
+  clientID: 'ee22eaa3184cbf1df6d9',
+  clientSecret: '00bb1d24a9cfdc647db6e565549bc405f57c5dd1',
+  repo: 'Akother.github.io',
+  owner: 'Akother',
+  admin: ['Akother'],
+  id: md5(location.pathname),
+  distractionFreeMode: 'false'
+  });
+  window.onload = function () {
+        gitalk.render('gitalk-container')
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+    	<div id="app"><div id="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://kother.top">
+    
+        <div class="nav-title">
+            Kother&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            记录点喜欢的.
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/post">
+                博客
+            </a>
+            
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/read">
+                阅读
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+
+    </div>
+    
+</div><div id="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#redis%e5%ae%9e%e6%88%98-%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#redis实战-读书笔记-nav`)" id="redis实战-读书笔记-nav">
+									Redis实战-读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e5%88%9d%e8%af%86redis" onclick="onNavClick(`#第一章-初识redis-nav`)" id="第一章-初识redis-nav">
+									第一章 初识Redis
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%96%87%e7%ab%a0%e6%8e%92%e5%90%8d%e5%ae%9e%e6%88%98" onclick="onNavClick(`#文章排名实战-nav`)" id="文章排名实战-nav">
+									文章排名实战
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%9b%ae%e7%9a%84" onclick="onNavClick(`#目的-nav`)" id="目的-nav">
+									目的
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84" onclick="onNavClick(`#数据结构-nav`)" id="数据结构-nav">
+									数据结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8a%9f%e8%83%bd" onclick="onNavClick(`#实现功能-nav`)" id="实现功能-nav">
+									实现功能
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%91%e5%b8%83%e6%96%87%e7%ab%a0" onclick="onNavClick(`#发布文章-nav`)" id="发布文章-nav">
+									发布文章
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%94%a8%e6%88%b7%e6%8a%95%e7%a5%a8%e7%bb%99%e6%96%87%e7%ab%a0" onclick="onNavClick(`#用户投票给文章-nav`)" id="用户投票给文章-nav">
+									用户投票给文章
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%8e%b7%e5%8f%96%e6%96%87%e7%ab%a0" onclick="onNavClick(`#获取文章-nav`)" id="获取文章-nav">
+									获取文章
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e6%96%87%e7%ab%a0%e8%bf%9b%e8%a1%8c%e5%88%86%e7%bb%84" onclick="onNavClick(`#对文章进行分组-nav`)" id="对文章进行分组-nav">
+									对文章进行分组
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8e%e7%be%a4%e7%bb%84%e4%b8%ad%e8%8e%b7%e5%8f%96%e4%b8%80%e9%a1%b5%e6%96%87%e7%ab%a0" onclick="onNavClick(`#从群组中获取一页文章-nav`)" id="从群组中获取一页文章-nav">
+									从群组中获取一页文章
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%84%8f%e4%b9%89" onclick="onNavClick(`#意义-nav`)" id="意义-nav">
+									意义
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-%e4%bd%bf%e7%94%a8redis%e6%9e%84%e5%bb%baweb%e5%ba%94%e7%94%a8" onclick="onNavClick(`#第二章-使用redis构建web应用-nav`)" id="第二章-使用redis构建web应用-nav">
+									第二章 使用Redis构建Web应用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%99%bb%e5%bd%95cookie" onclick="onNavClick(`#登录cookie-nav`)" id="登录cookie-nav">
+									登录cookie
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%9b%ae%e7%9a%84-1" onclick="onNavClick(`#目的-1-nav`)" id="目的-1-nav">
+									目的
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8a%9f%e8%83%bd-1" onclick="onNavClick(`#实现功能-1-nav`)" id="实现功能-1-nav">
+									实现功能
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e8%b4%ad%e7%89%a9%e8%bd%a6" onclick="onNavClick(`#实现购物车-nav`)" id="实现购物车-nav">
+									实现购物车
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84-1" onclick="onNavClick(`#数据结构-1-nav`)" id="数据结构-1-nav">
+									数据结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8a%9f%e8%83%bd-2" onclick="onNavClick(`#实现功能-2-nav`)" id="实现功能-2-nav">
+									实现功能
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%bd%91%e9%a1%b5%e7%bc%93%e5%ad%98" onclick="onNavClick(`#网页缓存-nav`)" id="网页缓存-nav">
+									网页缓存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-redis%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#第三章-redis命令-nav`)" id="第三章-redis命令-nav">
+									第三章 Redis命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#string" onclick="onNavClick(`#string-nav`)" id="string-nav">
+									String
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#list" onclick="onNavClick(`#list-nav`)" id="list-nav">
+									List
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#set" onclick="onNavClick(`#set-nav`)" id="set-nav">
+									Set
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#zset" onclick="onNavClick(`#zset-nav`)" id="zset-nav">
+									ZSet
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#hash" onclick="onNavClick(`#hash-nav`)" id="hash-nav">
+									Hash
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%91%e5%b8%83%e4%b8%8e%e8%ae%a2%e9%98%85" onclick="onNavClick(`#发布与订阅-nav`)" id="发布与订阅-nav">
+									发布与订阅
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#sort" onclick="onNavClick(`#sort-nav`)" id="sort-nav">
+									Sort
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-%e6%95%b0%e6%8d%ae%e5%ae%89%e5%85%a8%e4%b8%8e%e6%80%a7%e8%83%bd%e4%bf%9d%e9%9a%9c" onclick="onNavClick(`#第四章-数据安全与性能保障-nav`)" id="第四章-数据安全与性能保障-nav">
+									第四章 数据安全与性能保障
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e4%bd%bf%e7%94%a8redis%e6%9e%84%e5%bb%ba%e6%94%af%e6%8c%81%e7%a8%8b%e5%ba%8f" onclick="onNavClick(`#第五章-使用redis构建支持程序-nav`)" id="第五章-使用redis构建支持程序-nav">
+									第五章 使用Redis构建支持程序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%ae%a1%e6%95%b0%e5%99%a8%e5%92%8c%e7%bb%9f%e8%ae%a1%e6%95%b0%e6%8d%ae" onclick="onNavClick(`#计数器和统计数据-nav`)" id="计数器和统计数据-nav">
+									计数器和统计数据
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-%e4%bd%bf%e7%94%a8redis%e6%9e%84%e5%bb%ba%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f%e7%bb%84%e4%bb%b6" onclick="onNavClick(`#第六章-使用redis构建应用程序组件-nav`)" id="第六章-使用redis构建应用程序组件-nav">
+									第六章 使用Redis构建应用程序组件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e8%a1%a5%e5%85%a8" onclick="onNavClick(`#自动补全-nav`)" id="自动补全-nav">
+									自动补全
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e8%a1%a5%e5%85%a8%e6%9c%80%e8%bf%91%e8%81%94%e7%b3%bb%e4%ba%ba" onclick="onNavClick(`#自动补全最近联系人-nav`)" id="自动补全最近联系人-nav">
+									自动补全最近联系人
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e8%a1%a5%e5%85%a8%e9%80%9a%e8%ae%af%e5%bd%95" onclick="onNavClick(`#自动补全通讯录-nav`)" id="自动补全通讯录-nav">
+									自动补全通讯录
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81" onclick="onNavClick(`#分布式锁-nav`)" id="分布式锁-nav">
+									分布式锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%95%e4%b8%aaredis%e5%ae%9e%e4%be%8b" onclick="onNavClick(`#单个redis实例-nav`)" id="单个redis实例-nav">
+									单个Redis实例
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#集群模式-nav`)" id="集群模式-nav">
+									集群模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%a1%e6%95%b0%e4%bf%a1%e5%8f%b7%e9%87%8f" onclick="onNavClick(`#计数信号量-nav`)" id="计数信号量-nav">
+									计数信号量
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%b6%85%e6%97%b6%e6%9e%84%e5%bb%ba%e4%bf%a1%e5%8f%b7%e9%87%8f" onclick="onNavClick(`#超时构建信号量-nav`)" id="超时构建信号量-nav">
+									超时构建信号量
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%89%e5%ba%8f%e9%9b%86%e5%90%88%e6%9e%84%e5%bb%ba%e4%bf%a1%e5%8f%b7%e9%87%8f" onclick="onNavClick(`#有序集合构建信号量-nav`)" id="有序集合构建信号量-nav">
+									有序集合构建信号量
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%ac%e5%b9%b3%e4%bf%a1%e5%8f%b7%e9%87%8f" onclick="onNavClick(`#公平信号量-nav`)" id="公平信号量-nav">
+									公平信号量
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e9%99%a4%e7%ab%9e%e4%ba%89%e6%9d%a1%e4%bb%b6" onclick="onNavClick(`#消除竞争条件-nav`)" id="消除竞争条件-nav">
+									消除竞争条件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%bb%e5%8a%a1%e9%98%9f%e5%88%97" onclick="onNavClick(`#任务队列-nav`)" id="任务队列-nav">
+									任务队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af%e6%8b%89%e5%8f%96" onclick="onNavClick(`#消息拉取-nav`)" id="消息拉取-nav">
+									消息拉取
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%95%e6%8e%a5%e6%94%b6%e8%80%85" onclick="onNavClick(`#单接收者-nav`)" id="单接收者-nav">
+									单接收者
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%9a%e6%8e%a5%e6%94%b6%e8%80%85" onclick="onNavClick(`#多接收者-nav`)" id="多接收者-nav">
+									多接收者
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-%e5%9f%ba%e4%ba%8e%e6%90%9c%e7%b4%a2%e7%9a%84%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f" onclick="onNavClick(`#第七章-基于搜索的应用程序-nav`)" id="第七章-基于搜索的应用程序-nav">
+									第七章 基于搜索的应用程序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#redis%e5%ae%9e%e7%8e%b0%e6%90%9c%e7%b4%a2" onclick="onNavClick(`#redis实现搜索-nav`)" id="redis实现搜索-nav">
+									Redis实现搜索
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%8d%e5%90%91%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#反向索引-nav`)" id="反向索引-nav">
+									反向索引
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e7%b4%a2%e5%bc%95%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#基本索引过程-nav`)" id="基本索引过程-nav">
+									基本索引过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e6%90%9c%e7%b4%a2%e6%93%8d%e4%bd%9c" onclick="onNavClick(`#基本搜索操作-nav`)" id="基本搜索操作-nav">
+									基本搜索操作
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%90%9c%e7%b4%a2%e5%87%bd%e6%95%b0%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#搜索函数实现-nav`)" id="搜索函数实现-nav">
+									搜索函数实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e8%81%8c%e4%bd%8d%e6%90%9c%e7%b4%a2" onclick="onNavClick(`#实现职位搜索-nav`)" id="实现职位搜索-nav">
+									实现职位搜索
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e6%9e%84%e5%bb%ba%e7%ae%80%e5%8d%95%e7%9a%84%e7%a4%be%e4%ba%a4%e7%bd%91%e7%ab%99" onclick="onNavClick(`#第八章-构建简单的社交网站-nav`)" id="第八章-构建简单的社交网站-nav">
+									第八章 构建简单的社交网站
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e4%bb%a5%e5%8f%82%e8%80%83%e7%9a%84%e5%8a%9f%e8%83%bd" onclick="onNavClick(`#可以参考的功能-nav`)" id="可以参考的功能-nav">
+									可以参考的功能
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%94%a8%e6%88%b7%e5%92%8c%e7%8a%b6%e6%80%81" onclick="onNavClick(`#用户和状态-nav`)" id="用户和状态-nav">
+									用户和状态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b3%e6%b3%a8%e8%80%85%e5%88%97%e8%a1%a8%e5%92%8c%e6%ad%a3%e5%9c%a8%e5%85%b3%e6%b3%a8%e5%88%97%e8%a1%a8" onclick="onNavClick(`#关注者列表和正在关注列表-nav`)" id="关注者列表和正在关注列表-nav">
+									关注者列表和正在关注列表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b3%e6%b3%a8%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#关注实现-nav`)" id="关注实现-nav">
+									关注实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%96%e6%b6%88%e5%85%b3%e6%b3%a8" onclick="onNavClick(`#取消关注-nav`)" id="取消关注-nav">
+									取消关注
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%91%e5%b8%83%e7%8a%b6%e6%80%81%e6%b6%88%e6%81%af" onclick="onNavClick(`#发布状态消息-nav`)" id="发布状态消息-nav">
+									发布状态消息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%9b%b4%e6%96%b0%e7%94%a8%e6%88%b7%e7%9a%84%e4%b8%aa%e4%ba%ba%e6%97%b6%e9%97%b4%e7%ba%bf" onclick="onNavClick(`#更新用户的个人时间线-nav`)" id="更新用户的个人时间线-nav">
+									更新用户的个人时间线
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9b%b4%e6%96%b0%e5%85%b3%e6%b3%a8%e8%80%85%e7%9a%84%e4%b8%bb%e9%a1%b5%e6%97%b6%e9%97%b4%e7%ba%bf" onclick="onNavClick(`#更新关注者的主页时间线-nav`)" id="更新关注者的主页时间线-nav">
+									更新关注者的主页时间线
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-%e6%89%a9%e5%b1%95redis" onclick="onNavClick(`#第十章-扩展redis-nav`)" id="第十章-扩展redis-nav">
+									第十章 扩展Redis
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a type="button" class="pagination-action" id="darkModeToggleButton">
+            <span class="material-icons pagination-action-icon" id="darkModeToggleIcon">
+                dark_mode
+            </span>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" id="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/post">
+                    博客
+                </a>
+                
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/read">
+                    阅读
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#redis%e5%ae%9e%e6%88%98-%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#redis实战-读书笔记-nav`)" id="redis实战-读书笔记-nav">
+									Redis实战-读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e5%88%9d%e8%af%86redis" onclick="onNavClick(`#第一章-初识redis-nav`)" id="第一章-初识redis-nav">
+									第一章 初识Redis
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%96%87%e7%ab%a0%e6%8e%92%e5%90%8d%e5%ae%9e%e6%88%98" onclick="onNavClick(`#文章排名实战-nav`)" id="文章排名实战-nav">
+									文章排名实战
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%9b%ae%e7%9a%84" onclick="onNavClick(`#目的-nav`)" id="目的-nav">
+									目的
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84" onclick="onNavClick(`#数据结构-nav`)" id="数据结构-nav">
+									数据结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8a%9f%e8%83%bd" onclick="onNavClick(`#实现功能-nav`)" id="实现功能-nav">
+									实现功能
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%91%e5%b8%83%e6%96%87%e7%ab%a0" onclick="onNavClick(`#发布文章-nav`)" id="发布文章-nav">
+									发布文章
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%94%a8%e6%88%b7%e6%8a%95%e7%a5%a8%e7%bb%99%e6%96%87%e7%ab%a0" onclick="onNavClick(`#用户投票给文章-nav`)" id="用户投票给文章-nav">
+									用户投票给文章
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%8e%b7%e5%8f%96%e6%96%87%e7%ab%a0" onclick="onNavClick(`#获取文章-nav`)" id="获取文章-nav">
+									获取文章
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%af%b9%e6%96%87%e7%ab%a0%e8%bf%9b%e8%a1%8c%e5%88%86%e7%bb%84" onclick="onNavClick(`#对文章进行分组-nav`)" id="对文章进行分组-nav">
+									对文章进行分组
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8e%e7%be%a4%e7%bb%84%e4%b8%ad%e8%8e%b7%e5%8f%96%e4%b8%80%e9%a1%b5%e6%96%87%e7%ab%a0" onclick="onNavClick(`#从群组中获取一页文章-nav`)" id="从群组中获取一页文章-nav">
+									从群组中获取一页文章
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%84%8f%e4%b9%89" onclick="onNavClick(`#意义-nav`)" id="意义-nav">
+									意义
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-%e4%bd%bf%e7%94%a8redis%e6%9e%84%e5%bb%baweb%e5%ba%94%e7%94%a8" onclick="onNavClick(`#第二章-使用redis构建web应用-nav`)" id="第二章-使用redis构建web应用-nav">
+									第二章 使用Redis构建Web应用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%99%bb%e5%bd%95cookie" onclick="onNavClick(`#登录cookie-nav`)" id="登录cookie-nav">
+									登录cookie
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%9b%ae%e7%9a%84-1" onclick="onNavClick(`#目的-1-nav`)" id="目的-1-nav">
+									目的
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8a%9f%e8%83%bd-1" onclick="onNavClick(`#实现功能-1-nav`)" id="实现功能-1-nav">
+									实现功能
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e8%b4%ad%e7%89%a9%e8%bd%a6" onclick="onNavClick(`#实现购物车-nav`)" id="实现购物车-nav">
+									实现购物车
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84-1" onclick="onNavClick(`#数据结构-1-nav`)" id="数据结构-1-nav">
+									数据结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e5%8a%9f%e8%83%bd-2" onclick="onNavClick(`#实现功能-2-nav`)" id="实现功能-2-nav">
+									实现功能
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%bd%91%e9%a1%b5%e7%bc%93%e5%ad%98" onclick="onNavClick(`#网页缓存-nav`)" id="网页缓存-nav">
+									网页缓存
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-redis%e5%91%bd%e4%bb%a4" onclick="onNavClick(`#第三章-redis命令-nav`)" id="第三章-redis命令-nav">
+									第三章 Redis命令
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#string" onclick="onNavClick(`#string-nav`)" id="string-nav">
+									String
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#list" onclick="onNavClick(`#list-nav`)" id="list-nav">
+									List
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#set" onclick="onNavClick(`#set-nav`)" id="set-nav">
+									Set
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#zset" onclick="onNavClick(`#zset-nav`)" id="zset-nav">
+									ZSet
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#hash" onclick="onNavClick(`#hash-nav`)" id="hash-nav">
+									Hash
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%91%e5%b8%83%e4%b8%8e%e8%ae%a2%e9%98%85" onclick="onNavClick(`#发布与订阅-nav`)" id="发布与订阅-nav">
+									发布与订阅
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#sort" onclick="onNavClick(`#sort-nav`)" id="sort-nav">
+									Sort
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-%e6%95%b0%e6%8d%ae%e5%ae%89%e5%85%a8%e4%b8%8e%e6%80%a7%e8%83%bd%e4%bf%9d%e9%9a%9c" onclick="onNavClick(`#第四章-数据安全与性能保障-nav`)" id="第四章-数据安全与性能保障-nav">
+									第四章 数据安全与性能保障
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e4%bd%bf%e7%94%a8redis%e6%9e%84%e5%bb%ba%e6%94%af%e6%8c%81%e7%a8%8b%e5%ba%8f" onclick="onNavClick(`#第五章-使用redis构建支持程序-nav`)" id="第五章-使用redis构建支持程序-nav">
+									第五章 使用Redis构建支持程序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%ae%a1%e6%95%b0%e5%99%a8%e5%92%8c%e7%bb%9f%e8%ae%a1%e6%95%b0%e6%8d%ae" onclick="onNavClick(`#计数器和统计数据-nav`)" id="计数器和统计数据-nav">
+									计数器和统计数据
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-%e4%bd%bf%e7%94%a8redis%e6%9e%84%e5%bb%ba%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f%e7%bb%84%e4%bb%b6" onclick="onNavClick(`#第六章-使用redis构建应用程序组件-nav`)" id="第六章-使用redis构建应用程序组件-nav">
+									第六章 使用Redis构建应用程序组件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e8%a1%a5%e5%85%a8" onclick="onNavClick(`#自动补全-nav`)" id="自动补全-nav">
+									自动补全
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e8%a1%a5%e5%85%a8%e6%9c%80%e8%bf%91%e8%81%94%e7%b3%bb%e4%ba%ba" onclick="onNavClick(`#自动补全最近联系人-nav`)" id="自动补全最近联系人-nav">
+									自动补全最近联系人
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e8%a1%a5%e5%85%a8%e9%80%9a%e8%ae%af%e5%bd%95" onclick="onNavClick(`#自动补全通讯录-nav`)" id="自动补全通讯录-nav">
+									自动补全通讯录
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81" onclick="onNavClick(`#分布式锁-nav`)" id="分布式锁-nav">
+									分布式锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%95%e4%b8%aaredis%e5%ae%9e%e4%be%8b" onclick="onNavClick(`#单个redis实例-nav`)" id="单个redis实例-nav">
+									单个Redis实例
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e6%a8%a1%e5%bc%8f" onclick="onNavClick(`#集群模式-nav`)" id="集群模式-nav">
+									集群模式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e8%ae%a1%e6%95%b0%e4%bf%a1%e5%8f%b7%e9%87%8f" onclick="onNavClick(`#计数信号量-nav`)" id="计数信号量-nav">
+									计数信号量
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%b6%85%e6%97%b6%e6%9e%84%e5%bb%ba%e4%bf%a1%e5%8f%b7%e9%87%8f" onclick="onNavClick(`#超时构建信号量-nav`)" id="超时构建信号量-nav">
+									超时构建信号量
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9c%89%e5%ba%8f%e9%9b%86%e5%90%88%e6%9e%84%e5%bb%ba%e4%bf%a1%e5%8f%b7%e9%87%8f" onclick="onNavClick(`#有序集合构建信号量-nav`)" id="有序集合构建信号量-nav">
+									有序集合构建信号量
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%ac%e5%b9%b3%e4%bf%a1%e5%8f%b7%e9%87%8f" onclick="onNavClick(`#公平信号量-nav`)" id="公平信号量-nav">
+									公平信号量
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e9%99%a4%e7%ab%9e%e4%ba%89%e6%9d%a1%e4%bb%b6" onclick="onNavClick(`#消除竞争条件-nav`)" id="消除竞争条件-nav">
+									消除竞争条件
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%bb%e5%8a%a1%e9%98%9f%e5%88%97" onclick="onNavClick(`#任务队列-nav`)" id="任务队列-nav">
+									任务队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af%e6%8b%89%e5%8f%96" onclick="onNavClick(`#消息拉取-nav`)" id="消息拉取-nav">
+									消息拉取
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8d%95%e6%8e%a5%e6%94%b6%e8%80%85" onclick="onNavClick(`#单接收者-nav`)" id="单接收者-nav">
+									单接收者
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%9a%e6%8e%a5%e6%94%b6%e8%80%85" onclick="onNavClick(`#多接收者-nav`)" id="多接收者-nav">
+									多接收者
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-%e5%9f%ba%e4%ba%8e%e6%90%9c%e7%b4%a2%e7%9a%84%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f" onclick="onNavClick(`#第七章-基于搜索的应用程序-nav`)" id="第七章-基于搜索的应用程序-nav">
+									第七章 基于搜索的应用程序
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#redis%e5%ae%9e%e7%8e%b0%e6%90%9c%e7%b4%a2" onclick="onNavClick(`#redis实现搜索-nav`)" id="redis实现搜索-nav">
+									Redis实现搜索
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%8d%e5%90%91%e7%b4%a2%e5%bc%95" onclick="onNavClick(`#反向索引-nav`)" id="反向索引-nav">
+									反向索引
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e7%b4%a2%e5%bc%95%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#基本索引过程-nav`)" id="基本索引过程-nav">
+									基本索引过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e6%90%9c%e7%b4%a2%e6%93%8d%e4%bd%9c" onclick="onNavClick(`#基本搜索操作-nav`)" id="基本搜索操作-nav">
+									基本搜索操作
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%90%9c%e7%b4%a2%e5%87%bd%e6%95%b0%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#搜索函数实现-nav`)" id="搜索函数实现-nav">
+									搜索函数实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e8%81%8c%e4%bd%8d%e6%90%9c%e7%b4%a2" onclick="onNavClick(`#实现职位搜索-nav`)" id="实现职位搜索-nav">
+									实现职位搜索
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e6%9e%84%e5%bb%ba%e7%ae%80%e5%8d%95%e7%9a%84%e7%a4%be%e4%ba%a4%e7%bd%91%e7%ab%99" onclick="onNavClick(`#第八章-构建简单的社交网站-nav`)" id="第八章-构建简单的社交网站-nav">
+									第八章 构建简单的社交网站
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8f%af%e4%bb%a5%e5%8f%82%e8%80%83%e7%9a%84%e5%8a%9f%e8%83%bd" onclick="onNavClick(`#可以参考的功能-nav`)" id="可以参考的功能-nav">
+									可以参考的功能
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%94%a8%e6%88%b7%e5%92%8c%e7%8a%b6%e6%80%81" onclick="onNavClick(`#用户和状态-nav`)" id="用户和状态-nav">
+									用户和状态
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b3%e6%b3%a8%e8%80%85%e5%88%97%e8%a1%a8%e5%92%8c%e6%ad%a3%e5%9c%a8%e5%85%b3%e6%b3%a8%e5%88%97%e8%a1%a8" onclick="onNavClick(`#关注者列表和正在关注列表-nav`)" id="关注者列表和正在关注列表-nav">
+									关注者列表和正在关注列表
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b3%e6%b3%a8%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#关注实现-nav`)" id="关注实现-nav">
+									关注实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%96%e6%b6%88%e5%85%b3%e6%b3%a8" onclick="onNavClick(`#取消关注-nav`)" id="取消关注-nav">
+									取消关注
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8f%91%e5%b8%83%e7%8a%b6%e6%80%81%e6%b6%88%e6%81%af" onclick="onNavClick(`#发布状态消息-nav`)" id="发布状态消息-nav">
+									发布状态消息
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%9b%b4%e6%96%b0%e7%94%a8%e6%88%b7%e7%9a%84%e4%b8%aa%e4%ba%ba%e6%97%b6%e9%97%b4%e7%ba%bf" onclick="onNavClick(`#更新用户的个人时间线-nav`)" id="更新用户的个人时间线-nav">
+									更新用户的个人时间线
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9b%b4%e6%96%b0%e5%85%b3%e6%b3%a8%e8%80%85%e7%9a%84%e4%b8%bb%e9%a1%b5%e6%97%b6%e9%97%b4%e7%ba%bf" onclick="onNavClick(`#更新关注者的主页时间线-nav`)" id="更新关注者的主页时间线-nav">
+									更新关注者的主页时间线
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-%e6%89%a9%e5%b1%95redis" onclick="onNavClick(`#第十章-扩展redis-nav`)" id="第十章-扩展redis-nav">
+									第十章 扩展Redis
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div id="drawer-mask" v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav id="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div id="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a id="navTitle" class="navbar-brand" href="https://kother.top">
+            Kother&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" id="darkModeToggleButton2">
+            <i class="material-icons" id="darkModeToggleIcon2">
+                dark_mode
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" id="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://kother.top">
+        <div class="single-column-header-title">Kother&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">记录点喜欢的.</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+                <div id="streamContainer" class="stream-container">
+
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    Redis实战 读书笔记
+                    
+                    <div class="post-meta">
+                        
+
+                        
+
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="redis实战-读书笔记">Redis实战-读书笔记</h1>
+<blockquote>
+<p>该书深入浅出地介绍了 Redis 的字符串、列表、散列、集合、有序集合等五种结构， 并通过文章聚合网站、cookie、购物车、网页缓存、日志、计数器、IP 所属地址查询程序、自动补全、分布式锁、计数信号量、任务队列、消息队列、搜索程序、广告定向程序、社交网站等一系列实用示例展示了 Redis 的用法。</p>
+</blockquote>
+<p>[TOC]</p>
+<h2 id="第一章-初识redis">第一章 初识Redis</h2>
+<h3 id="文章排名实战">文章排名实战</h3>
+<h4 id="目的">目的</h4>
+<p>单纯用Redis实现文章排行榜，根据文字的发布时间和投票数量计算出评分，根据评分对文章进行排名和展示。</p>
+<h4 id="数据结构">数据结构</h4>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>数据结构类型</th>
+<th>图例</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文章信息</td>
+<td>Hash</td>
+<td><!-- raw HTML omitted --></td>
+<td>根据文章ID获取文章内容</td>
+</tr>
+<tr>
+<td>根据发布时间排序的文章</td>
+<td>ZSet</td>
+<td><img src="https://gitee.com/kother/typora/raw/master/img/202301211604470.png" alt="image-20230121160414443"></td>
+<td>快速获取时间排序</td>
+</tr>
+<tr>
+<td>根据评分排序的文章</td>
+<td>ZSet</td>
+<td><img src="https://gitee.com/kother/typora/raw/master/img/202301211604247.png" alt="image-20230121160419228"></td>
+<td>快速获取评分排序</td>
+</tr>
+<tr>
+<td>已投票用户</td>
+<td>Set</td>
+<td><img src="https://gitee.com/kother/typora/raw/master/img/202301262019831.png" alt="image-20230121160518941"></td>
+<td>每个文章都有这个集合，判断已投票过的用户，文章发布一周后自动删除</td>
+</tr>
+</tbody>
+</table>
+<h3 id="实现功能">实现功能</h3>
+<h4 id="发布文章">发布文章</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262019181.png" alt="image-20230121160900933"></p>
+<h4 id="用户投票给文章">用户投票给文章</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262019091.png" alt="image-20230121160847986"></p>
+<h4 id="获取文章">获取文章</h4>
+<ul>
+<li>zrevrange:返回有序集key中指定区间内的成员。其中成员的位置按score值从大到小来排列。具有相同score值的成员按字典序的逆序排列。</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262019428.png" alt="image-20230121161032855"></p>
+<h4 id="对文章进行分组">对文章进行分组</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262019731.png" alt="image-20230121161534620"></p>
+<h4 id="从群组中获取一页文章">从群组中获取一页文章</h4>
+<ul>
+<li>可设置缓存，60s过期（缓存一致性问题：新发文章可能60s内看不到）</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301211616856.png" alt="image-20230121161649832"></p>
+<h3 id="意义">意义</h3>
+<ul>
+<li>ZSet可以用于[快速获取排名]功能</li>
+<li>ZSet的ZINTERSTORE命令可以取集合和有序集合的交集，如果将集合中放入特定topic的文章，再与score结合，可以实现[获取特定主题中的文章，按评分排序]</li>
+<li>实现功能的同时还可以实现缓存</li>
+<li>唯一性ID通过计数器执行INCR完成</li>
+</ul>
+<h2 id="第二章-使用redis构建web应用">第二章 使用Redis构建Web应用</h2>
+<h3 id="登录cookie">登录cookie</h3>
+<table>
+<thead>
+<tr>
+<th>Cookie类型</th>
+<th>简介</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>签名Cookie</td>
+<td>用户信息（可能包含签名）都存在Cookie中</td>
+<td>可能忘记，安全漏洞</td>
+</tr>
+<tr>
+<td>令牌Cookie</td>
+<td>存储一段随机数字作为令牌，服务器根据该令牌获得用户信息</td>
+<td>服务器中要存更多信息</td>
+</tr>
+</tbody>
+</table>
+<h4 id="目的-1">目的</h4>
+<blockquote>
+<p>大多数关系型数据库都比较慢</p>
+</blockquote>
+<p>利用Redis优化Cookie功能</p>
+<h4 id="实现功能-1">实现功能</h4>
+<h5 id="校验cookie">校验cookie</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262019289.png" alt="image-20230121162854249"></p>
+<h5 id="更新cookie">更新cookie</h5>
+<ul>
+<li>每次用户浏览页面都会更新cookie</li>
+<li>更新内容：时间戳，浏览过的商品</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301211629645.png" alt="image-20230121162957618"></p>
+<h5 id="定期清理cookie">定期清理cookie</h5>
+<ul>
+<li>移除cookie的同时要移除对应的用户信息</li>
+<li>当然也可以在添加时直接设置expire，但是定期清理可以插入更多业务逻辑，比如将数据导入到数据库中以后作分析等&hellip;.</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301211631153.png" alt="image-20230121163152130"></p>
+<h3 id="实现购物车">实现购物车</h3>
+<blockquote>
+<p>参考资料 <a href="https://ynfatal.github.io/2019/08/17/SpringBoot2/SpringBoot2%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%B9%9D%E7%AF%87Redis%E5%AE%9E%E7%8E%B0%E8%B4%AD%E7%89%A9%E8%BD%A6/">Redis 实现购物车</a></p>
+</blockquote>
+<h4 id="数据结构-1">数据结构</h4>
+<ul>
+<li>购物车hash:[cookie, [商品ID，商品订购数量]..]</li>
+</ul>
+<h4 id="实现功能-2">实现功能</h4>
+<h5 id="添加购物车">添加购物车</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262019039.png" alt="image-20230121163553033"></p>
+<h5 id="清空购物车">清空购物车</h5>
+<ul>
+<li><del>书中：清cookie时也清购物车</del></li>
+<li>个人认为不用清理，保存在Redis中即可</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301211637700.png" alt="image-20230121163741662"></p>
+<h3 id="网页缓存">网页缓存</h3>
+<p>缓存不被频繁载入的内容，网页加载时直接从Redis中拿</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020084.png" alt="image-20230121164243135"></p>
+<h2 id="第三章-redis命令">第三章 Redis命令</h2>
+<h3 id="string">String</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#658b00">set</span> name cxx
+</span></span><span style="display:flex;"><span>get name
+</span></span><span style="display:flex;"><span>getrange name <span style="color:#b452cd">0</span> -1 字符串分段
+</span></span><span style="display:flex;"><span>getset name new_cxx 设置值，返回旧值
+</span></span><span style="display:flex;"><span>mset key1 key2 批量设置
+</span></span><span style="display:flex;"><span>mget key1 key2 批量获取
+</span></span><span style="display:flex;"><span>setnx key value 不存在就插入（not exists）
+</span></span><span style="display:flex;"><span>setex key <span style="color:#658b00">time</span> value 过期时间（expire）
+</span></span><span style="display:flex;"><span>setrange key index value 从index开始替换value
+</span></span><span style="display:flex;"><span>incr age 递增
+</span></span><span style="display:flex;"><span>incrby age <span style="color:#b452cd">10</span> 递增
+</span></span><span style="display:flex;"><span>decr age 递减
+</span></span><span style="display:flex;"><span>decrby age <span style="color:#b452cd">10</span> 递减
+</span></span><span style="display:flex;"><span>incrbyfloat 增减浮点数
+</span></span><span style="display:flex;"><span>append 追加
+</span></span><span style="display:flex;"><span>strlen 长度
+</span></span><span style="display:flex;"><span>getbit/setbit/bitcount/bitop 位操作
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="list">List</h3>
+<blockquote>
+<p>存储信息，最近浏览过的文章，常用联系人信息</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>lpush mylist a b c 左插入
+</span></span><span style="display:flex;"><span>rpush mylist x y z 右插入
+</span></span><span style="display:flex;"><span>lrange mylist <span style="color:#b452cd">0</span> -1 数据集合
+</span></span><span style="display:flex;"><span>lpop mylist 弹出元素
+</span></span><span style="display:flex;"><span>rpop mylist 弹出元素
+</span></span><span style="display:flex;"><span>llen mylist 长度
+</span></span><span style="display:flex;"><span>lrem mylist count value 删除
+</span></span><span style="display:flex;"><span>lindex mylist <span style="color:#b452cd">2</span> 指定索引的值
+</span></span><span style="display:flex;"><span>lset mylist <span style="color:#b452cd">2</span> n 索引设值
+</span></span><span style="display:flex;"><span>ltrim mylist <span style="color:#b452cd">0</span> <span style="color:#b452cd">4</span> 删除key
+</span></span><span style="display:flex;"><span>linsert mylist before a 插入
+</span></span><span style="display:flex;"><span>linsert mylist after a 插入
+</span></span><span style="display:flex;"><span>rpoplpush list list2 转移列表的数据
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="set">Set</h3>
+<blockquote>
+<p>投票、点赞记录，分组，抽奖（spop）</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sadd myset redis
+</span></span><span style="display:flex;"><span>smembers myset 数据集合
+</span></span><span style="display:flex;"><span>srem myset set1 删除
+</span></span><span style="display:flex;"><span>sismember myset set1 判断元素是否在集合中
+</span></span><span style="display:flex;"><span>scard key_name 个数
+</span></span><span style="display:flex;"><span>sdiff | sinter | sunion 操作：集合间运算：差集 | 交集 | 并集
+</span></span><span style="display:flex;"><span>srandmember 随机获取集合中的元素
+</span></span><span style="display:flex;"><span>spop 从集合中弹出一个元素
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="zset">ZSet</h3>
+<blockquote>
+<p>排序</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>zadd zset <span style="color:#b452cd">1</span> one
+</span></span><span style="display:flex;"><span>zadd zset <span style="color:#b452cd">2</span> two
+</span></span><span style="display:flex;"><span>zadd zset <span style="color:#b452cd">3</span> three
+</span></span><span style="display:flex;"><span>zincrby zset <span style="color:#b452cd">1</span> one 增长分数
+</span></span><span style="display:flex;"><span>zscore zset two 获取分数
+</span></span><span style="display:flex;"><span>zrange zset <span style="color:#b452cd">0</span> -1 withscores 范围值
+</span></span><span style="display:flex;"><span>zrangebyscore zset <span style="color:#b452cd">10</span> <span style="color:#b452cd">25</span> withscores 指定范围的值
+</span></span><span style="display:flex;"><span>zrangebyscore zset <span style="color:#b452cd">10</span> <span style="color:#b452cd">25</span> withscores limit <span style="color:#b452cd">1</span> <span style="color:#b452cd">2</span> 分页
+</span></span><span style="display:flex;"><span>Zrevrangebyscore zset <span style="color:#b452cd">10</span> <span style="color:#b452cd">25</span> withscores 指定范围的值
+</span></span><span style="display:flex;"><span>zcard zset 元素数量
+</span></span><span style="display:flex;"><span>Zcount zset 获得指定分数范围内的元素个数
+</span></span><span style="display:flex;"><span>Zrem zset one two 删除一个或多个元素
+</span></span><span style="display:flex;"><span>Zremrangebyrank zset <span style="color:#b452cd">0</span> <span style="color:#b452cd">1</span> 按照排名范围删除元素
+</span></span><span style="display:flex;"><span>Zremrangebyscore zset <span style="color:#b452cd">0</span> <span style="color:#b452cd">1</span> 按照分数范围删除元素
+</span></span><span style="display:flex;"><span>Zrank zset <span style="color:#b452cd">0</span> -1 分数最小的元素排名为0
+</span></span><span style="display:flex;"><span>Zrevrank zset <span style="color:#b452cd">0</span> -1 分数最大的元素排名为0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="hash">Hash</h3>
+<blockquote>
+<p>存储相关联的信息</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>hset myhash name cxx
+</span></span><span style="display:flex;"><span>hget myhash name
+</span></span><span style="display:flex;"><span>hmset myhash name cxx age <span style="color:#b452cd">25</span> note <span style="color:#cd5555">&#34;i am notes&#34;</span>
+</span></span><span style="display:flex;"><span>hmget myhash name age note
+</span></span><span style="display:flex;"><span>hgetall myhash 获取所有的键值对
+</span></span><span style="display:flex;"><span>hexists myhash name 检测键是否存在
+</span></span><span style="display:flex;"><span>hsetnx myhash score <span style="color:#b452cd">100</span> 设置不存在的
+</span></span><span style="display:flex;"><span>hincrby myhash id <span style="color:#b452cd">1</span> 递增
+</span></span><span style="display:flex;"><span>hdel myhash name 删除
+</span></span><span style="display:flex;"><span>hkeys myhash 只取key
+</span></span><span style="display:flex;"><span>hvals myhash 只取value
+</span></span><span style="display:flex;"><span>hlen myhash 长度
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>如果散列的值很大，可以不直接用HGETALL（可能会导致阻塞），而是先用HKEYS取出所有键，再遍历，用HGET取出其中值</li>
+</ul>
+<h3 id="发布与订阅">发布与订阅</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>订阅频道：subscribe chat1
+</span></span><span style="display:flex;"><span>发布消息：publish chat1 <span style="color:#cd5555">&#34;hell0 ni hao&#34;</span>
+</span></span><span style="display:flex;"><span>查看频道：pubsub channels
+</span></span><span style="display:flex;"><span>查看某个频道的订阅者数量: pubsub numsub chat1
+</span></span><span style="display:flex;"><span>退订指定频道： unsubscrible chat1 , punsubscribe java.*
+</span></span><span style="display:flex;"><span>订阅一组频道： psubscribe java.*
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="sort">Sort</h3>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sort mylist 排序
+</span></span><span style="display:flex;"><span>sort mylist alpha desc limit <span style="color:#b452cd">0</span> <span style="color:#b452cd">2</span> 字母排序
+</span></span><span style="display:flex;"><span>sort list by it:* desc by命令
+</span></span><span style="display:flex;"><span>sort list by it:* desc get it:* get参数
+</span></span><span style="display:flex;"><span>sort list by it:* desc get it:* store sorc:result sort命令之store参数：表示把sort查询的结果集保存起来
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="第四章-数据安全与性能保障">第四章 数据安全与性能保障</h2>
+<blockquote>
+<p>RDB、AOF、主从复制、事务，这里不多写，详细了解可以看《Redis设计与实现》这本书，讲的很清晰</p>
+</blockquote>
+<blockquote>
+<p>Redis中用的是乐观锁：使用WATCH，在数据被修改的情况下才通知执行了WATCH命令的客户端。 用以提高效率。</p>
+</blockquote>
+<h2 id="第五章-使用redis构建支持程序">第五章 使用Redis构建支持程序</h2>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020199.png" alt="image-20230123192330434"></p>
+<h3 id="计数器和统计数据">计数器和统计数据</h3>
+<blockquote>
+<p>比如统计网站点击量</p>
+</blockquote>
+<p><a href="https://www.jianshu.com/p/294444f7ff5a">Redis实现用户访问量</a></p>
+<ul>
+<li>Hash / HyperLoglog</li>
+</ul>
+<h2 id="第六章-使用redis构建应用程序组件">第六章 使用Redis构建应用程序组件</h2>
+<h3 id="自动补全">自动补全</h3>
+<blockquote>
+<p>快速查找所需搜索内容&ndash;&gt;热点&hellip;</p>
+</blockquote>
+<h4 id="自动补全最近联系人">自动补全最近联系人</h4>
+<blockquote>
+<p>匹配主要是在代码中实现，因为列表内容比较少</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301231926972.png" alt="image-20230123192610922"></p>
+<h5 id="添加">添加</h5>
+<ul>
+<li>搜索时，查找目前联系人是否已在list中，如果在则移出</li>
+<li>将该联系人放在列表最前面</li>
+<li>如果列表数超过100，移除最后边的联系人，使列表大小为100</li>
+</ul>
+<h5 id="删除">删除</h5>
+<ul>
+<li>查找目前联系人，lrem即可</li>
+</ul>
+<h5 id="过滤">过滤</h5>
+<blockquote>
+<p><a href="https://juejin.cn/post/6844903968976420871">Google 搜索的即时自动补全功能究竟是如何“工作”的？</a></p>
+</blockquote>
+<ul>
+<li>先获取整个最近联系人列表</li>
+<li>匹配筛选（代码实现），返回过滤后的结果</li>
+</ul>
+<h4 id="自动补全通讯录">自动补全通讯录</h4>
+<blockquote>
+<p>匹配在Redis中用ZSet实现，提高效率</p>
+</blockquote>
+<ul>
+<li>每个名字的分值都为0，有序集合会根据字符串的二进制顺序排序</li>
+</ul>
+<h3 id="分布式锁">分布式锁</h3>
+<blockquote>
+<p>为什么选用Redis构建分布式锁？</p>
+<ul>
+<li>分布式锁需要全局可见</li>
+<li>Redis比较快</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>SETNX：Set not exists，当键不存在时为键设置值</p>
+</blockquote>
+<h4 id="单个redis实例">单个Redis实例</h4>
+<ul>
+<li>
+<p>设置锁（带有超时时间）</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301231947848.png" alt="image-20230123194714790"></p>
+</li>
+<li>
+<p>释放锁</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301231949601.png" alt="image-20230123194938552"></p>
+</li>
+</ul>
+<h4 id="集群模式">集群模式</h4>
+<h3 id="计数信号量">计数信号量</h3>
+<blockquote>
+<p>计数信号量用于让多个客户端同时访问相同信息（读锁），还可以限制一个资源最多被多少个进程访问</p>
+<p>与锁的区别：进程获取锁失败可能会等待，而获取信号量失败则会立刻返回（fail-fast）</p>
+</blockquote>
+<h4 id="超时构建信号量">超时构建信号量</h4>
+<p>同上面分布式锁，使用EXPIRE即可</p>
+<h4 id="有序集合构建信号量">有序集合构建信号量</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020980.png" alt="image-20230123195258346"></p>
+<ul>
+<li>成员是进程的唯一标识符</li>
+<li>score是尝试获取信号量时间戳</li>
+</ul>
+<h5 id="获取信号量">获取信号量</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301231954655.png" alt="image-20230123195413612"></p>
+<ul>
+<li>排名低于可获取的信号量总数则取得信号量</li>
+<li>获取失败则移除ZSet中自己的标识符</li>
+</ul>
+<h5 id="释放信号量">释放信号量</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301231955385.png" alt="image-20230123195522337"></p>
+<h5 id="存在问题">存在问题</h5>
+<ul>
+<li>分布式情况会受主机时间影响，各个进程系统时间未必相同 &ndash;&gt; 不公平的锁</li>
+</ul>
+<h4 id="公平信号量">公平信号量</h4>
+<p>为了避免系统时间带来的不公平影响，对上诉信号量模式修改如下</p>
+<ul>
+<li>新增规则：增加一个计数器，最先对计数器自增的客户端可以获得信号量</li>
+<li>新增“信号量拥有者”ZSet，成员为进程唯一标识符，计数器的值为score，通过检查rank来判断进程是否取得信号量</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301231959440.png" alt="image-20230123195957394"></p>
+<h5 id="获取信号量-1">获取信号量</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020982.png" alt="image-20230123200233017"></p>
+<h5 id="释放信号量-1">释放信号量</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020426.png" alt="image-20230123200358214"></p>
+<h4 id="消除竞争条件">消除竞争条件</h4>
+<ul>
+<li>
+<p>自增计数器和将标识符添加到ZSet这两个操作并非原子的，存在竞争条件</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020498.png" alt="image-20230123200639182"></p>
+</li>
+</ul>
+<p>解决方法：</p>
+<ul>
+<li>
+<p>加一个短暂超时锁（保证原子性），成功获取锁后，再执行信号量获取操作</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301232008952.png" alt="image-20230123200804899"></p>
+</li>
+</ul>
+<h3 id="任务队列">任务队列</h3>
+<ul>
+<li>普通队列：list</li>
+<li>优先级队列：可以用ZSet；也可以用书中的“多个队列”，然后用<code>BLPOP LIST1 LIST2 .. LISTN TIMEOUT </code>，只有优先级高的队列为空，才能弹出优先级低的元素</li>
+<li>延迟队列：ZSet，其中score为时间戳</li>
+</ul>
+<h3 id="消息拉取">消息拉取</h3>
+<blockquote>
+<p>自定义，以实现用户离线情况下消息不丢失。订阅和发布在连接故障的情况下会丢失信息。</p>
+</blockquote>
+<h4 id="单接收者">单接收者</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301232018528.png" alt="image-20230123201854465"></p>
+<ul>
+<li>list实现</li>
+</ul>
+<h4 id="多接收者">多接收者</h4>
+<blockquote>
+<p>ZSet，可以实现群聊</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020607.png" alt="image-20230123202019884"></p>
+<ul>
+<li>每个群组都有一个自己的ZSet，记录成员和当前成员接收的最大消息ID（score）</li>
+<li>用户也都有一个自己的ZSet，用来记录参与的所有群组，score也是当前用户在该群中最大的消息ID</li>
+<li>消息集合也需要用ZSet，获取某个ID范围消息：<code>ZRANGEBYSCORE key minScore maxScore</code></li>
+</ul>
+<h5 id="创建聊天会话">创建聊天会话</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020377.png" alt="image-20230123202203069"></p>
+<h5 id="发送消息">发送消息</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020052.png" alt="image-20230123202325075"></p>
+<h5 id="获取消息">获取消息</h5>
+<p><img src="../../../../../../Library/Application%2520Support/typora-user-images/image-20230123202530041.png" alt="image-20230123202530041"></p>
+<ul>
+<li>遍历该用户群组，取出每个群组的未读消息</li>
+<li>更新该用户最新阅读到的消息ID</li>
+<li>清除已经被所有人阅读过的消息（感觉不用。保留历史记录也可以的）</li>
+</ul>
+<h5 id="加入群组">加入群组</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020393.png" alt="image-20230123202858848"></p>
+<h5 id="离开群组">离开群组</h5>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301232029904.png" alt="image-20230123202936842"></p>
+<h2 id="第七章-基于搜索的应用程序">第七章 基于搜索的应用程序</h2>
+<h3 id="redis实现搜索">Redis实现搜索</h3>
+<h4 id="反向索引">反向索引</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020157.png" alt="image-20230123203649692"></p>
+<ul>
+<li>在搜索前就建好</li>
+<li>从文档中提取单词，并为该单词创建一个Set，记录有哪些文档出现过该单词</li>
+</ul>
+<h4 id="基本索引过程">基本索引过程</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301232036204.png" alt="image-20230123203640146"></p>
+<h4 id="基本搜索操作">基本搜索操作</h4>
+<ul>
+<li>取交集：SINTER 和 SINTERSTORE</li>
+<li>取并集（多个同义词搜索）：SUNION 和 SUNIONSTORE</li>
+<li>取差集：SDIFF 和 SDIFFSTORE</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020462.png" alt="image-20230123204113567"></p>
+<h4 id="搜索函数实现">搜索函数实现</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020956.png" alt="image-20230123204352327"></p>
+<h3 id="实现职位搜索">实现职位搜索</h3>
+<ul>
+<li>求职者拥有的全部技能为ZSet，技能对应的职业集合为ZSet</li>
+<li>使用ZUNIONSTORE，计算出求职者对每个职位的得分，得分即满足了多少该职位所需要的技能</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301232058323.png" alt="image-20230123205803250"></p>
+<h2 id="第八章-构建简单的社交网站">第八章 构建简单的社交网站</h2>
+<h3 id="可以参考的功能">可以参考的功能</h3>
+<ul>
+<li>私人用户，关注这些用户需要经过主人批准</li>
+<li>状态消息收藏</li>
+<li>用户之间可以进行私聊</li>
+<li>对消息进行回复将产生对话流（评论）</li>
+<li>可以转发状态消息</li>
+<li>使用@指定用户或用#标记话题</li>
+<li>记录用户使用@指定了谁</li>
+<li>针对广告行为和滥用行为的投诉和管理机制</li>
+<li>对消息进行赞或“+1”</li>
+<li>根据重要性对消息进行排序</li>
+<li>可以对用户进行分组，只有组员可以关注组内消息（类似豆瓣..），小组可以公开、私密..</li>
+</ul>
+<h3 id="用户和状态">用户和状态</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301241354132.png" alt="image-20230124135422014"></p>
+<ul>
+<li>用Hash来存储信息</li>
+</ul>
+<h3 id="关注者列表和正在关注列表">关注者列表和正在关注列表</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020843.png" alt="image-20230124135938118"></p>
+<h3 id="关注实现">关注实现</h3>
+<ul>
+<li>更新关注者和被关注者的集合</li>
+<li>修改关注数量和被关注数量</li>
+<li>关注者新的主页需要可以立刻看见被关注者发布的消息（更新）</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301241402387.png" alt="image-20230124140233307"></p>
+<h3 id="取消关注">取消关注</h3>
+<ul>
+<li>更新关注者和被关注者的集合</li>
+<li>修改关注数量和被关注数量</li>
+<li>关注者新的主页不能看见被取消关注者发布的消息</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020633.png" alt="image-20230124140359319"></p>
+<h3 id="发布状态消息">发布状态消息</h3>
+<h4 id="更新用户的个人时间线">更新用户的个人时间线</h4>
+<ul>
+<li>判断创建消息能否成功</li>
+<li>如果成功，将新状态消息放到个人时间线中，并推送给关注者</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202301262020973.png" alt="image-20230124140619040"></p>
+<h4 id="更新关注者的主页时间线">更新关注者的主页时间线</h4>
+<ul>
+<li>只先更新1000个关注者的主页</li>
+<li>如果超过1000，则放入延迟队列中执行</li>
+</ul>
+<p><img src="../../../../../../Library/Application%2520Support/typora-user-images/image-20230124140747462.png" alt="image-20230124140747462"></p>
+<h2 id="第十章-扩展redis">第十章 扩展Redis</h2>
+<ul>
+<li>变为从服务器<code>slaveof host port</code></li>
+<li>断开与主服务器的连接<code>slaveof no one</code></li>
+</ul>
+
+                    
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="/post/jwt/">
+			下回<br>JWT基础介绍
+                </a>
+                
+                
+                
+                <a class="older-posts">
+			上回<br>這是最舊的文章了。
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+<div id="gitalk-container"></div>
+
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+
+
+                    </div>
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+</div>
+            </div>
+    
+    <script src="/js/journal.js"></script></body>
+</html>
