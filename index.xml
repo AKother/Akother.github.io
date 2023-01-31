@@ -7,9 +7,290 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Kother.</copyright>
-    <lastBuildDate>Thu, 26 Jan 2023 20:20:42 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 31 Jan 2023 21:03:38 +0800</lastBuildDate>
     
         <atom:link href="https://kother.top/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+        <item>
+        <title>Redis使用手册 读书笔记</title>
+        <link>https://kother.top/read/redis%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+        <pubDate>Tue, 31 Jan 2023 21:03:38 +0800</pubDate>
+        
+        <guid>https://kother.top/read/redis%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+        <description>Kother&#39;s Blog https://kother.top/read/redis%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ -&lt;h1 id=&#34;redis使用手册-读书笔记&#34;&gt;Redis使用手册-读书笔记&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;只记录实际应用场景，具体命令可以看Redis官网&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;[TOC]&lt;/p&gt;
+&lt;h2 id=&#34;第一章-引言&#34;&gt;第一章 引言&lt;/h2&gt;
+&lt;h3 id=&#34;redis的特色&#34;&gt;Redis的特色&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301312103363.png&#34; alt=&#34;image-20230127170240050&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;第二章-字符串string&#34;&gt;第二章 字符串String&lt;/h2&gt;
+&lt;h3 id=&#34;缓存&#34;&gt;缓存&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;主要命令是get, set&lt;/li&gt;
+&lt;li&gt;可以缓存文本、二进制、网页、图片等等&amp;hellip;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;锁&#34;&gt;锁&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;获取锁 setIfAbsent (setnx)&lt;/li&gt;
+&lt;li&gt;释放锁 delete(lock)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;id生成器&#34;&gt;ID生成器&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;increment()&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;计数器&#34;&gt;计数器&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;对于网站的访客数量、用户执行某个操作的次数、某首歌或者某个视频的播放量、论坛帖子的回复数量等&lt;/li&gt;
+&lt;li&gt;increment()和decrement()&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;限速器&#34;&gt;限速器&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原理是限速器+逻辑判断&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;限制某个IP在某个时间段中可以访问的页面数量（防止爬虫）&lt;/li&gt;
+&lt;li&gt;限制某个用户的账号在某个时间段内密码输入次数（防止暴力破解）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Redis的字符串键可以把单独的一个键和单独的一个值在数据库中关联起来，并且这个键和值既可以存储文字数据，又可以存储二进制数据。&lt;/li&gt;
+&lt;li&gt;SET命令在默认情况下会直接覆盖字符串键已有的值，如果我们只想在键不存在的情况下为它设置值，那么可以使用带有NX选项的SET命令；相反，如果我们只想在键已经存在的情况下为它设置新值，那么可以使用带有XX选项的SET命令。&lt;/li&gt;
+&lt;li&gt;使用MSET、MSETNX以及MGET命令可以有效地减少程序的网络通信次数，从而提升程序的执行效率。&lt;/li&gt;
+&lt;li&gt;Redis用户可以通过制定命名格式来提升Redis数据的可读性并避免键名冲突。&lt;/li&gt;
+&lt;li&gt;字符串值的正数索引以0为开始，从字符串的开头向结尾不断递增；字符串值的负数索引以-1为开始，从字符串的结尾向开头不断递减。&lt;/li&gt;
+&lt;li&gt;GETRANGE key start end命令接受的是闭区间索引范围，位于start索引和end索引上的值也会被包含在命令返回的内容当中。&lt;/li&gt;
+&lt;li&gt;SETRANGE命令在需要时会自动对字符串值进行扩展，并使用空字节填充新扩展空间中没有内容的部分。&lt;/li&gt;
+&lt;li&gt;APPEND命令在键不存在时执行设置操作，在键存在时执行追加操作。&lt;/li&gt;
+&lt;li&gt;Redis会把能够被表示为long long int类型的整数以及能够被表示为long double类型的浮点数当作数字来处理。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第三章-散列hash&#34;&gt;第三章 散列Hash&lt;/h2&gt;
+&lt;h3 id=&#34;短网址生成程序&#34;&gt;短网址生成程序&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;为了给用户提供更多发言空间，并记录用户在网站上的链接点击行为，大部分社交网站都会将用户输入的网址转换为相应的短网址。比如，如果我们在新浪微博中发言时输入网址http://redisdoc.com/geo/index.html，那么微博将把这个网址转换为相应的短网址http://t.cn/RqRRZ8n，当用户访问这个短网址时，微博在后台就会对这次点击进行一些数据统计，然后再引导用户的浏览器跳转到http://redisdoc.com/geo/index.html上面&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;维护一个短网址和实际网址的Hasp映射&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;使用散列键重新实现计数器&#34;&gt;使用散列键重新实现计数器&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;比如散列维护用户信息Hash，其中再包含用户的各个String计数器&lt;/li&gt;
+&lt;li&gt;好处是只要用一个key&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;用户登录session存储&#34;&gt;用户登录Session存储&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;避免用户重复登录 / 服务端记住用户信息&lt;/li&gt;
+&lt;li&gt;单独开一个散列存储时间戳的原因是只有key可以expire，但可能各个field的过期时间是不一样的。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h3 id=&#34;存储图数据&#34;&gt;存储图数据&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301301741943.png&#34; alt=&#34;image-20230130174147917&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;存储数据&#34;&gt;存储数据&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;比如文章存储，用户信息，帖子信息等……&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;string和hash怎么选择&#34;&gt;String和Hash怎么选择？&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;如果程序需要为每个数据项单独设置过期时间，那么使用字符串键。&lt;/li&gt;
+&lt;li&gt;如果程序需要对数据项执行诸如SETRANGE、GETRANGE或者APPEND等操作，那么优先考虑使用字符串键。当然，用户也可以选择把数据存储在散列中，然后将类似SETRANGE、GETRANGE这样的操作交给客户端执行。&lt;/li&gt;
+&lt;li&gt;如果程序需要存储的数据项比较多，并且你希望尽可能地减少存储数据所需的内存，就应该优先考虑使用散列键。&lt;/li&gt;
+&lt;li&gt;如果多个数据项在逻辑上属于同一组或者同一类，那么应该优先考虑使用散列键。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;小结-1&#34;&gt;小结&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;散列键会将一个键和一个散列在数据库中关联起来，用户可以在散列中为任意多个字段设置值。与字符串键一样，散列的字段和值既可以是文本数据，也可以是二进制数据。&lt;/li&gt;
+&lt;li&gt;用户可以通过散列键把相关联的多项数据存储到同一个散列中，以便对其进行管理，或者针对它们执行批量操作。&lt;/li&gt;
+&lt;li&gt;因为Redis并没有为散列提供相应的减法操作命令，所以如果用户想对字段存储的数字值执行减法操作，就需要将负数增量传递给HINCRBY命令或HINCRBYFLOAT命令。&lt;/li&gt;
+&lt;li&gt;Redis散列包含的字段在底层是以无序方式存储的，根据字段插入的顺序不同，包含相同字段的散列在执行HKEYS、HVALS和HGETALL等命令时可能会得到不同的结果，因此用户在使用这3个命令时，不应该对命令返回元素的排列顺序作任何假设。&lt;/li&gt;
+&lt;li&gt;字符串键和散列键虽然在操作方式上非常相似，但是因为它们都拥有各自独有的优点和缺点，所以在一些情况下，这两种数据结构是没有办法完全代替对方的。因此用户在构建应用程序的时候，应该根据实际需要来选择相应的数据结构。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第四章-列表&#34;&gt;第四章 列表&lt;/h2&gt;
+&lt;h3 id=&#34;先进先出队列&#34;&gt;先进先出队列&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;秒杀（但是list的pop方法是阻塞的，效率不高）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;分页&#34;&gt;分页&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;lrange&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;待办事项列表&#34;&gt;待办事项列表&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;lrem，移除指定事项&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;带有阻塞功能的消息队列&#34;&gt;带有阻塞功能的消息队列&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;邮件发送任务：将邮件放进list中（入队即可），由后台线程依次发送**（项目可用，当然也可以直接用消息队列）**，弹出时用BLPOP可以直接令其休眠，不用手动休眠然后轮询（也很耗费资源）&lt;/li&gt;
+&lt;li&gt;定时提醒&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;小结-2&#34;&gt;小结&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Redis的列表是一种线性的有序结构，可以按照元素推入列表中的顺序来存储元素，并且列表中的元素可以重复出现。&lt;/li&gt;
+&lt;li&gt;用户可以使用LPUSH、RPUSH、RPOP、LPOP等多个命令，从列表的两端推入或者弹出元素，也可以通过LINSERT命令将新元素插入列表已有元素的前面或后面。&lt;/li&gt;
+&lt;li&gt;用户可以使用LREM命令从列表中移除指定的元素，或者直接使用LTRIM命令对列表进行修剪。&lt;/li&gt;
+&lt;li&gt;当用户传给LRANGE命令的索引范围超出了列表的有效索引范围时，LRANGE命令将对传入的索引范围进行修正，并根据修正后的索引范围来获取列表元素。&lt;/li&gt;
+&lt;li&gt;BLPOP、BRPOP和BRPOPLPUSH是阻塞版本的弹出和推入命令，如果用户给定的所有列表都为空，那么执行命令的客户端将被阻塞，直到给定的阻塞时限到达或者某个给定列表非空为止。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第五章-集合&#34;&gt;第五章 集合&lt;/h2&gt;
+&lt;h3 id=&#34;唯一计数器&#34;&gt;唯一计数器&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;用户访问数量&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;打标签&#34;&gt;打标签&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;给书 / 网站 / 商品&amp;hellip;添加标签：为该物品建立Set&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;点赞&#34;&gt;点赞&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;为某个帖子建Set，记录点赞用户&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;投票&#34;&gt;投票&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;集合A：投支持票的用户，集合B：投反对票的用户&lt;/li&gt;
+&lt;li&gt;对AB集合子交并补操作，实现投票、取消投票、统计投票数量、获取已投票用户名单等&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;社交关系&#34;&gt;社交关系&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;每个用户维护两个集合&lt;/li&gt;
+&lt;li&gt;集合A：我关注了谁； 集合B：谁关注了我&lt;/li&gt;
+&lt;li&gt;可以用子交并补实现共同关注 / 推荐关注&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;抽奖&#34;&gt;抽奖&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;SRANDMEMBER:随机获取集合中的元素，但不会移除&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;SPOP：随机获取集合中的元素，并且移除该元素&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;反向索引筛选器&#34;&gt;反向索引筛选器&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;比如商品筛选器&lt;/li&gt;
+&lt;li&gt;将关键字映射到物品，通过选择关键字来推荐物品给用户&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;小结-3&#34;&gt;小结&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;集合允许用户存储任意多个各不相同的元素。&lt;/li&gt;
+&lt;li&gt;所有针对单个元素的集合操作，复杂度都为O(1)。&lt;/li&gt;
+&lt;li&gt;在使用SADD命令向集合中添加元素时，已存在于集合中的元素会自动被忽略。&lt;/li&gt;
+&lt;li&gt;因为集合以无序的方式存储元素，所以两个包含相同元素的集合在使用SMEMBERS命令时可能会得到不同的结果。&lt;/li&gt;
+&lt;li&gt;SRANDMEMBER命令不会移除被随机选中的元素，而SPOP命令的做法正相反。&lt;/li&gt;
+&lt;li&gt;因为集合计算需要使用大量的计算资源，所以我们应该尽量存储并重用集合计算的结果，在有需要的情况下，还可以把集合计算放到从服务器中进行。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第六章-有序集合&#34;&gt;第六章 有序集合&lt;/h2&gt;
+&lt;h3 id=&#34;排行榜&#34;&gt;排行榜&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;向排行榜中添加元素和score：ZADD&lt;/li&gt;
+&lt;li&gt;获取元素分数：ZREVRANK&lt;/li&gt;
+&lt;li&gt;获取排行榜: ZREVRANGE&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;时间线&#34;&gt;时间线&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;博客、新闻、微博等&amp;hellip;&lt;/li&gt;
+&lt;li&gt;score就是时间戳&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;小结-4&#34;&gt;小结&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;有序集合同时拥有“有序”和“集合”两种性质，集合性质保证有序集合只会包含各不相同的成员，而有序性质则保证了有序集合中的所有成员都会按照特定的顺序进行排列。&lt;/li&gt;
+&lt;li&gt;在一般情况下，有序集合成员的大小由分值决定，而分值相同的成员的大小则由成员在字典序中的大小决定。&lt;/li&gt;
+&lt;li&gt;成员的分值除了可以是数字之外，还可以是表示无穷大的&amp;quot;+inf&amp;quot;或者表示无穷小的&amp;quot;-inf&amp;quot;。&lt;/li&gt;
+&lt;li&gt;ZADD命令从Redis 3.0.2版本开始，可以通过给定可选项来决定执行添加操作或是执行更新操作。&lt;/li&gt;
+&lt;li&gt;因为Redis只提供了对成员分值执行加法计算的ZINCRBY命令，而没有提供相应的减法计算命令，所以我们只能通过向ZINCRBY命令传入负数增量来对成员分值执行减法计算。&lt;/li&gt;
+&lt;li&gt;ZINTERSTORE命令和ZUNIONSTORE命令除了可以使用有序集合作为输入之外，还可以使用集合作为输入。在默认情况下，这两个命令会把集合的成员看作分值为1的有序集合成员来计算。&lt;/li&gt;
+&lt;li&gt;当有序集合的所有成员都拥有相同的分值时，用户可以通过ZRANGEBYLEX、ZLEXCOUNT、ZREMRANGEBYLEX等命令，按照字典序对有序集合中的成员进行操作。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第七章-hyperloglog&#34;&gt;第七章 HyperLogLog&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;HyperLogLog是一个专门为了计算集合的基数而创建的概率算法&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;简介及命令&#34;&gt;简介及命令&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;每个HyperLogLog只需12KB内存空间，可以对2^64个元素计数&lt;/li&gt;
+&lt;li&gt;但是有误差&lt;/li&gt;
+&lt;li&gt;适合大数量计数，不怎么在乎误差的情况&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;命令&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;PFADD ：对一个或多个集合进行计数&lt;/li&gt;
+&lt;li&gt;PFCOUNT:：返回集合的近似基数&lt;/li&gt;
+&lt;li&gt;PFMERGE：合并两个HyperLogLog数据&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;计数器-1&#34;&gt;计数器&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;使用Redis集合实现的唯一计数器有一个明显的缺陷：随着被计数元素的不断增多，唯一计数器占用的内存也会越来越大；计数器越多，它们的体积越大，这一情况就会越严峻。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;网站需要长时间记录访客IP数&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;每周月度年度计数器&#34;&gt;每周/月度/年度计数器&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;用PFMERGE，合并每天计数器来实现&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;检测重复信息&#34;&gt;检测重复信息&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;类似布隆过滤器&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;小结-5&#34;&gt;小结&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;HyperLogLog是一个概率算法，它可以对大量元素进行计数，并计算出这些元素的近似基数。&lt;/li&gt;
+&lt;li&gt;无论被计数的元素有多少个，HyperLogLog只使用固定大小的内存，其内存占用不会因为被计数元素增多而增多。&lt;/li&gt;
+&lt;li&gt;在有需要的情况下，用户可以使用PFMERGE命令代替针对多个HyperLogLog的PFCOUNT命令调用，从而避免重复执行相同的并集计算。&lt;/li&gt;
+&lt;li&gt;HyperLogLog不仅可以用于计数问题，还可以用于去重问题。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;布隆过滤器可以实现类似的功能，用的是Hash+位&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;第八章-位图&#34;&gt;第八章 位图&lt;/h2&gt;
+&lt;h3 id=&#34;记录器&#34;&gt;记录器&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;相比起集合和HyperLogLog，更准确且内存消耗更少&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;某个数字与二进制位偏移量进行1对1映射（一定不冲突）&lt;/li&gt;
+&lt;li&gt;1为做过，0为未做过&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;0-1矩阵&#34;&gt;0-1矩阵&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301312103153.png&#34; alt=&#34;image-20230130212608247&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301302126207.png&#34; alt=&#34;image-20230130212612180&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;紧凑计数器&#34;&gt;紧凑计数器&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;这个计数器允许用户自行指定计数器值的位长以及类型（有符号整数或无符号整数），而不是使用Redis默认的long类型来存储计数器值，如果用户想要在计数器中存储比long类型要短的整数，那么使用这个计数器将比使用其他计数器更节约内存。&lt;/li&gt;
+&lt;li&gt;与字符串或者散列实现的计数器不同，这个计数器只能使用整数作为索引（键），因此它只适合存储一些与数字ID相关联的计数数据。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;小结-6&#34;&gt;小结&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Redis的位图是由多个二进制位组成的数组，数组中的每个二进制位都有与之对应的偏移量（也称索引），用户通过这些偏移量可以对位图中指定的一个或多个二进制位进行操作。&lt;/li&gt;
+&lt;li&gt;BITCOUNT命令接受的是字节索引范围，而不是二进制位索引范围，忽略这一点很容易引发程序错误。&lt;/li&gt;
+&lt;li&gt;BITFIELD命令允许用户自行指定被存储整数的类型，并且不会使用对象去包裹这些整数，因此当我们想要存储长度比long类型短的整数，并且希望尽可能地减少对象包裹带来的内存消耗时，就可以考虑使用位图来存储整数。&lt;/li&gt;
+&lt;li&gt;因为位图是使用字符串实现的，所以字符串命令也可以用于处理位图命令。但是在使用字符串命令操作位图时，用户必须先把命令返回的字符串值转换成二进制值，然后再进行后续处理。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;第九章-地理坐标&#34;&gt;第九章 地理坐标&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Redis为GEO特性提供了一系列命令，通过使用这些命令，用户可以：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;将位置的名字以及它的经纬度存储到位置集合中。&lt;/li&gt;
+&lt;li&gt;根据给定的位置名字，从位置集合中取出与之相对应的经纬度。&lt;/li&gt;
+&lt;li&gt;计算两个位置之间的直线距离。&lt;/li&gt;
+&lt;li&gt;根据给定的经纬度或位置，找出该位置指定半径范围内的其他位置。&lt;/li&gt;
+&lt;li&gt;获取指定位置的Geohash编码值。&lt;/li&gt;
+&lt;li&gt;本章接下来将对Redis GEO特性的各个相关命令进行介绍，并展示如何使用这些命令去构建社交网站的用户地理位置程序。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;查找附近用户&#34;&gt;查找附近用户&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;找到位于指定半径范围内的其他用户&lt;/li&gt;
+&lt;li&gt;还可以实现随机选取用户并返回，类似“摇一摇”&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;小结-7&#34;&gt;小结&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Redis的GEO特性允许用户将经纬度格式的地理位置存储到Redis中，并对这些位置执行距离计算、范围查找等操作。&lt;/li&gt;
+&lt;li&gt;GEORADIUSBYMEMBER命令的作用和GEORADIUS命令的作用一样，都是找出中心点指定半径范围内的其他位置，它们之间的主要区别在于GEORADIUS命令通过给定经纬度来指定中心点，而GEORADIUSBYMEMBER命令则通过选择位置集合中的一个位置来作为中心点。&lt;/li&gt;
+&lt;li&gt;Geohash是一种编码格式，这种格式可以将用户给定的经度和纬度转换成单个Geohash值，也可以根据给定的Geohash值还原出被转换的经度和纬度。执行GEOHASH命令即可取得给定位置的Geohash值。&lt;/li&gt;
+&lt;li&gt;Redis使用有序集合存储GEO数据，一个位置集合实际上就是一个有序集合，因此用户也可以使用有序集合命令处理位置集合。&lt;/li&gt;
+&lt;/ul&gt;
+- https://kother.top/read/redis%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ - Kother.</description>
+        </item>
     
     
     
@@ -14754,592 +15035,6 @@ UNIX系统的&lt;strong&gt;vmstat命令和Windows系统的perfmon工具&lt;/stro
 &lt;h2 id=&#34;跳转到接口的实现&#34;&gt;跳转到接口的实现&lt;/h2&gt;
 &lt;h3 id=&#34;b&#34;&gt;⌘⌥B&lt;/h3&gt;
 - https://kother.top/post/idea%E8%AF%BB%E6%BA%90%E7%A0%81%E5%BF%AB%E6%8D%B7%E9%94%AE%E8%AE%B0%E5%BD%95/ - Kother.</description>
-        </item>
-    
-    
-    
-        <item>
-        <title>阿里进行单元测试的方法 学习记录</title>
-        <link>https://kother.top/post/%E9%98%BF%E9%87%8C%E8%BF%9B%E8%A1%8C%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E7%9A%84%E6%96%B9%E6%B3%95-%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</link>
-        <pubDate>Sat, 07 Jan 2023 22:08:34 +0800</pubDate>
-        
-        <guid>https://kother.top/post/%E9%98%BF%E9%87%8C%E8%BF%9B%E8%A1%8C%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E7%9A%84%E6%96%B9%E6%B3%95-%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</guid>
-        <description>Kother&#39;s Blog https://kother.top/post/%E9%98%BF%E9%87%8C%E8%BF%9B%E8%A1%8C%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E7%9A%84%E6%96%B9%E6%B3%95-%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/ -&lt;h2 id=&#34;为什么需要单元测试&#34;&gt;为什么需要单元测试？&lt;/h2&gt;
-&lt;blockquote&gt;
-&lt;p&gt;学习文章：阿里是如何进行单元测试培训的？（附回放视频）&lt;/p&gt;
-&lt;p&gt;公众号：阿里开发者&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;作为后端，我认为写出高质量代码的前提是要会做高质量的单元测试。没有代码是可以在写出来的时候就没有BUG的，而互联网公司的人力、物力、时间皆是资源，倘若后端不进行自测，遗漏的BUG交由测试后，一定会产生更多的交流沟通成本，甚至花费相比自测要多好几倍的时间。每一个测试都是对自己代码的保证以及对下一阶段人员的承诺。&lt;/p&gt;
-&lt;p&gt;因此在“阿里开发者”公众号发布单元测试培训文章后，我再次对自己的单元测试技能进行了一次培训，耗时三个多小时左右，写了这篇博客作为总结。&lt;/p&gt;
-&lt;p&gt;本次培训质量很高，我仅记录一些&lt;strong&gt;培训时的笔记和代码以及个人体会&lt;/strong&gt;，如果有详细培训的需求，可以关注公众号然后查找“阿里是如何进行单元测试培训的？（附回放视频）”文章。&lt;/p&gt;
-&lt;h2 id=&#34;什么是单元测试&#34;&gt;什么是单元测试？&lt;/h2&gt;
-&lt;p&gt;程序单元是应用的最小可测试部件。在过程化编程中，一个单元就是单个程序、函数、过程等；对于面向对象编程，最小单元就是方法，包括基类、抽象类、或者派生类中的方法。&lt;/p&gt;
-&lt;p&gt;以下是&lt;strong&gt;单元测试、集成测试、系统级别测试&lt;/strong&gt;的对比&lt;/p&gt;
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th&gt;&lt;/th&gt;
-&lt;th&gt;单元测试&lt;/th&gt;
-&lt;th&gt;集成测试&lt;/th&gt;
-&lt;th&gt;系统级别测试&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td&gt;编写人员&lt;/td&gt;
-&lt;td&gt;开发&lt;/td&gt;
-&lt;td&gt;开发&lt;/td&gt;
-&lt;td&gt;开发 / 测试&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;编写场地&lt;/td&gt;
-&lt;td&gt;生产代码仓库内&lt;/td&gt;
-&lt;td&gt;生产代码仓库内&lt;/td&gt;
-&lt;td&gt;生产代码仓库内 / 生产代码仓库外&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;编写时间&lt;/td&gt;
-&lt;td&gt;代码发布前&lt;/td&gt;
-&lt;td&gt;代码发布前&lt;/td&gt;
-&lt;td&gt;代码发布前 / 代码发布后&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;编写成本&lt;/td&gt;
-&lt;td&gt;低&lt;/td&gt;
-&lt;td&gt;中&lt;/td&gt;
-&lt;td&gt;高&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;编写难度&lt;/td&gt;
-&lt;td&gt;低&lt;/td&gt;
-&lt;td&gt;中&lt;/td&gt;
-&lt;td&gt;高&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;反馈速度&lt;/td&gt;
-&lt;td&gt;极快，秒级&lt;/td&gt;
-&lt;td&gt;较慢，分钟级&lt;/td&gt;
-&lt;td&gt;慢，天级别&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;覆盖面积&lt;/td&gt;
-&lt;td&gt;代码行覆盖60-80% 分支覆盖40-60%&lt;/td&gt;
-&lt;td&gt;功能级别覆盖HappyPath&lt;/td&gt;
-&lt;td&gt;核心保障链路&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;环境依赖&lt;/td&gt;
-&lt;td&gt;代码级别，不依赖环境&lt;/td&gt;
-&lt;td&gt;依赖日常或本地环境&lt;/td&gt;
-&lt;td&gt;依赖预发或生产环境&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;外部依赖模拟&lt;/td&gt;
-&lt;td&gt;&lt;strong&gt;全部模拟&lt;/strong&gt;&lt;/td&gt;
-&lt;td&gt;部分模拟&lt;/td&gt;
-&lt;td&gt;不模拟，完全使用真实环境&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id=&#34;一个单元测试小demo&#34;&gt;一个单元测试小Demo&lt;/h2&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@Service&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;UserService&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/** 定义依赖对象 */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/** 用户DAO */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Autowired&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; UserDAO userDAO;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/**
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     * 查询用户
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     * 
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     * @param companyId 公司标识
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     * @param startIndex 开始序号
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     * @param pageSize 分页大小
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     * @return 用户分页数据
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; PageDataVO&amp;lt;UserVO&amp;gt; &lt;span style=&#34;color:#008b45&#34;&gt;queryUser&lt;/span&gt;(Long companyId, Long startIndex, Integer pageSize) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;//入参校验
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt;(ValidationUtil.&lt;span style=&#34;color:#658b00&#34;&gt;validate&lt;/span&gt;(companyId)){
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;throw&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; InvalidRequestException(companyId, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;Invalid company Id&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 查询用户数据
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 查询用户数据: 总共数量
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Long totalSize = userDAO.&lt;span style=&#34;color:#658b00&#34;&gt;countByCompany&lt;/span&gt;(companyId);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 查询接口数据: 数据列表
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        List&amp;lt;UserVO&amp;gt; dataList = &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;null&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;if&lt;/span&gt; (NumberHelper.&lt;span style=&#34;color:#658b00&#34;&gt;isPositive&lt;/span&gt;(totalSize)) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            dataList = userDAO.&lt;span style=&#34;color:#658b00&#34;&gt;queryByCompany&lt;/span&gt;(companyId, startIndex, pageSize);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 返回分页数据
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;new&lt;/span&gt; PageDataVO&amp;lt;&amp;gt;(totalSize, dataList);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;strong&gt;提出几个问题：&lt;/strong&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;你觉得针对这段代码，应该需要写&lt;strong&gt;几个单元测试&lt;/strong&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;你觉得这个单元测试的&lt;strong&gt;行覆盖率理论值可以达到多少&lt;/strong&gt;？我们&lt;strong&gt;一般需要达到多少&lt;/strong&gt;？如果要达到你的目标，&lt;strong&gt;投入的工作量是多少&lt;/strong&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;单测的代码量和原业务代码量的&lt;strong&gt;比值&lt;/strong&gt;应该是多少比较合适&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;&lt;strong&gt;可以参考的答案&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;值得注意的点：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;单元测试方法命名&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;模板：&lt;code&gt;testMethodName_Result_Situation&lt;/code&gt;(方法名 - 结果 - 场景名)&lt;/p&gt;
-&lt;p&gt;Eg. &lt;code&gt;testQueryUser_Succeed_NoData&lt;/code&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;Mockito的假定返回值和验证写法&lt;/strong&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;doReturn&lt;/span&gt;(0L).&lt;span style=&#34;color:#658b00&#34;&gt;when&lt;/span&gt;(userDao).&lt;span style=&#34;color:#658b00&#34;&gt;countByCompany&lt;/span&gt;(companyId);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;verify&lt;/span&gt;(userDao).&lt;span style=&#34;color:#658b00&#34;&gt;countByCompany&lt;/span&gt;(companyId);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;verifyNoMoreInteractions&lt;/span&gt;(userDAO); 
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;注意&lt;code&gt;ValidationUtil.validate(companyId)&lt;/code&gt;这个方法，如果只是简单内存计算，那么不需要@Mock，但是里面如果涉及到网络调用，请求服务等，就需要@Mock。&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;52
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;53
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;54
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;55
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;56
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;57
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;58
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;59
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;60
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;61
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;62
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;63
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;64
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;65
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;66
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;67
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;68
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;69
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;70
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;71
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;72
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;73
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;74
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;75
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;76
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;77
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;78
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;79
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@RunWith&lt;/span&gt;(MockitoJUnitRunner.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;UserServiceTest&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/** 定义静态常量 */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/** 资源路径 */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;final&lt;/span&gt; String RESOURCE_PATH = &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;testUserService/&amp;#34;&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/** 模拟依赖对象 */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/** 用户DAO */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Mock&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; UserDAO userDAO;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/** 定义测试对象 */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/** 用户服务 */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@InjectMocks&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;private&lt;/span&gt; UserService userService;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/**
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     * 测试: 查询用户-无数据
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Test&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;testQueryUser_Succeed_NoData&lt;/span&gt;() {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 模拟依赖方法
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 模拟依赖方法: userDAO.countByCompany
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Long companyId = 123L;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Long startIndex = 90L;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Integer pageSize = 10;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;doReturn&lt;/span&gt;(0L).&lt;span style=&#34;color:#658b00&#34;&gt;when&lt;/span&gt;(userDAO).&lt;span style=&#34;color:#658b00&#34;&gt;countByCompany&lt;/span&gt;(companyId);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 调用测试方法
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        String path = RESOURCE_PATH + &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;testQueryUserWithoutData/&amp;#34;&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        PageDataVO&amp;lt;UserVO&amp;gt; pageData = userService.&lt;span style=&#34;color:#658b00&#34;&gt;queryUser&lt;/span&gt;(companyId, startIndex, pageSize);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        String text = ResourceHelper.&lt;span style=&#34;color:#658b00&#34;&gt;getResourceAsString&lt;/span&gt;(getClass(), path + &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;pageData.json&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Assert.&lt;span style=&#34;color:#658b00&#34;&gt;assertEquals&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;分页数据不一致&amp;#34;&lt;/span&gt;, text, JSON.&lt;span style=&#34;color:#658b00&#34;&gt;toJSONString&lt;/span&gt;(pageData));
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 验证依赖方法
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 验证依赖方法: userDAO.countByCompany
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;verify&lt;/span&gt;(userDAO).&lt;span style=&#34;color:#658b00&#34;&gt;countByCompany&lt;/span&gt;(companyId);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 验证依赖对象
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;verifyNoMoreInteractions&lt;/span&gt;(userDAO);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#228b22&#34;&gt;/**
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     * 测试: 查询用户-有数据
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;     */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Test&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;testQueryUser_Succeed_WithData&lt;/span&gt;() {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 模拟依赖方法
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        String path = RESOURCE_PATH + &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;testQueryUserWithData/&amp;#34;&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 模拟依赖方法: userDAO.countByCompany
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Long companyId = 123L;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;doReturn&lt;/span&gt;(91L).&lt;span style=&#34;color:#658b00&#34;&gt;when&lt;/span&gt;(userDAO).&lt;span style=&#34;color:#658b00&#34;&gt;countByCompany&lt;/span&gt;(companyId);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 模拟依赖方法: userDAO.queryByCompany
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Long startIndex = 90L;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Integer pageSize = 10;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        String text = ResourceHelper.&lt;span style=&#34;color:#658b00&#34;&gt;getResourceAsString&lt;/span&gt;(getClass(), path + &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;dataList.json&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        List&amp;lt;UserVO&amp;gt; dataList = JSON.&lt;span style=&#34;color:#658b00&#34;&gt;parseArray&lt;/span&gt;(text, UserVO.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;doReturn&lt;/span&gt;(dataList).&lt;span style=&#34;color:#658b00&#34;&gt;when&lt;/span&gt;(userDAO).&lt;span style=&#34;color:#658b00&#34;&gt;queryByCompany&lt;/span&gt;(companyId, startIndex, pageSize);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 调用测试方法
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        PageDataVO&amp;lt;UserVO&amp;gt; pageData = userService.&lt;span style=&#34;color:#658b00&#34;&gt;queryUser&lt;/span&gt;(companyId, startIndex, pageSize);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        text = ResourceHelper.&lt;span style=&#34;color:#658b00&#34;&gt;getResourceAsString&lt;/span&gt;(getClass(), path + &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;pageData.json&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Assert.&lt;span style=&#34;color:#658b00&#34;&gt;assertEquals&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;分页数据不一致&amp;#34;&lt;/span&gt;, text, JSON.&lt;span style=&#34;color:#658b00&#34;&gt;toJSONString&lt;/span&gt;(pageData));
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 验证依赖方法
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 验证依赖方法: userDAO.countByCompany
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;verify&lt;/span&gt;(userDAO).&lt;span style=&#34;color:#658b00&#34;&gt;countByCompany&lt;/span&gt;(companyId);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 验证依赖方法: userDAO.queryByCompany
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;verify&lt;/span&gt;(userDAO).&lt;span style=&#34;color:#658b00&#34;&gt;queryByCompany&lt;/span&gt;(companyId, startIndex, pageSize);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#228b22&#34;&gt;// 验证依赖对象
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#228b22&#34;&gt;&lt;/span&gt;        Mockito.&lt;span style=&#34;color:#658b00&#34;&gt;verifyNoMoreInteractions&lt;/span&gt;(userDAO);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Test&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;testQueryUser_Fail_WithBadInput&lt;/span&gt;() {}
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;h2 id=&#34;测试题目&#34;&gt;测试题目&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;&lt;strong&gt;请问这个是单元测试吗？&lt;/strong&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@RunWith&lt;/span&gt;(MockitoJUnitRunner.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;SpringDalTest&lt;/span&gt;{
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Resource&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    DBClient dbClient;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Test&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;testGetDate_success_getFromDB&lt;/span&gt;(){
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      String result = dbClient.&lt;span style=&#34;color:#658b00&#34;&gt;getDate&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;Request&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      Assert.&lt;span style=&#34;color:#658b00&#34;&gt;equals&lt;/span&gt;(result,&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;ExpectedResults&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }    
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;答：不是，这里需要用@Mock注入，而不能用@Resource。因为@Resource会执行Bean注入。&lt;/p&gt;
-&lt;ol start=&#34;2&#34;&gt;
-&lt;li&gt;&lt;strong&gt;请问这个是单元测试吗？&lt;/strong&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@RunWith&lt;/span&gt;(MockitoJUnitRunner.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;DemoControllerTest&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Mock&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    DemoTairClient tairClient;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Mock&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    DemoDBMapper dbMapper;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@InjectMocks&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    DemoController demoController;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#707a7c&#34;&gt;@Test&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;testGetResult_succeed_getFromCache&lt;/span&gt;() &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;throws&lt;/span&gt; Exception {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        when(tairClient.&lt;span style=&#34;color:#658b00&#34;&gt;getCache&lt;/span&gt;(anyString())).&lt;span style=&#34;color:#658b00&#34;&gt;thenReturn&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;getCacheResponse&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        when(dbMapper.&lt;span style=&#34;color:#658b00&#34;&gt;queryData&lt;/span&gt;(anyString())).&lt;span style=&#34;color:#658b00&#34;&gt;thenReturn&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;queryDataResponse&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        String result = demoController.&lt;span style=&#34;color:#658b00&#34;&gt;getResult&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;request&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Assert.&lt;span style=&#34;color:#658b00&#34;&gt;assertEquals&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;getCacheResponse&amp;#34;&lt;/span&gt;, result);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;答：是的，不存在其他外部依赖。&lt;/p&gt;
-&lt;ol start=&#34;3&#34;&gt;
-&lt;li&gt;&lt;strong&gt;请问这个是单元测试吗？&lt;/strong&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@RunWith&lt;/span&gt;(PandoraBootRunner.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@DelegateTo&lt;/span&gt;(SpringJUnit4ClassRunner.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@PropertySource&lt;/span&gt;(value = {&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;classpath:test.properties&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;classpath:landlord.properties&amp;#34;&lt;/span&gt;})
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#707a7c&#34;&gt;@SpringBootTest&lt;/span&gt;(classes = Application.&lt;span style=&#34;color:#658b00&#34;&gt;class&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#008b45;font-weight:bold&#34;&gt;SanityTest&lt;/span&gt;{
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#707a7c&#34;&gt;@Resource&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      InfoService infoService1;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#707a7c&#34;&gt;@Mock&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      InfoService infoService2;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#8b008b;font-weight:bold&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#00688b;font-weight:bold&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#008b45&#34;&gt;testGetInfo_succeed_giveValidRequest&lt;/span&gt;(){
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          String result1 = infoService1.&lt;span style=&#34;color:#658b00&#34;&gt;getInfo&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;Request&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          String result2 = infoService2.&lt;span style=&#34;color:#658b00&#34;&gt;getInfo&lt;/span&gt;(&lt;span style=&#34;color:#cd5555&#34;&gt;&amp;#34;Request&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          Assert.&lt;span style=&#34;color:#658b00&#34;&gt;equals&lt;/span&gt;(result1,result2);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;答：部分注入，部分依赖，这个应该是集成测试。&lt;/p&gt;
-&lt;h2 id=&#34;单元测试依赖&#34;&gt;单元测试依赖&lt;/h2&gt;
-&lt;p&gt;基础单测套餐：&lt;/p&gt;
-&lt;p&gt;JUnit4 - &lt;a href=&#34;https://github.com/junit-team/junit4/wiki&#34;&gt;https://github.com/junit-team/junit4/wiki&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;Mockito2/3 - &lt;a href=&#34;https://site.mockito.org/&#34;&gt;https://site.mockito.org/&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;所需要的依赖包&lt;/strong&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
-&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
-&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;lt;dependency&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;groupId&amp;gt;junit&amp;lt;/groupId&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;artifactId&amp;gt;junit&amp;lt;/artifactId&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;version&amp;gt;4.&lt;span style=&#34;color:#658b00&#34;&gt;13&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;1&lt;/span&gt;&amp;lt;/version&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;scope&amp;gt;test&amp;lt;/scope&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;lt;/dependency&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;lt;dependency&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;groupId&amp;gt;org.&lt;span style=&#34;color:#658b00&#34;&gt;mockito&lt;/span&gt;&amp;lt;/groupId&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;artifactId&amp;gt;mockito-core&amp;lt;/artifactId&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;version&amp;gt;3.&lt;span style=&#34;color:#658b00&#34;&gt;3&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;3&lt;/span&gt;&amp;lt;/version&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;scope&amp;gt;test&amp;lt;/scope&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;lt;/dependency&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;lt;dependency&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;groupId&amp;gt;org.&lt;span style=&#34;color:#658b00&#34;&gt;powermock&lt;/span&gt;&amp;lt;/groupId&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;artifactId&amp;gt;powermock-module-junit4&amp;lt;/artifactId&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;version&amp;gt;2.&lt;span style=&#34;color:#658b00&#34;&gt;0&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;9&lt;/span&gt;&amp;lt;/version&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;scope&amp;gt;test&amp;lt;/scope&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;lt;/dependency&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;lt;dependency&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;groupId&amp;gt;org.&lt;span style=&#34;color:#658b00&#34;&gt;powermock&lt;/span&gt;&amp;lt;/groupId&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;artifactId&amp;gt;powermock-api-mockito2&amp;lt;/artifactId&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;version&amp;gt;2.&lt;span style=&#34;color:#658b00&#34;&gt;0&lt;/span&gt;.&lt;span style=&#34;color:#658b00&#34;&gt;9&lt;/span&gt;&amp;lt;/version&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &amp;lt;scope&amp;gt;test&amp;lt;/scope&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;lt;/dependency&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;strong&gt;9个通用场景现场教学，原工程：&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://github.com/Lukegogogo/unit-test-training-demo/tree/mainline&#34;&gt;https://github.com/Lukegogogo/unit-test-training-demo/tree/mainline&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;单元测试模拟撰写&#34;&gt;单元测试模拟撰写&lt;/h2&gt;
-&lt;h3 id=&#34;1-定义对象阶段&#34;&gt;&lt;strong&gt;1. 定义对象阶段&lt;/strong&gt;&lt;/h3&gt;
-&lt;p&gt;定义对象阶段主要包括：定义被测对象、模拟依赖对象（类成员）、注入依赖对象（类成员）。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://mmbiz.qpic.cn/mmbiz_png/Z6bicxIx5naKwtCK8CCeGIzTrX8u9X905zR5aicX3QrlMZxg3fat0ibYmdgnBCxW9pWTr71rXJVf9sicgYslMoja6A/640?wx_fmt=png&amp;amp;wxfrom=5&amp;amp;wx_lazy=1&amp;amp;wx_co=1&#34; alt=&#34;图片&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;2-模拟方法阶段&#34;&gt;&lt;strong&gt;2. 模拟方法阶段&lt;/strong&gt;&lt;/h3&gt;
-&lt;p&gt;模拟方法阶段主要包括：模拟依赖对象（参数、返回值和异常）、模拟依赖方法。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301072208326.png&#34; alt=&#34;图片&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;3-调用方法阶段&#34;&gt;&lt;strong&gt;3. 调用方法阶段&lt;/strong&gt;&lt;/h3&gt;
-&lt;p&gt;调用方法阶段主要包括：模拟依赖对象（参数）、调用被测方法、验证参数对象（返回值和异常）。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://gitee.com/kother/typora/raw/master/img/202301072208073.png&#34; alt=&#34;图片&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;4-验证方法阶段&#34;&gt;&lt;strong&gt;4. 验证方法阶段&lt;/strong&gt;&lt;/h3&gt;
-&lt;p&gt;验证方法阶段主要包括：验证依赖方法、验证数据对象（参数）、验证依赖对象 。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://mmbiz.qpic.cn/mmbiz_png/Z6bicxIx5naKwtCK8CCeGIzTrX8u9X905nQ9GxzpJ35o3SIicl9VOq3nbIH8XmoXMTTj4b2WSzN8DDbWVAp4DXCQ/640?wx_fmt=png&amp;amp;wxfrom=5&amp;amp;wx_lazy=1&amp;amp;wx_co=1&#34; alt=&#34;图片&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;实操阶段&#34;&gt;实操阶段&lt;/h3&gt;
-&lt;p&gt;公众号给的代码仓库不太完整（缺少父pom.xml，跑不起来），可以使用下面这个工程：&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://github.com/AKother/unit-test-demo&#34;&gt;https://github.com/AKother/unit-test-demo&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;包含内容如下：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;【无依赖 难度：🌟🌟】最简单的 Helper/Util/Validation 层&lt;/li&gt;
-&lt;li&gt;【有些许依赖 难度：🌟🌟🌟】稍复杂 Service/Controller 层&lt;/li&gt;
-&lt;li&gt;【有很多依赖 难度：🌟🌟🌟🌟】更复杂的 Biz 逻辑层&lt;/li&gt;
-&lt;li&gt;【难度：🌟🌟】如何测试 Exception&lt;/li&gt;
-&lt;li&gt;【难度：🌟】AssertJ 的使用&lt;/li&gt;
-&lt;li&gt;【难度：🌟🌟】Verify 的使用&lt;/li&gt;
-&lt;li&gt;【难度：🌟🌟🌟】Argument Captor 的使用&lt;/li&gt;
-&lt;li&gt;【难度：🌟】 静态类的 mock&lt;/li&gt;
-&lt;li&gt;【难度：🌟🌟🌟🌟】依赖里面的 Lambda 表达式内的逻辑怎么执行？&lt;/li&gt;
-&lt;/ol&gt;
-- https://kother.top/post/%E9%98%BF%E9%87%8C%E8%BF%9B%E8%A1%8C%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E7%9A%84%E6%96%B9%E6%B3%95-%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/ - Kother.</description>
         </item>
     
     
