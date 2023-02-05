@@ -1,0 +1,3302 @@
+<!DOCTYPE html>
+<meta name="referrer" content="no-referrer" />
+<html><head>
+<title>KOTHER'S BLOG</title>
+
+
+
+
+<style> @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&display=swap'); </style>
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="从Paxos到ZooKeeper 读书笔记" />
+<meta property="og:description" content="从Paxos到ZooKeeper - 读书笔记 [TOC]
+第一章 分布式架构 分布式环境的问题 通信异常 网络分区（脑裂） 只有部分节点之间可以正常通信，出现小集群 小集群会各自有首，独立完成本来需要一整个集群才能完成的事情 节点故障 分布式特点 分布性 对等性 并发性 缺乏全局时钟 从ACID到CAP/BASE 分布式系统中，原本的ACID很难保证，因此转向了CAP/BASE理论
+CAP理论 C：Consistency A：Avaliability P：Partition tolerance 无法同时满足3个要求，P是一定要保证的，因此往往会在C和A之间寻求平衡
+一致性 在多个节点之间读取更新，希望对每个节点做的操作结果都是相同的 强一致性：对某个数据更新以后，所有用户都可以读取到最新的值，则为强一致性 可用性 用户的请求会在有限的时间内返回结果 有限的指标是系统设定的运行结果，各个系统都有不同 分区容错性 发生网络分区时，仍然对外保证一致性和可用性 BASE理论 基本可用、软状态、最终一致性
+Basically Avaliable 允许响应时间变长 允许功能上的损失 Soft state 系统数据的中间状态，不影响可用性 Eventually consistent 经过同步后，所有数据都达到一致状态 因果一致性 读己之所写 会话一致性 单调读一致性 单调写一致性 第二章 一致性协议 用于处理分布式一致性问题，可以理解为分布式系统中的事务保证
+著名的解决方式有
+2PC 3PC Paxos 2PC Two-Phrase Commit
+目前广泛使用的流程
+执行流程 阶段一 提交事务请求（类似投票阶段）： 1.事务询问 协调者向所有参与者发送事务内容，询问是否可以执行事务提交操作，并等待所有参与者的响应 2.执行事务 每个节点都执行这个事务，会将Undo和Redo信息记录到事务日志中 3.参与者反馈响应 参与者向协调者返回事务操作的结果 阶段二 执行事务提交： 如果收到的全部是Yes 1." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kother.top/read/%E4%BB%8Epaxos%E5%88%B0zookeeper-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="read" />
+<meta property="article:published_time" content="2023-02-05T15:32:39+08:00" />
+<meta property="article:modified_time" content="2023-02-05T15:32:39+08:00" /><meta property="og:site_name" content="My Blog" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="从Paxos到ZooKeeper 读书笔记"/>
+<meta name="twitter:description" content="从Paxos到ZooKeeper - 读书笔记 [TOC]
+第一章 分布式架构 分布式环境的问题 通信异常 网络分区（脑裂） 只有部分节点之间可以正常通信，出现小集群 小集群会各自有首，独立完成本来需要一整个集群才能完成的事情 节点故障 分布式特点 分布性 对等性 并发性 缺乏全局时钟 从ACID到CAP/BASE 分布式系统中，原本的ACID很难保证，因此转向了CAP/BASE理论
+CAP理论 C：Consistency A：Avaliability P：Partition tolerance 无法同时满足3个要求，P是一定要保证的，因此往往会在C和A之间寻求平衡
+一致性 在多个节点之间读取更新，希望对每个节点做的操作结果都是相同的 强一致性：对某个数据更新以后，所有用户都可以读取到最新的值，则为强一致性 可用性 用户的请求会在有限的时间内返回结果 有限的指标是系统设定的运行结果，各个系统都有不同 分区容错性 发生网络分区时，仍然对外保证一致性和可用性 BASE理论 基本可用、软状态、最终一致性
+Basically Avaliable 允许响应时间变长 允许功能上的损失 Soft state 系统数据的中间状态，不影响可用性 Eventually consistent 经过同步后，所有数据都达到一致状态 因果一致性 读己之所写 会话一致性 单调读一致性 单调写一致性 第二章 一致性协议 用于处理分布式一致性问题，可以理解为分布式系统中的事务保证
+著名的解决方式有
+2PC 3PC Paxos 2PC Two-Phrase Commit
+目前广泛使用的流程
+执行流程 阶段一 提交事务请求（类似投票阶段）： 1.事务询问 协调者向所有参与者发送事务内容，询问是否可以执行事务提交操作，并等待所有参与者的响应 2.执行事务 每个节点都执行这个事务，会将Undo和Redo信息记录到事务日志中 3.参与者反馈响应 参与者向协调者返回事务操作的结果 阶段二 执行事务提交： 如果收到的全部是Yes 1."/>
+
+
+
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LSQR31DZQM"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-LSQR31DZQM', { 'anonymize_ip': false });
+}
+</script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'G-LSQR31DZQM', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+
+      <script src="/js/toc.js"></script>
+    
+    <link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<link rel="stylesheet" href="/scss/journal.min.66cf0f76f275d011531b27e244451df2f6155c714e54ce7ef938e51869bbdf64.css" integrity="sha256-Zs8PdvJ10BFTGyfiREUd8vYVXHFOVM5&#43;&#43;TjlGGm732Q=" media="screen">
+
+
+
+<link rel="stylesheet" href="/scss/dark-mode.min.31b4f7dd2c9db4bc1f5c9be4337b86ff309731dfbc886bcb23711efe353d1000.css" integrity="sha256-MbT33SydtLwfXJvkM3uG/zCXMd&#43;8iGvLI3Ee/jU9EAA=" media="screen">
+
+
+<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Material+Icons">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="/vendor/js/md5.min.js"></script><script>
+  var gitalk = new Gitalk({
+  clientID: 'ee22eaa3184cbf1df6d9',
+  clientSecret: '00bb1d24a9cfdc647db6e565549bc405f57c5dd1',
+  repo: 'Akother.github.io',
+  owner: 'Akother',
+  admin: ['Akother'],
+  id: md5(location.pathname),
+  distractionFreeMode: 'false'
+  });
+  window.onload = function () {
+        gitalk.render('gitalk-container')
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</head><body>
+    	<div id="app"><div id="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://kother.top">
+    
+        <div class="nav-title">
+            Kother&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            记录点喜欢的.
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/post">
+                博客
+            </a>
+            
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/read">
+                阅读
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+
+    </div>
+    
+</div><div id="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8epaxos%e5%88%b0zookeeper---%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#从paxos到zookeeper---读书笔记-nav`)" id="从paxos到zookeeper---读书笔记-nav">
+									从Paxos到ZooKeeper - 读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e5%88%86%e5%b8%83%e5%bc%8f%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#第一章-分布式架构-nav`)" id="第一章-分布式架构-nav">
+									第一章 分布式架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e7%8e%af%e5%a2%83%e7%9a%84%e9%97%ae%e9%a2%98" onclick="onNavClick(`#分布式环境的问题-nav`)" id="分布式环境的问题-nav">
+									分布式环境的问题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e7%89%b9%e7%82%b9" onclick="onNavClick(`#分布式特点-nav`)" id="分布式特点-nav">
+									分布式特点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8eacid%e5%88%b0capbase" onclick="onNavClick(`#从acid到capbase-nav`)" id="从acid到capbase-nav">
+									从ACID到CAP/BASE
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#cap%e7%90%86%e8%ae%ba" onclick="onNavClick(`#cap理论-nav`)" id="cap理论-nav">
+									CAP理论
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#base%e7%90%86%e8%ae%ba" onclick="onNavClick(`#base理论-nav`)" id="base理论-nav">
+									BASE理论
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-%e4%b8%80%e8%87%b4%e6%80%a7%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#第二章-一致性协议-nav`)" id="第二章-一致性协议-nav">
+									第二章 一致性协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#2pc" onclick="onNavClick(`#2pc-nav`)" id="2pc-nav">
+									2PC
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%89%a7%e8%a1%8c%e6%b5%81%e7%a8%8b" onclick="onNavClick(`#执行流程-nav`)" id="执行流程-nav">
+									执行流程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%98%e7%82%b9" onclick="onNavClick(`#优点-nav`)" id="优点-nav">
+									优点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%ba%e7%82%b9" onclick="onNavClick(`#缺点-nav`)" id="缺点-nav">
+									缺点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#3pc" onclick="onNavClick(`#3pc-nav`)" id="3pc-nav">
+									3PC
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%89%a7%e8%a1%8c%e6%b5%81%e7%a8%8b-1" onclick="onNavClick(`#执行流程-1-nav`)" id="执行流程-1-nav">
+									执行流程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%98%e7%82%b9-1" onclick="onNavClick(`#优点-1-nav`)" id="优点-1-nav">
+									优点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%ba%e7%82%b9-1" onclick="onNavClick(`#缺点-1-nav`)" id="缺点-1-nav">
+									缺点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#paxos%e7%ae%97%e6%b3%95" onclick="onNavClick(`#paxos算法-nav`)" id="paxos算法-nav">
+									Paxos算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-paxos%e7%9a%84%e5%b7%a5%e7%a8%8b%e5%ae%9e%e8%b7%b5" onclick="onNavClick(`#第三章-paxos的工程实践-nav`)" id="第三章-paxos的工程实践-nav">
+									第三章 Paxos的工程实践
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-zookeeper%e4%b8%8epaxos" onclick="onNavClick(`#第四章-zookeeper与paxos-nav`)" id="第四章-zookeeper与paxos-nav">
+									第四章 ZooKeeper与Paxos
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#zookeeper%e5%ba%94%e7%94%a8%e5%9c%ba%e6%99%af" onclick="onNavClick(`#zookeeper应用场景-nav`)" id="zookeeper应用场景-nav">
+									ZooKeeper应用场景
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%89%b9%e6%80%a7" onclick="onNavClick(`#特性-nav`)" id="特性-nav">
+									特性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e6%a6%82%e5%bf%b5" onclick="onNavClick(`#基本概念-nav`)" id="基本概念-nav">
+									基本概念
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e8%a7%92%e8%89%b2" onclick="onNavClick(`#集群角色-nav`)" id="集群角色-nav">
+									集群角色
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%9a%e8%af%9d" onclick="onNavClick(`#会话-nav`)" id="会话-nav">
+									会话
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#znode" onclick="onNavClick(`#znode-nav`)" id="znode-nav">
+									ZNode
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%89%88%e6%9c%ac" onclick="onNavClick(`#版本-nav`)" id="版本-nav">
+									版本
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#watcher" onclick="onNavClick(`#watcher-nav`)" id="watcher-nav">
+									Watcher
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#acl" onclick="onNavClick(`#acl-nav`)" id="acl-nav">
+									ACL
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%80%89%e6%8b%a9zookeeper" onclick="onNavClick(`#为什么选择zookeeper-nav`)" id="为什么选择zookeeper-nav">
+									为什么选择ZooKeeper
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#zab%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#zab协议-nav`)" id="zab协议-nav">
+									ZAB协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%a0%b8%e5%bf%83" onclick="onNavClick(`#核心-nav`)" id="核心-nav">
+									核心
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%b4%a9%e6%ba%83%e6%81%a2%e5%a4%8d" onclick="onNavClick(`#崩溃恢复-nav`)" id="崩溃恢复-nav">
+									崩溃恢复
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af%e5%b9%bf%e6%92%ad" onclick="onNavClick(`#消息广播-nav`)" id="消息广播-nav">
+									消息广播
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e4%bd%bf%e7%94%a8zookeeper" onclick="onNavClick(`#第五章-使用zookeeper-nav`)" id="第五章-使用zookeeper-nav">
+									第五章 使用ZooKeeper
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#curator%e5%b0%81%e8%a3%85%e5%a5%bd%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#curator封装好的实现-nav`)" id="curator封装好的实现-nav">
+									Curator封装好的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#master%e9%80%89%e4%b8%be" onclick="onNavClick(`#master选举-nav`)" id="master选举-nav">
+									Master选举
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e8%ae%a1%e6%95%b0%e5%99%a8" onclick="onNavClick(`#分布式计数器-nav`)" id="分布式计数器-nav">
+									分布式计数器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8fbarrier" onclick="onNavClick(`#分布式barrier-nav`)" id="分布式barrier-nav">
+									分布式Barrier
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81" onclick="onNavClick(`#分布式锁-nav`)" id="分布式锁-nav">
+									分布式锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#zkpaths" onclick="onNavClick(`#zkpaths-nav`)" id="zkpaths-nav">
+									ZKPaths
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#ensurepath" onclick="onNavClick(`#ensurepath-nav`)" id="ensurepath-nav">
+									EnsurePath
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#testingserver" onclick="onNavClick(`#testingserver-nav`)" id="testingserver-nav">
+									TestingServer
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#testingcluster" onclick="onNavClick(`#testingcluster-nav`)" id="testingcluster-nav">
+									TestingCluster
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-zookeeper%e7%9a%84%e5%85%b8%e5%9e%8b%e5%ba%94%e7%94%a8%e5%9c%ba%e6%99%af" onclick="onNavClick(`#第六章-zookeeper的典型应用场景-nav`)" id="第六章-zookeeper的典型应用场景-nav">
+									第六章 ZooKeeper的典型应用场景
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%8f%91%e5%b8%83%e8%ae%a2%e9%98%85--%e9%85%8d%e7%bd%ae%e4%b8%ad%e5%bf%83" onclick="onNavClick(`#数据发布订阅--配置中心-nav`)" id="数据发布订阅--配置中心-nav">
+									数据发布订阅 / 配置中心
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8e%9f%e7%90%86" onclick="onNavClick(`#原理-nav`)" id="原理-nav">
+									原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#实现方式-nav`)" id="实现方式-nav">
+									实现方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e5%90%8d%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#命名服务-nav`)" id="命名服务-nav">
+									命名服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e5%8d%8f%e8%b0%83%e9%80%9a%e7%9f%a5" onclick="onNavClick(`#分布式协调通知-nav`)" id="分布式协调通知-nav">
+									分布式协调/通知
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e7%ae%a1%e7%90%86" onclick="onNavClick(`#集群管理-nav`)" id="集群管理-nav">
+									集群管理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%80%89zookeeper%e5%81%9a%e9%9b%86%e7%be%a4%e7%ae%a1%e7%90%86" onclick="onNavClick(`#为什么选zookeeper做集群管理-nav`)" id="为什么选zookeeper做集群管理-nav">
+									为什么选ZooKeeper做集群管理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#master%e9%80%89%e4%b8%be-1" onclick="onNavClick(`#master选举-1-nav`)" id="master选举-1-nav">
+									Master选举
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81-1" onclick="onNavClick(`#分布式锁-1-nav`)" id="分布式锁-1-nav">
+									分布式锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%8e%92%e4%bb%96%e9%94%81" onclick="onNavClick(`#排他锁-nav`)" id="排他锁-nav">
+									排他锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b1%e4%ba%ab%e9%94%81" onclick="onNavClick(`#共享锁-nav`)" id="共享锁-nav">
+									共享锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-zookeeper%e6%8a%80%e6%9c%af%e5%86%85%e5%b9%95" onclick="onNavClick(`#第七章-zookeeper技术内幕-nav`)" id="第七章-zookeeper技术内幕-nav">
+									第七章 ZooKeeper技术内幕
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%89%88%e6%9c%ac-1" onclick="onNavClick(`#版本-1-nav`)" id="版本-1-nav">
+									版本
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#watcher%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#watcher实现-nav`)" id="watcher实现-nav">
+									Watcher实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a type="button" class="pagination-action" id="darkModeToggleButton">
+            <span class="material-icons pagination-action-icon" id="darkModeToggleIcon">
+                dark_mode
+            </span>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" id="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/post">
+                    博客
+                </a>
+                
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/read">
+                    阅读
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8epaxos%e5%88%b0zookeeper---%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#从paxos到zookeeper---读书笔记-nav`)" id="从paxos到zookeeper---读书笔记-nav">
+									从Paxos到ZooKeeper - 读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-%e5%88%86%e5%b8%83%e5%bc%8f%e6%9e%b6%e6%9e%84" onclick="onNavClick(`#第一章-分布式架构-nav`)" id="第一章-分布式架构-nav">
+									第一章 分布式架构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e7%8e%af%e5%a2%83%e7%9a%84%e9%97%ae%e9%a2%98" onclick="onNavClick(`#分布式环境的问题-nav`)" id="分布式环境的问题-nav">
+									分布式环境的问题
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e7%89%b9%e7%82%b9" onclick="onNavClick(`#分布式特点-nav`)" id="分布式特点-nav">
+									分布式特点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bb%8eacid%e5%88%b0capbase" onclick="onNavClick(`#从acid到capbase-nav`)" id="从acid到capbase-nav">
+									从ACID到CAP/BASE
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#cap%e7%90%86%e8%ae%ba" onclick="onNavClick(`#cap理论-nav`)" id="cap理论-nav">
+									CAP理论
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#base%e7%90%86%e8%ae%ba" onclick="onNavClick(`#base理论-nav`)" id="base理论-nav">
+									BASE理论
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-%e4%b8%80%e8%87%b4%e6%80%a7%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#第二章-一致性协议-nav`)" id="第二章-一致性协议-nav">
+									第二章 一致性协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#2pc" onclick="onNavClick(`#2pc-nav`)" id="2pc-nav">
+									2PC
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%89%a7%e8%a1%8c%e6%b5%81%e7%a8%8b" onclick="onNavClick(`#执行流程-nav`)" id="执行流程-nav">
+									执行流程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%98%e7%82%b9" onclick="onNavClick(`#优点-nav`)" id="优点-nav">
+									优点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%ba%e7%82%b9" onclick="onNavClick(`#缺点-nav`)" id="缺点-nav">
+									缺点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#3pc" onclick="onNavClick(`#3pc-nav`)" id="3pc-nav">
+									3PC
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%89%a7%e8%a1%8c%e6%b5%81%e7%a8%8b-1" onclick="onNavClick(`#执行流程-1-nav`)" id="执行流程-1-nav">
+									执行流程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%98%e7%82%b9-1" onclick="onNavClick(`#优点-1-nav`)" id="优点-1-nav">
+									优点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bc%ba%e7%82%b9-1" onclick="onNavClick(`#缺点-1-nav`)" id="缺点-1-nav">
+									缺点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#paxos%e7%ae%97%e6%b3%95" onclick="onNavClick(`#paxos算法-nav`)" id="paxos算法-nav">
+									Paxos算法
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-paxos%e7%9a%84%e5%b7%a5%e7%a8%8b%e5%ae%9e%e8%b7%b5" onclick="onNavClick(`#第三章-paxos的工程实践-nav`)" id="第三章-paxos的工程实践-nav">
+									第三章 Paxos的工程实践
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-zookeeper%e4%b8%8epaxos" onclick="onNavClick(`#第四章-zookeeper与paxos-nav`)" id="第四章-zookeeper与paxos-nav">
+									第四章 ZooKeeper与Paxos
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#zookeeper%e5%ba%94%e7%94%a8%e5%9c%ba%e6%99%af" onclick="onNavClick(`#zookeeper应用场景-nav`)" id="zookeeper应用场景-nav">
+									ZooKeeper应用场景
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%89%b9%e6%80%a7" onclick="onNavClick(`#特性-nav`)" id="特性-nav">
+									特性
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%9f%ba%e6%9c%ac%e6%a6%82%e5%bf%b5" onclick="onNavClick(`#基本概念-nav`)" id="基本概念-nav">
+									基本概念
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e8%a7%92%e8%89%b2" onclick="onNavClick(`#集群角色-nav`)" id="集群角色-nav">
+									集群角色
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%9a%e8%af%9d" onclick="onNavClick(`#会话-nav`)" id="会话-nav">
+									会话
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#znode" onclick="onNavClick(`#znode-nav`)" id="znode-nav">
+									ZNode
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%89%88%e6%9c%ac" onclick="onNavClick(`#版本-nav`)" id="版本-nav">
+									版本
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#watcher" onclick="onNavClick(`#watcher-nav`)" id="watcher-nav">
+									Watcher
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#acl" onclick="onNavClick(`#acl-nav`)" id="acl-nav">
+									ACL
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%80%89%e6%8b%a9zookeeper" onclick="onNavClick(`#为什么选择zookeeper-nav`)" id="为什么选择zookeeper-nav">
+									为什么选择ZooKeeper
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#zab%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#zab协议-nav`)" id="zab协议-nav">
+									ZAB协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%a0%b8%e5%bf%83" onclick="onNavClick(`#核心-nav`)" id="核心-nav">
+									核心
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%b4%a9%e6%ba%83%e6%81%a2%e5%a4%8d" onclick="onNavClick(`#崩溃恢复-nav`)" id="崩溃恢复-nav">
+									崩溃恢复
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af%e5%b9%bf%e6%92%ad" onclick="onNavClick(`#消息广播-nav`)" id="消息广播-nav">
+									消息广播
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-%e4%bd%bf%e7%94%a8zookeeper" onclick="onNavClick(`#第五章-使用zookeeper-nav`)" id="第五章-使用zookeeper-nav">
+									第五章 使用ZooKeeper
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#curator%e5%b0%81%e8%a3%85%e5%a5%bd%e7%9a%84%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#curator封装好的实现-nav`)" id="curator封装好的实现-nav">
+									Curator封装好的实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#master%e9%80%89%e4%b8%be" onclick="onNavClick(`#master选举-nav`)" id="master选举-nav">
+									Master选举
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e8%ae%a1%e6%95%b0%e5%99%a8" onclick="onNavClick(`#分布式计数器-nav`)" id="分布式计数器-nav">
+									分布式计数器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8fbarrier" onclick="onNavClick(`#分布式barrier-nav`)" id="分布式barrier-nav">
+									分布式Barrier
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81" onclick="onNavClick(`#分布式锁-nav`)" id="分布式锁-nav">
+									分布式锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#zkpaths" onclick="onNavClick(`#zkpaths-nav`)" id="zkpaths-nav">
+									ZKPaths
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#ensurepath" onclick="onNavClick(`#ensurepath-nav`)" id="ensurepath-nav">
+									EnsurePath
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#testingserver" onclick="onNavClick(`#testingserver-nav`)" id="testingserver-nav">
+									TestingServer
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#testingcluster" onclick="onNavClick(`#testingcluster-nav`)" id="testingcluster-nav">
+									TestingCluster
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-zookeeper%e7%9a%84%e5%85%b8%e5%9e%8b%e5%ba%94%e7%94%a8%e5%9c%ba%e6%99%af" onclick="onNavClick(`#第六章-zookeeper的典型应用场景-nav`)" id="第六章-zookeeper的典型应用场景-nav">
+									第六章 ZooKeeper的典型应用场景
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%95%b0%e6%8d%ae%e5%8f%91%e5%b8%83%e8%ae%a2%e9%98%85--%e9%85%8d%e7%bd%ae%e4%b8%ad%e5%bf%83" onclick="onNavClick(`#数据发布订阅--配置中心-nav`)" id="数据发布订阅--配置中心-nav">
+									数据发布订阅 / 配置中心
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%8e%9f%e7%90%86" onclick="onNavClick(`#原理-nav`)" id="原理-nav">
+									原理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%ae%9e%e7%8e%b0%e6%96%b9%e5%bc%8f" onclick="onNavClick(`#实现方式-nav`)" id="实现方式-nav">
+									实现方式
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e5%91%bd%e5%90%8d%e6%9c%8d%e5%8a%a1" onclick="onNavClick(`#命名服务-nav`)" id="命名服务-nav">
+									命名服务
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e5%8d%8f%e8%b0%83%e9%80%9a%e7%9f%a5" onclick="onNavClick(`#分布式协调通知-nav`)" id="分布式协调通知-nav">
+									分布式协调/通知
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e7%ae%a1%e7%90%86" onclick="onNavClick(`#集群管理-nav`)" id="集群管理-nav">
+									集群管理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e9%80%89zookeeper%e5%81%9a%e9%9b%86%e7%be%a4%e7%ae%a1%e7%90%86" onclick="onNavClick(`#为什么选zookeeper做集群管理-nav`)" id="为什么选zookeeper做集群管理-nav">
+									为什么选ZooKeeper做集群管理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#master%e9%80%89%e4%b8%be-1" onclick="onNavClick(`#master选举-1-nav`)" id="master选举-1-nav">
+									Master选举
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81-1" onclick="onNavClick(`#分布式锁-1-nav`)" id="分布式锁-1-nav">
+									分布式锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%8e%92%e4%bb%96%e9%94%81" onclick="onNavClick(`#排他锁-nav`)" id="排他锁-nav">
+									排他锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%85%b1%e4%ba%ab%e9%94%81" onclick="onNavClick(`#共享锁-nav`)" id="共享锁-nav">
+									共享锁
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-zookeeper%e6%8a%80%e6%9c%af%e5%86%85%e5%b9%95" onclick="onNavClick(`#第七章-zookeeper技术内幕-nav`)" id="第七章-zookeeper技术内幕-nav">
+									第七章 ZooKeeper技术内幕
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%89%88%e6%9c%ac-1" onclick="onNavClick(`#版本-1-nav`)" id="版本-1-nav">
+									版本
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#watcher%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#watcher实现-nav`)" id="watcher实现-nav">
+									Watcher实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div id="drawer-mask" v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav id="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div id="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a id="navTitle" class="navbar-brand" href="https://kother.top">
+            Kother&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" id="darkModeToggleButton2">
+            <i class="material-icons" id="darkModeToggleIcon2">
+                dark_mode
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" id="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://kother.top">
+        <div class="single-column-header-title">Kother&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">记录点喜欢的.</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+                <div id="streamContainer" class="stream-container">
+
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    从Paxos到ZooKeeper 读书笔记
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-02-05 15:32
+                        </time>
+                        
+
+                        
+
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="从paxos到zookeeper---读书笔记">从Paxos到ZooKeeper - 读书笔记</h1>
+<p>[TOC]</p>
+<h2 id="第一章-分布式架构">第一章 分布式架构</h2>
+<h3 id="分布式环境的问题">分布式环境的问题</h3>
+<ul>
+<li>通信异常</li>
+<li>网络分区（脑裂）
+<ul>
+<li>只有部分节点之间可以正常通信，出现小集群</li>
+<li>小集群会各自有首，独立完成本来需要一整个集群才能完成的事情</li>
+<li></li>
+</ul>
+</li>
+<li>节点故障</li>
+</ul>
+<h3 id="分布式特点">分布式特点</h3>
+<ul>
+<li>分布性</li>
+<li>对等性</li>
+<li>并发性</li>
+<li>缺乏全局时钟</li>
+</ul>
+<h3 id="从acid到capbase">从ACID到CAP/BASE</h3>
+<blockquote>
+<p>分布式系统中，原本的ACID很难保证，因此转向了CAP/BASE理论</p>
+</blockquote>
+<h4 id="cap理论">CAP理论</h4>
+<ul>
+<li>C：Consistency</li>
+<li>A：Avaliability</li>
+<li>P：Partition tolerance</li>
+</ul>
+<p>无法同时满足3个要求，P是一定要保证的，因此往往会在C和A之间寻求平衡</p>
+<h5 id="一致性">一致性</h5>
+<ul>
+<li>在多个节点之间读取更新，希望对每个节点做的操作结果都是相同的</li>
+<li>强一致性：对某个数据更新以后，所有用户都可以读取到最新的值，则为强一致性</li>
+</ul>
+<h5 id="可用性">可用性</h5>
+<ul>
+<li>用户的请求会在有限的时间内返回结果</li>
+<li>有限的指标是系统设定的运行结果，各个系统都有不同</li>
+</ul>
+<h5 id="分区容错性">分区容错性</h5>
+<ul>
+<li>发生网络分区时，仍然对外保证一致性和可用性</li>
+</ul>
+<h4 id="base理论">BASE理论</h4>
+<blockquote>
+<p>基本可用、软状态、最终一致性</p>
+</blockquote>
+<ul>
+<li>Basically Avaliable
+<ul>
+<li>允许响应时间变长</li>
+<li>允许功能上的损失</li>
+</ul>
+</li>
+<li>Soft state
+<ul>
+<li>系统数据的中间状态，不影响可用性</li>
+</ul>
+</li>
+<li>Eventually consistent
+<ul>
+<li>经过同步后，所有数据都达到一致状态
+<ul>
+<li>因果一致性</li>
+<li>读己之所写</li>
+<li>会话一致性</li>
+<li>单调读一致性</li>
+<li>单调写一致性</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="第二章-一致性协议">第二章 一致性协议</h2>
+<blockquote>
+<p>用于处理分布式一致性问题，可以理解为分布式系统中的事务保证</p>
+<p>著名的解决方式有</p>
+<ul>
+<li>2PC</li>
+<li>3PC</li>
+<li>Paxos</li>
+</ul>
+</blockquote>
+<h3 id="2pc">2PC</h3>
+<blockquote>
+<p>Two-Phrase Commit</p>
+<p>目前广泛使用的流程</p>
+</blockquote>
+<h4 id="执行流程">执行流程</h4>
+<ul>
+<li>阶段一 提交事务请求（类似投票阶段）：
+<ul>
+<li>1.事务询问
+<ul>
+<li>协调者向所有参与者发送事务内容，询问是否可以执行事务提交操作，并等待所有参与者的响应</li>
+</ul>
+</li>
+<li>2.执行事务
+<ul>
+<li>每个节点都执行这个事务，会将Undo和Redo信息记录到事务日志中</li>
+</ul>
+</li>
+<li>3.参与者反馈响应
+<ul>
+<li>参与者向协调者返回事务操作的结果</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>阶段二 执行事务提交：
+<ul>
+<li>如果收到的全部是Yes
+<ul>
+<li>1.协调者向参与者发出Commit请求</li>
+<li>2.参与者执行事务Commit操作</li>
+<li>3.参与者向协调者反馈提交结果（Ack）</li>
+<li>4.收到全部反馈后，完成事务</li>
+</ul>
+</li>
+<li>如果有收到一个No / 没有收到全部的反馈
+<ul>
+<li>1.协调者向参与者发出Rollback请求</li>
+<li>2.参与者执行Rollback（根据Undo）</li>
+<li>3.参与者向协调者反馈回滚结果（Ack）</li>
+<li>4.收到全部反馈后，中断事务</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="优点">优点</h4>
+<ul>
+<li>简单方便</li>
+</ul>
+<h4 id="缺点">缺点</h4>
+<ul>
+<li>同步阻塞：其他参与者需要等待未反馈的参与者</li>
+<li>单点问题；协调者挂了则挂了</li>
+<li>容错机制不完善：任何一个节点失败都会导致整个事务的失败</li>
+</ul>
+<h3 id="3pc">3PC</h3>
+<blockquote>
+<p>Three-Phase Commit</p>
+</blockquote>
+<h4 id="执行流程-1">执行流程</h4>
+<ul>
+<li><strong>阶段一：CanCommit</strong>
+<ul>
+<li>1.事务询问
+<ul>
+<li>协调者发送canCommit请求，询问是否可以执行事务</li>
+</ul>
+</li>
+<li>2.参与者反馈结果
+<ul>
+<li>参与者如果认为可以，则反馈Yes（注意这里只是认为，而2PC是执行了事务内容的）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>阶段二：PreCommit</strong>
+<ul>
+<li>如果所有参与者都是Yes
+<ul>
+<li>1.发送预提交请求
+<ul>
+<li>协调者发送preCommit请求，并进入Prepared阶段</li>
+</ul>
+</li>
+<li>2.事务预提交
+<ul>
+<li>参与者执行事务内容，并记录Undo和Redo信息到事务日志中</li>
+</ul>
+</li>
+<li>3.参与者反馈响应
+<ul>
+<li>如果执行没问题则返回Yes</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>如果有No / 未收到全部参与者反馈
+<ul>
+<li>1.发送中断请求
+<ul>
+<li>协调者向所有参与者发送abort请求</li>
+</ul>
+</li>
+<li>2.中断事务
+<ul>
+<li>参与者接收到abort或者等待协调者请求超时，都会自行中断事务执行</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>阶段三：DoCommit</strong>
+<ul>
+<li>如果所有参与者都是Yes
+<ul>
+<li>1.协调者向参与者发出doCommit请求</li>
+<li>2.参与者执行事务doCommit操作</li>
+<li>3.参与者向协调者反馈提交结果（Ack）</li>
+<li>4.收到全部反馈后，完成事务</li>
+</ul>
+</li>
+<li>如果有收到一个No / 没有收到全部的反馈
+<ul>
+<li>1.协调者向参与者发出abort请求</li>
+<li>2.参与者执行abort（根据Undo）</li>
+<li>3.参与者向协调者反馈回滚结果（Ack）</li>
+<li>4.收到全部反馈后，中断事务</li>
+</ul>
+</li>
+<li>如果在该阶段中参与者没有收到协调者的doCommit / abort，等待超时后都会自行提交事务</li>
+</ul>
+</li>
+</ul>
+<h4 id="优点-1">优点</h4>
+<ul>
+<li>降低参与者阻塞范围，避免了阶段三的单点故障</li>
+</ul>
+<h4 id="缺点-1">缺点</h4>
+<ul>
+<li>阶段三的超时处理方式会导致数据不一致</li>
+</ul>
+<h3 id="paxos算法">Paxos算法</h3>
+<blockquote>
+<ul>
+<li>Proposer</li>
+<li>Acceptor</li>
+<li>Learner</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>摘录自JavaGuide</p>
+</blockquote>
+<ul>
+<li><strong>提议者（Proposer）</strong>：也可以叫做协调者（coordinator），提议者负责接受客户端的请求并发起提案。提案信息通常包括提案编号 (Proposal ID) 和提议的值 (Value)。</li>
+<li><strong>接受者（Acceptor）</strong>：也可以叫做投票员（voter），负责对提议者的提案进行投票，同时需要记住自己的投票历史；</li>
+<li><strong>学习者（Learner）</strong>：如果有超过半数接受者就某个提议达成了共识，那么学习者就需要接受这个提议，并就该提议作出运算，然后将运算结果返回给客户端。</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051532604.png" alt="image-20230203141134777"></p>
+<ul>
+<li>Paxos引入“过半”概念：少数服从多数</li>
+<li>Paxos支持分布式节点角色转换，避免单点故障问题</li>
+</ul>
+<h2 id="第三章-paxos的工程实践">第三章 Paxos的工程实践</h2>
+<blockquote>
+<p>跳过了</p>
+</blockquote>
+<h2 id="第四章-zookeeper与paxos">第四章 ZooKeeper与Paxos</h2>
+<h3 id="zookeeper应用场景">ZooKeeper应用场景</h3>
+<ul>
+<li>数据发布/订阅</li>
+<li>负载均衡</li>
+<li>命名服务</li>
+<li>集群管理</li>
+<li>Master选举</li>
+<li>分布式锁</li>
+<li>分布式协调/通知</li>
+</ul>
+<h3 id="特性">特性</h3>
+<ul>
+<li>
+<p>顺序一致性</p>
+</li>
+<li>
+<p>原子性</p>
+</li>
+<li>
+<p>单一视图（数据模型是一致的 &ndash;&gt; 但是数据不一定一致）</p>
+</li>
+<li>
+<p>可靠性</p>
+</li>
+<li>
+<p>最终一致性</p>
+</li>
+<li>
+<p>高性能</p>
+</li>
+<li>
+<p>可以构建集群</p>
+</li>
+</ul>
+<h3 id="基本概念">基本概念</h3>
+<h4 id="集群角色">集群角色</h4>
+<ul>
+<li>Leader</li>
+<li>Follower</li>
+<li>Observer</li>
+</ul>
+<h4 id="会话">会话</h4>
+<ul>
+<li>客户端与服务的的一次TCP长连接</li>
+<li>提供心跳检测机制</li>
+</ul>
+<h4 id="znode">ZNode</h4>
+<ul>
+<li>ZooKeeper的数据单元</li>
+<li>四类节点
+<ul>
+<li>持久节点</li>
+<li>持久顺序节点</li>
+<li>临时节点</li>
+<li>临时顺序节点</li>
+</ul>
+</li>
+<li>由父节点维护顺序节点的自增数，该数会在顺序节点被创建时自动添加在节点名后</li>
+</ul>
+<h4 id="版本">版本</h4>
+<ul>
+<li>ZooKeeper会为每一个ZNode维护Stat数据结构</li>
+<li>内容包括
+<ul>
+<li>version (ZNode版本)</li>
+<li>cversion (当前ZNode子节点版本)</li>
+<li>aversion (当前ZNode的ACL版本)</li>
+</ul>
+</li>
+</ul>
+<h4 id="watcher">Watcher</h4>
+<ul>
+<li>允许在ZNode上注册Watcher</li>
+<li>指定事件触发时，会通知客户端</li>
+</ul>
+<h4 id="acl">ACL</h4>
+<blockquote>
+<p>Access Control Lists策略，ZNode采用该方式控制权限</p>
+</blockquote>
+<ul>
+<li>CREATE</li>
+<li>READ</li>
+<li>WRITE</li>
+<li>DELETE</li>
+<li>ADMIN：设置子节点ACL的权限</li>
+</ul>
+<h3 id="为什么选择zookeeper">为什么选择ZooKeeper</h3>
+<ul>
+<li>免费、源码开放</li>
+<li>性能、易用性、稳定性都很优良</li>
+</ul>
+<h3 id="zab协议">ZAB协议</h3>
+<blockquote>
+<p>ZooKeeper Atomic Broadcast</p>
+<p>ZooKeeper原子消息广播协议</p>
+</blockquote>
+<h4 id="核心">核心</h4>
+<ul>
+<li>所有事务都由Leader（全剧唯一）处理</li>
+<li>Leader会将事务转换为Proposal，发给集群中的所有Follwer</li>
+<li>Leader等待所有Follwer的反馈</li>
+<li>如果超过半数的Follwer都支持，Leader会让所有Follwer都执行Commit，即将前一个Proposal进行提交</li>
+</ul>
+<blockquote>
+<p>崩溃恢复和消息广播是ZAB协议的两种基本模式</p>
+</blockquote>
+<h3 id="崩溃恢复">崩溃恢复</h3>
+<ul>
+<li>Leader崩溃则会重新选举Leader</li>
+<li>选举得到Leader并且有过半的Follwer与其完成状态同步后，退出恢复模式，进入消息广播模式</li>
+<li>当新服务器加入集群后，如果发现有Leader在消息广播，则会自发进入数据恢复模式，与其进行数据同步</li>
+</ul>
+<h3 id="消息广播">消息广播</h3>
+<ul>
+<li>类似二阶段提交</li>
+<li>基于具有FIFO特性的TCP协议</li>
+<li>略有不同
+<ul>
+<li>消息广播中没有中断逻辑，并不需要等待全部Follwer的响应，过半就好了</li>
+</ul>
+</li>
+</ul>
+<h2 id="第五章-使用zookeeper">第五章 使用ZooKeeper</h2>
+<blockquote>
+<p>主要用Curator API，直接调用实现即可</p>
+</blockquote>
+<h3 id="curator封装好的实现">Curator封装好的实现</h3>
+<h4 id="master选举">Master选举</h4>
+<h4 id="分布式计数器">分布式计数器</h4>
+<h4 id="分布式barrier">分布式Barrier</h4>
+<h4 id="分布式锁">分布式锁</h4>
+<h4 id="zkpaths">ZKPaths</h4>
+<h4 id="ensurepath">EnsurePath</h4>
+<h4 id="testingserver">TestingServer</h4>
+<p>可以快速启动标准的ZooKeeper服务器，用于进行单元测试</p>
+<h4 id="testingcluster">TestingCluster</h4>
+<blockquote>
+<p>这个感觉很有用，可以节省本地自己部署集群的时间</p>
+</blockquote>
+<p>可以在本地模拟ZooKeeper集群环境</p>
+<h2 id="第六章-zookeeper的典型应用场景">第六章 ZooKeeper的典型应用场景</h2>
+<h3 id="数据发布订阅--配置中心">数据发布订阅 / 配置中心</h3>
+<h4 id="原理">原理</h4>
+<p>发布者将数据发布到ZooKeeper的节点上，供有需要的订阅者进行订阅，实现动态抓取</p>
+<p>ZooKeeper采用推拉结合的模式：客户端向服务端注册自己需要关注的节点，如果该节点有变化，则发送Watcher事件通知给客户端（推），客户端再拉取最新的数据（拉）</p>
+<h4 id="实现方式">实现方式</h4>
+<ul>
+<li>选取一个节点用于配置存储</li>
+<li>每台机器初始化阶段都去该节点读取配置中心，并注册一个该配置节点的Watcher，及时接收更改</li>
+<li>如果收到Watcher事件通知，客户端需要拉取最新配置</li>
+</ul>
+<h3 id="命名服务">命名服务</h3>
+<ul>
+<li>基于顺序节点生成分布式唯一ID</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302031519026.png" alt="image-20230203151957982"></p>
+<h3 id="分布式协调通知">分布式协调/通知</h3>
+<ul>
+<li>基于Watcher的注册和异步通知实现</li>
+<li>可以用于异步数据复制、数据变化通知、监控</li>
+<li>心跳检测</li>
+<li>机器的工作进度汇报</li>
+<li>系统调度</li>
+</ul>
+<h3 id="集群管理">集群管理</h3>
+<ul>
+<li>集群中机器的上线和下线操作和管理</li>
+<li>知道当前集群中的机器数目</li>
+<li>对集群中每台机器运行状态进行数据收集</li>
+</ul>
+<h4 id="为什么选zookeeper做集群管理">为什么选ZooKeeper做集群管理</h4>
+<ul>
+<li>Watcher监听节点，如果变化可以立刻收到通知</li>
+<li>机器都是临时节点，如果机器自动断线，则其与服务器之间的会话会失效，临时节点也会被自动删除，因此不需要做多余的下线操作</li>
+</ul>
+<h3 id="master选举-1">Master选举</h3>
+<blockquote>
+<p>比如单独让某个机器执行耗时很长的计算过程，需要选一个Master</p>
+</blockquote>
+<ul>
+<li>Master选举（分布式问题）：面对特殊的任务，需要从集群中选出一台进行处理</li>
+</ul>
+<p>用ZooKeeper（基于强一致性，节点一定全局唯一）实现的思路：</p>
+<ul>
+<li>选取根节点</li>
+<li>很多台机器同时向这个节点创建子节点</li>
+<li>创建成功的那台唯一机器就是Master</li>
+<li>可以为该Master注册一个Watcher，一旦Master挂了则重新进行Watcher选举</li>
+</ul>
+<h3 id="分布式锁-1">分布式锁</h3>
+<h4 id="排他锁">排他锁</h4>
+<blockquote>
+<p>写锁，只能有一个事务对其进行操作</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051457980.png" alt="image-20230205145719919"></p>
+<ul>
+<li>
+<p>用一个数据节点来表示一个锁</p>
+</li>
+<li>
+<p>获取锁：create()，只能保证一个客户端创建锁 &ndash;&gt; 获取到了锁</p>
+<ul>
+<li>如果宕机，则临时节点被移除，不会导致死锁</li>
+</ul>
+</li>
+<li>
+<p>释放锁：delete()</p>
+</li>
+</ul>
+<h4 id="共享锁">共享锁</h4>
+<blockquote>
+<p>读锁，只能进行读取操作。其他事务也只能对该对象加共享锁，直到该对象上的所有共享锁都被释放</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051532178.png" alt="image-20230205150206851"></p>
+<p>判断读写顺序</p>
+<p>（这里的读写是比较公平的，先来先获锁）</p>
+<ul>
+<li>注册监听（只监听前者，避免羊群效应）
+<ul>
+<li>读：对比自己序号小的最后一个写请求注册Watcher</li>
+<li>写：对比自己序号小的最后一个节点注册Watcher</li>
+</ul>
+</li>
+<li>对于读请求
+<ul>
+<li>如果没有比自己序号小的节点，或是比自己序号小的节点都是读请求，那么拿到共享锁</li>
+<li>如果比自己序号小的节点中有写请求，则进入等待</li>
+</ul>
+</li>
+<li>对于写请求
+<ul>
+<li>如果自己不是序号最小的子节点，则进入等待</li>
+</ul>
+</li>
+</ul>
+<h2 id="第七章-zookeeper技术内幕">第七章 ZooKeeper技术内幕</h2>
+<blockquote>
+<p>TODO，没看完</p>
+</blockquote>
+<h3 id="版本-1">版本</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051521356.png" alt="image-20230205152126306"></p>
+<ul>
+<li>用于实现乐观锁</li>
+</ul>
+<h3 id="watcher实现">Watcher实现</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051523859.png" alt="image-20230205152307796"></p>
+<ul>
+<li>客户端线程，客户端WatcherManager，ZooKeeper服务器</li>
+<li>Watcher存放在WatcherManager中</li>
+</ul>
+
+                    
+                    <HR width="100%" id="EOF">
+		    <p style="color:#777;">上次修改於 2023-02-05</p>
+                    
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts" href="/read/rabbitmq%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
+			下回<br>RabbitMQ实战指南 读书笔记
+                </a>
+                
+                
+                
+                <a class="older-posts" href="/read/redis%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
+			上回<br>Redis使用手册 读书笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+<div id="gitalk-container"></div>
+
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+    
+
+
+                    </div>
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+</div>
+            </div>
+    
+    <script src="/js/journal.js"></script></body>
+</html>

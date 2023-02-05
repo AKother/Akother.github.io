@@ -7,7 +7,36 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Kother.</copyright>
-    <lastBuildDate>Tue, 31 Jan 2023 21:03:38 +0800</lastBuildDate><atom:link href="https://kother.top/read/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 05 Feb 2023 15:33:31 +0800</lastBuildDate><atom:link href="https://kother.top/read/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RabbitMQ实战指南 读书笔记</title>
+      <link>https://kother.top/read/rabbitmq%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Sun, 05 Feb 2023 15:33:31 +0800</pubDate>
+      
+      <guid>https://kother.top/read/rabbitmq%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+      <description>RabbitMQ实战指南 - 读书笔记 内容简介
+基础篇首先介绍 RabbitMQ 的基本安装及使用方式，方便零基础的读者以最舒适的方式融入到RabbitMQ 之中。其次介绍 RabbitMQ 的基 本概念，包括生产者、消费者、交换器、队列、绑定等。之后通过 Java 语言讲述了客户端如何与 RabbitMQ 建立(关闭〉连接、声明(删除)交换器、队列、绑定关系，以及如何发送和消费消息等。 进阶篇讲述 RabbitMQ 的 TIL、死信、延迟队列、优先级队列、 RPC、消息持久化、生产端和消费端的消息确认机制等内容，以期 读者能够掌握 RabbitMQ 的使用精髓。本书中间篇幅主要从RabbitMQ 的管理、配置、运维这三个角度来为读 者提供帮助文档及解决问题的思路。 高阶篇主要阐述 RabbitMQ 的存储机制、流控及镜像队列的原理，深入 地讲述RabbitMQ 的一些实现细节，便于读者加深对 RabbitMQ 的理解。本书还涉及网络分区的概念，此内 容可称为魔鬼篇，需要掌握前面的所有内容才可理解其中的门道。本书最后讲述的是 RabbitMQ 的一些扩展内 容及附录，供读者参考之用。 实战部分没有实践过，只了解了概念，本书等工作后会再次补齐笔记
+[TOC]
+第一章 RabbitMQ简介 作用 存储消息 解耦 削峰 可恢复性 顺序保证 缓冲 异步通信 RabbitMQ的特点 可靠性：持久化、传输确认、发布确认 灵活的路由：内置交换器实现路由，也可以插件实现自己的路由 扩展性：多个RabbitMQ可以组成一个集群 高可用：队列可以在集群中的机器上设置镜像，以作备用 多种协议：AMQP、STOMP、MQTT 多语言客户端：Java、Python、Ruby、PHP、C# 管理界面：用户可以在管理页面上监督和管理消息、集群节点 插件机制：发布扩展和用户自己编写 第二章 RabbitMQ入门 RabbitMQ模型介绍 隐去中间细节，整体上来说是生产者和消费者模型 消息 = [消息体，标签(记录交换机、路由键)]，标签在进入队列时被丢弃，生产者只会收到消息体 运转过程 连接模型 多个生产者会复用一个Connection，再建立属于自己的channel Connection是TCP连接，开销大，RabbitMQ采用No-blocking IO的方法，可以减少性能开销 交换机 生产者将消息投入到交换机中，交换机再分配给队列 RoutingKey：路由键，用于指定消息的路由规则 四种类型 fanout：广播该交换机收到的消息到所有队列 direct：只发送给完全匹配的队列 topic：发送给符合匹配规则的队列（正则） headers：基本不用，是根据消息内容中的headers属性匹配 队列 多个消费者订阅同一个队列时，消息会被轮询平分 AMQP协议 介绍 是应用层协议的开方标准 基于此协议的客户端和消息中间件可以传递消息，不受产品、开发语言等条件的限制 结构 Module Layer：协议最高层，提供客户端调用命令 Session Layer：中间层，客户端命令-&amp;gt;服务器，服务器结果-&amp;gt;客户端，会提供可靠传输机制和错误处理 Transport Layer：传输层，类似网络七层架构里面的，提供帧的处理、信道复用、错误检测、数据表示 第三章 客户端开发向导 本章是基于传统RabbitMQ连接方式开发，因此跳过了，目前比较常用的开发方式是SpringBoot集成</description>
+    </item>
+    
+    <item>
+      <title>从Paxos到ZooKeeper 读书笔记</title>
+      <link>https://kother.top/read/%E4%BB%8Epaxos%E5%88%B0zookeeper-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Sun, 05 Feb 2023 15:32:39 +0800</pubDate>
+      
+      <guid>https://kother.top/read/%E4%BB%8Epaxos%E5%88%B0zookeeper-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</guid>
+      <description>从Paxos到ZooKeeper - 读书笔记 [TOC]
+第一章 分布式架构 分布式环境的问题 通信异常 网络分区（脑裂） 只有部分节点之间可以正常通信，出现小集群 小集群会各自有首，独立完成本来需要一整个集群才能完成的事情 节点故障 分布式特点 分布性 对等性 并发性 缺乏全局时钟 从ACID到CAP/BASE 分布式系统中，原本的ACID很难保证，因此转向了CAP/BASE理论
+CAP理论 C：Consistency A：Avaliability P：Partition tolerance 无法同时满足3个要求，P是一定要保证的，因此往往会在C和A之间寻求平衡
+一致性 在多个节点之间读取更新，希望对每个节点做的操作结果都是相同的 强一致性：对某个数据更新以后，所有用户都可以读取到最新的值，则为强一致性 可用性 用户的请求会在有限的时间内返回结果 有限的指标是系统设定的运行结果，各个系统都有不同 分区容错性 发生网络分区时，仍然对外保证一致性和可用性 BASE理论 基本可用、软状态、最终一致性
+Basically Avaliable 允许响应时间变长 允许功能上的损失 Soft state 系统数据的中间状态，不影响可用性 Eventually consistent 经过同步后，所有数据都达到一致状态 因果一致性 读己之所写 会话一致性 单调读一致性 单调写一致性 第二章 一致性协议 用于处理分布式一致性问题，可以理解为分布式系统中的事务保证
+著名的解决方式有
+2PC 3PC Paxos 2PC Two-Phrase Commit
+目前广泛使用的流程
+执行流程 阶段一 提交事务请求（类似投票阶段）： 1.事务询问 协调者向所有参与者发送事务内容，询问是否可以执行事务提交操作，并等待所有参与者的响应 2.执行事务 每个节点都执行这个事务，会将Undo和Redo信息记录到事务日志中 3.参与者反馈响应 参与者向协调者返回事务操作的结果 阶段二 执行事务提交： 如果收到的全部是Yes 1.</description>
+    </item>
+    
     <item>
       <title>Redis使用手册 读书笔记</title>
       <link>https://kother.top/read/redis%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</link>

@@ -1,0 +1,3092 @@
+<!DOCTYPE html>
+<meta name="referrer" content="no-referrer" />
+<html><head>
+<title>KOTHER'S BLOG</title>
+
+
+
+
+<style> @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&display=swap'); </style>
+
+<meta charset="utf-8">
+<meta name="X-UA-Compatible" content="IE=edge">
+<meta name="google-site-verification" content="">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+<meta content="telephone=no" name="format-detection">
+<meta name="description" content="">
+<meta name="renderer" content="webkit">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<meta property="og:title" content="RabbitMQ实战指南 读书笔记" />
+<meta property="og:description" content="RabbitMQ实战指南 - 读书笔记 内容简介
+基础篇首先介绍 RabbitMQ 的基本安装及使用方式，方便零基础的读者以最舒适的方式融入到RabbitMQ 之中。其次介绍 RabbitMQ 的基 本概念，包括生产者、消费者、交换器、队列、绑定等。之后通过 Java 语言讲述了客户端如何与 RabbitMQ 建立(关闭〉连接、声明(删除)交换器、队列、绑定关系，以及如何发送和消费消息等。 进阶篇讲述 RabbitMQ 的 TIL、死信、延迟队列、优先级队列、 RPC、消息持久化、生产端和消费端的消息确认机制等内容，以期 读者能够掌握 RabbitMQ 的使用精髓。本书中间篇幅主要从RabbitMQ 的管理、配置、运维这三个角度来为读 者提供帮助文档及解决问题的思路。 高阶篇主要阐述 RabbitMQ 的存储机制、流控及镜像队列的原理，深入 地讲述RabbitMQ 的一些实现细节，便于读者加深对 RabbitMQ 的理解。本书还涉及网络分区的概念，此内 容可称为魔鬼篇，需要掌握前面的所有内容才可理解其中的门道。本书最后讲述的是 RabbitMQ 的一些扩展内 容及附录，供读者参考之用。 实战部分没有实践过，只了解了概念，本书等工作后会再次补齐笔记
+[TOC]
+第一章 RabbitMQ简介 作用 存储消息 解耦 削峰 可恢复性 顺序保证 缓冲 异步通信 RabbitMQ的特点 可靠性：持久化、传输确认、发布确认 灵活的路由：内置交换器实现路由，也可以插件实现自己的路由 扩展性：多个RabbitMQ可以组成一个集群 高可用：队列可以在集群中的机器上设置镜像，以作备用 多种协议：AMQP、STOMP、MQTT 多语言客户端：Java、Python、Ruby、PHP、C# 管理界面：用户可以在管理页面上监督和管理消息、集群节点 插件机制：发布扩展和用户自己编写 第二章 RabbitMQ入门 RabbitMQ模型介绍 隐去中间细节，整体上来说是生产者和消费者模型 消息 = [消息体，标签(记录交换机、路由键)]，标签在进入队列时被丢弃，生产者只会收到消息体 运转过程 连接模型 多个生产者会复用一个Connection，再建立属于自己的channel Connection是TCP连接，开销大，RabbitMQ采用No-blocking IO的方法，可以减少性能开销 交换机 生产者将消息投入到交换机中，交换机再分配给队列 RoutingKey：路由键，用于指定消息的路由规则 四种类型 fanout：广播该交换机收到的消息到所有队列 direct：只发送给完全匹配的队列 topic：发送给符合匹配规则的队列（正则） headers：基本不用，是根据消息内容中的headers属性匹配 队列 多个消费者订阅同一个队列时，消息会被轮询平分 AMQP协议 介绍 是应用层协议的开方标准 基于此协议的客户端和消息中间件可以传递消息，不受产品、开发语言等条件的限制 结构 Module Layer：协议最高层，提供客户端调用命令 Session Layer：中间层，客户端命令-&gt;服务器，服务器结果-&gt;客户端，会提供可靠传输机制和错误处理 Transport Layer：传输层，类似网络七层架构里面的，提供帧的处理、信道复用、错误检测、数据表示 第三章 客户端开发向导 本章是基于传统RabbitMQ连接方式开发，因此跳过了，目前比较常用的开发方式是SpringBoot集成" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kother.top/read/rabbitmq%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="read" />
+<meta property="article:published_time" content="2023-02-05T15:33:31+08:00" />
+<meta property="article:modified_time" content="2023-02-05T15:33:31+08:00" /><meta property="og:site_name" content="My Blog" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RabbitMQ实战指南 读书笔记"/>
+<meta name="twitter:description" content="RabbitMQ实战指南 - 读书笔记 内容简介
+基础篇首先介绍 RabbitMQ 的基本安装及使用方式，方便零基础的读者以最舒适的方式融入到RabbitMQ 之中。其次介绍 RabbitMQ 的基 本概念，包括生产者、消费者、交换器、队列、绑定等。之后通过 Java 语言讲述了客户端如何与 RabbitMQ 建立(关闭〉连接、声明(删除)交换器、队列、绑定关系，以及如何发送和消费消息等。 进阶篇讲述 RabbitMQ 的 TIL、死信、延迟队列、优先级队列、 RPC、消息持久化、生产端和消费端的消息确认机制等内容，以期 读者能够掌握 RabbitMQ 的使用精髓。本书中间篇幅主要从RabbitMQ 的管理、配置、运维这三个角度来为读 者提供帮助文档及解决问题的思路。 高阶篇主要阐述 RabbitMQ 的存储机制、流控及镜像队列的原理，深入 地讲述RabbitMQ 的一些实现细节，便于读者加深对 RabbitMQ 的理解。本书还涉及网络分区的概念，此内 容可称为魔鬼篇，需要掌握前面的所有内容才可理解其中的门道。本书最后讲述的是 RabbitMQ 的一些扩展内 容及附录，供读者参考之用。 实战部分没有实践过，只了解了概念，本书等工作后会再次补齐笔记
+[TOC]
+第一章 RabbitMQ简介 作用 存储消息 解耦 削峰 可恢复性 顺序保证 缓冲 异步通信 RabbitMQ的特点 可靠性：持久化、传输确认、发布确认 灵活的路由：内置交换器实现路由，也可以插件实现自己的路由 扩展性：多个RabbitMQ可以组成一个集群 高可用：队列可以在集群中的机器上设置镜像，以作备用 多种协议：AMQP、STOMP、MQTT 多语言客户端：Java、Python、Ruby、PHP、C# 管理界面：用户可以在管理页面上监督和管理消息、集群节点 插件机制：发布扩展和用户自己编写 第二章 RabbitMQ入门 RabbitMQ模型介绍 隐去中间细节，整体上来说是生产者和消费者模型 消息 = [消息体，标签(记录交换机、路由键)]，标签在进入队列时被丢弃，生产者只会收到消息体 运转过程 连接模型 多个生产者会复用一个Connection，再建立属于自己的channel Connection是TCP连接，开销大，RabbitMQ采用No-blocking IO的方法，可以减少性能开销 交换机 生产者将消息投入到交换机中，交换机再分配给队列 RoutingKey：路由键，用于指定消息的路由规则 四种类型 fanout：广播该交换机收到的消息到所有队列 direct：只发送给完全匹配的队列 topic：发送给符合匹配规则的队列（正则） headers：基本不用，是根据消息内容中的headers属性匹配 队列 多个消费者订阅同一个队列时，消息会被轮询平分 AMQP协议 介绍 是应用层协议的开方标准 基于此协议的客户端和消息中间件可以传递消息，不受产品、开发语言等条件的限制 结构 Module Layer：协议最高层，提供客户端调用命令 Session Layer：中间层，客户端命令-&gt;服务器，服务器结果-&gt;客户端，会提供可靠传输机制和错误处理 Transport Layer：传输层，类似网络七层架构里面的，提供帧的处理、信道复用、错误检测、数据表示 第三章 客户端开发向导 本章是基于传统RabbitMQ连接方式开发，因此跳过了，目前比较常用的开发方式是SpringBoot集成"/>
+
+
+
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LSQR31DZQM"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-LSQR31DZQM', { 'anonymize_ip': false });
+}
+</script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'G-LSQR31DZQM', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+
+      <script src="/js/toc.js"></script>
+    
+    <link type="text/css" rel="stylesheet" href="/vendor/css/bootstrap.min.css">
+<link rel="stylesheet" href="/scss/journal.min.66cf0f76f275d011531b27e244451df2f6155c714e54ce7ef938e51869bbdf64.css" integrity="sha256-Zs8PdvJ10BFTGyfiREUd8vYVXHFOVM5&#43;&#43;TjlGGm732Q=" media="screen">
+
+
+
+<link rel="stylesheet" href="/scss/dark-mode.min.31b4f7dd2c9db4bc1f5c9be4337b86ff309731dfbc886bcb23711efe353d1000.css" integrity="sha256-MbT33SydtLwfXJvkM3uG/zCXMd&#43;8iGvLI3Ee/jU9EAA=" media="screen">
+
+
+<link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Material+Icons">
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="/vendor/js/md5.min.js"></script><script>
+  var gitalk = new Gitalk({
+  clientID: 'ee22eaa3184cbf1df6d9',
+  clientSecret: '00bb1d24a9cfdc647db6e565549bc405f57c5dd1',
+  repo: 'Akother.github.io',
+  owner: 'Akother',
+  admin: ['Akother'],
+  id: md5(location.pathname),
+  distractionFreeMode: 'false'
+  });
+  window.onload = function () {
+        gitalk.render('gitalk-container')
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</head><body>
+    	<div id="app"><div id="sideContainer" class="side-container">
+    
+    <a class="a-block nav-head false" href="https://kother.top">
+    
+        <div class="nav-title">
+            Kother&#39;s Blog
+        </div>
+        
+        <div class="nav-subtitle">
+            记录点喜欢的.
+        </div>
+        
+    </a>
+
+    <div class="nav-link-list">
+        
+        
+            
+            
+            
+            
+            
+            <a class="a-block nav-link-item false" href="/post">
+                博客
+            </a>
+            
+        
+            
+            
+            
+                
+            
+            
+            
+            <a class="a-block nav-link-item active" href="/read">
+                阅读
+            </a>
+            
+        
+    </div>
+
+    
+
+    <div class="nav-footer">
+        
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+
+    </div>
+    
+</div><div id="extraContainer" class="extra-container">
+    
+    
+    <div class="toc animated-visibility" :class="{ invisible: scrollY <= 140 }">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rabbitmq%e5%ae%9e%e6%88%98%e6%8c%87%e5%8d%97---%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#rabbitmq实战指南---读书笔记-nav`)" id="rabbitmq实战指南---读书笔记-nav">
+									RabbitMQ实战指南 - 读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-rabbitmq%e7%ae%80%e4%bb%8b" onclick="onNavClick(`#第一章-rabbitmq简介-nav`)" id="第一章-rabbitmq简介-nav">
+									第一章 RabbitMQ简介
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%9c%e7%94%a8" onclick="onNavClick(`#作用-nav`)" id="作用-nav">
+									作用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rabbitmq%e7%9a%84%e7%89%b9%e7%82%b9" onclick="onNavClick(`#rabbitmq的特点-nav`)" id="rabbitmq的特点-nav">
+									RabbitMQ的特点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-rabbitmq%e5%85%a5%e9%97%a8" onclick="onNavClick(`#第二章-rabbitmq入门-nav`)" id="第二章-rabbitmq入门-nav">
+									第二章 RabbitMQ入门
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#rabbitmq%e6%a8%a1%e5%9e%8b%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#rabbitmq模型介绍-nav`)" id="rabbitmq模型介绍-nav">
+									RabbitMQ模型介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%90%e8%bd%ac%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#运转过程-nav`)" id="运转过程-nav">
+									运转过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%9e%e6%8e%a5%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#连接模型-nav`)" id="连接模型-nav">
+									连接模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%a4%e6%8d%a2%e6%9c%ba" onclick="onNavClick(`#交换机-nav`)" id="交换机-nav">
+									交换机
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%98%9f%e5%88%97" onclick="onNavClick(`#队列-nav`)" id="队列-nav">
+									队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#amqp%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#amqp协议-nav`)" id="amqp协议-nav">
+									AMQP协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#介绍-nav`)" id="介绍-nav">
+									介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84" onclick="onNavClick(`#结构-nav`)" id="结构-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-%e5%ae%a2%e6%88%b7%e7%ab%af%e5%bc%80%e5%8f%91%e5%90%91%e5%af%bc" onclick="onNavClick(`#第三章-客户端开发向导-nav`)" id="第三章-客户端开发向导-nav">
+									第三章 客户端开发向导
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-rabbitmq%e8%bf%9b%e9%98%b6" onclick="onNavClick(`#第四章-rabbitmq进阶-nav`)" id="第四章-rabbitmq进阶-nav">
+									第四章 RabbitMQ进阶
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af%e4%b8%8d%e5%8f%af%e8%be%be%e6%97%b6" onclick="onNavClick(`#消息不可达时-nav`)" id="消息不可达时-nav">
+									消息不可达时
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%87%e4%bb%bd%e4%ba%a4%e6%8d%a2%e5%99%a8" onclick="onNavClick(`#备份交换器-nav`)" id="备份交换器-nav">
+									备份交换器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%87%e6%9c%9f%e6%97%b6%e9%97%b4" onclick="onNavClick(`#过期时间-nav`)" id="过期时间-nav">
+									过期时间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%ad%bb%e4%bf%a1%e9%98%9f%e5%88%97" onclick="onNavClick(`#死信队列-nav`)" id="死信队列-nav">
+									死信队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bb%b6%e8%bf%9f%e9%98%9f%e5%88%97" onclick="onNavClick(`#延迟队列-nav`)" id="延迟队列-nav">
+									延迟队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%98%e5%85%88%e7%ba%a7%e9%98%9f%e5%88%97" onclick="onNavClick(`#优先级队列-nav`)" id="优先级队列-nav">
+									优先级队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rpc%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#rpc实现-nav`)" id="rpc实现-nav">
+									RPC实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8c%81%e4%b9%85%e5%8c%96" onclick="onNavClick(`#持久化-nav`)" id="持久化-nav">
+									持久化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%94%9f%e4%ba%a7%e8%80%85%e7%a1%ae%e8%ae%a4" onclick="onNavClick(`#生产者确认-nav`)" id="生产者确认-nav">
+									生产者确认
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e8%b4%b9%e7%ab%af%e8%a6%81%e7%82%b9" onclick="onNavClick(`#消费端要点-nav`)" id="消费端要点-nav">
+									消费端要点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af%e4%bc%a0%e8%be%93%e4%bf%9d%e9%9a%9c" onclick="onNavClick(`#消息传输保障-nav`)" id="消息传输保障-nav">
+									消息传输保障
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-rabbitmq%e7%ae%a1%e7%90%86" onclick="onNavClick(`#第五章-rabbitmq管理-nav`)" id="第五章-rabbitmq管理-nav">
+									第五章 RabbitMQ管理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ae%a1%e7%90%86%e9%a1%b5%e9%9d%a2" onclick="onNavClick(`#管理页面-nav`)" id="管理页面-nav">
+									管理页面
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#vhost" onclick="onNavClick(`#vhost-nav`)" id="vhost-nav">
+									vhost
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-rabbitmq%e9%85%8d%e7%bd%ae" onclick="onNavClick(`#第六章-rabbitmq配置-nav`)" id="第六章-rabbitmq配置-nav">
+									第六章 RabbitMQ配置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-rabbitmq%e8%bf%90%e7%bb%b4" onclick="onNavClick(`#第七章-rabbitmq运维-nav`)" id="第七章-rabbitmq运维-nav">
+									第七章 RabbitMQ运维
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e8%8a%82%e7%82%b9%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#集群节点类型-nav`)" id="集群节点类型-nav">
+									集群节点类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9f%a5%e7%9c%8b%e6%9c%8d%e5%8a%a1%e6%97%a5%e5%bf%97" onclick="onNavClick(`#查看服务日志-nav`)" id="查看服务日志-nav">
+									查看服务日志
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8d%95%e8%8a%82%e7%82%b9%e6%95%85%e9%9a%9c%e6%81%a2%e5%a4%8d" onclick="onNavClick(`#单节点故障恢复-nav`)" id="单节点故障恢复-nav">
+									单节点故障恢复
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e8%bf%81%e7%a7%bb" onclick="onNavClick(`#集群迁移-nav`)" id="集群迁移-nav">
+									集群迁移
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e5%8c%96%e8%bf%81%e7%a7%bb" onclick="onNavClick(`#自动化迁移-nav`)" id="自动化迁移-nav">
+									自动化迁移
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e8%b7%a8%e8%b6%8a%e9%9b%86%e7%be%a4%e7%9a%84%e7%95%8c%e9%99%90" onclick="onNavClick(`#第八章-跨越集群的界限-nav`)" id="第八章-跨越集群的界限-nav">
+									第八章 跨越集群的界限
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#federation" onclick="onNavClick(`#federation-nav`)" id="federation-nav">
+									Federation
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#shovel" onclick="onNavClick(`#shovel-nav`)" id="shovel-nav">
+									Shovel
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#federation--shovel-%e4%b8%8e%e9%9b%86%e7%be%a4%e7%9a%84%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#federation--shovel-与集群的区别-nav`)" id="federation--shovel-与集群的区别-nav">
+									Federation / Shovel 与集群的区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a1%88%e4%be%8b%e6%b6%88%e6%81%af%e5%a0%86%e7%a7%af%e7%9a%84%e6%b2%bb%e7%90%86" onclick="onNavClick(`#案例消息堆积的治理-nav`)" id="案例消息堆积的治理-nav">
+									案例：消息堆积的治理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b9%9d%e7%ab%a0-rabbitmq%e9%ab%98%e9%98%b6" onclick="onNavClick(`#第九章-rabbitmq高阶-nav`)" id="第九章-rabbitmq高阶-nav">
+									第九章 RabbitMQ高阶
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ad%98%e5%82%a8%e6%9c%ba%e5%88%b6" onclick="onNavClick(`#存储机制-nav`)" id="存储机制-nav">
+									存储机制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%98%9f%e5%88%97%e7%9a%84%e7%bb%93%e6%9e%84" onclick="onNavClick(`#队列的结构-nav`)" id="队列的结构-nav">
+									队列的结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%83%b0%e6%80%a7%e9%98%9f%e5%88%97" onclick="onNavClick(`#惰性队列-nav`)" id="惰性队列-nav">
+									惰性队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%b5%81%e6%8e%a7" onclick="onNavClick(`#流控-nav`)" id="流控-nav">
+									流控
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%95%9c%e5%83%8f%e9%98%9f%e5%88%97" onclick="onNavClick(`#镜像队列-nav`)" id="镜像队列-nav">
+									镜像队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%95%9c%e5%83%8f%e9%98%9f%e5%88%97%e7%9a%84%e7%bb%93%e6%9e%84" onclick="onNavClick(`#镜像队列的结构-nav`)" id="镜像队列的结构-nav">
+									镜像队列的结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba" onclick="onNavClick(`#第十章-网络分区-nav`)" id="第十章-网络分区-nav">
+									第十章 网络分区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba%e6%83%85%e5%86%b5" onclick="onNavClick(`#网络分区情况-nav`)" id="网络分区情况-nav">
+									网络分区情况
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rabbitmq%e4%b8%ba%e4%bb%80%e4%b9%88%e5%bc%95%e5%85%a5%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba" onclick="onNavClick(`#rabbitmq为什么引入网络分区-nav`)" id="rabbitmq为什么引入网络分区-nav">
+									RabbitMQ为什么引入网络分区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%89%8b%e5%8a%a8%e5%a4%84%e7%90%86%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba" onclick="onNavClick(`#手动处理网络分区-nav`)" id="手动处理网络分区-nav">
+									手动处理网络分区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e5%a4%84%e7%90%86%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba" onclick="onNavClick(`#自动处理网络分区-nav`)" id="自动处理网络分区-nav">
+									自动处理网络分区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%80%e7%ab%a0-rabbitmq%e6%89%a9%e5%b1%95" onclick="onNavClick(`#第十一章-rabbitmq扩展-nav`)" id="第十一章-rabbitmq扩展-nav">
+									第十一章 RabbitMQ扩展
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+    
+    <div class="pagination">
+        <a id="globalBackToTop" class="pagination-action animated-visibility" href="#top" :class="{ invisible: scrollY == 0 }">
+            <i class="material-icons pagination-action-icon">
+                keyboard_arrow_up
+            </i>
+        </a>
+        
+        <a type="button" class="pagination-action" id="darkModeToggleButton">
+            <span class="material-icons pagination-action-icon" id="darkModeToggleIcon">
+                dark_mode
+            </span>
+        </a>
+        
+        
+    </div>
+</div>
+<div class="single-column-drawer-container" id="drawer"
+     v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }">
+    <div class="drawer-content">
+        <div class="drawer-menu">
+            
+            
+            
+                
+                
+                
+                
+                
+                <a class="a-block drawer-menu-item false" href="/post">
+                    博客
+                </a>
+                
+            
+                
+                
+                
+                    
+                
+                
+                
+                <a class="a-block drawer-menu-item active" href="/read">
+                    阅读
+                </a>
+                
+            
+            
+            <div class="toc">
+
+
+	<div class="toc-content">
+	
+		
+		
+		
+		<center>- 目錄 -</center>
+		
+		
+		<ul>
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rabbitmq%e5%ae%9e%e6%88%98%e6%8c%87%e5%8d%97---%e8%af%bb%e4%b9%a6%e7%ac%94%e8%ae%b0" onclick="onNavClick(`#rabbitmq实战指南---读书笔记-nav`)" id="rabbitmq实战指南---读书笔记-nav">
+									RabbitMQ实战指南 - 读书笔记
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%80%e7%ab%a0-rabbitmq%e7%ae%80%e4%bb%8b" onclick="onNavClick(`#第一章-rabbitmq简介-nav`)" id="第一章-rabbitmq简介-nav">
+									第一章 RabbitMQ简介
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bd%9c%e7%94%a8" onclick="onNavClick(`#作用-nav`)" id="作用-nav">
+									作用
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rabbitmq%e7%9a%84%e7%89%b9%e7%82%b9" onclick="onNavClick(`#rabbitmq的特点-nav`)" id="rabbitmq的特点-nav">
+									RabbitMQ的特点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%8c%e7%ab%a0-rabbitmq%e5%85%a5%e9%97%a8" onclick="onNavClick(`#第二章-rabbitmq入门-nav`)" id="第二章-rabbitmq入门-nav">
+									第二章 RabbitMQ入门
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#rabbitmq%e6%a8%a1%e5%9e%8b%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#rabbitmq模型介绍-nav`)" id="rabbitmq模型介绍-nav">
+									RabbitMQ模型介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%90%e8%bd%ac%e8%bf%87%e7%a8%8b" onclick="onNavClick(`#运转过程-nav`)" id="运转过程-nav">
+									运转过程
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%9e%e6%8e%a5%e6%a8%a1%e5%9e%8b" onclick="onNavClick(`#连接模型-nav`)" id="连接模型-nav">
+									连接模型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%ba%a4%e6%8d%a2%e6%9c%ba" onclick="onNavClick(`#交换机-nav`)" id="交换机-nav">
+									交换机
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%98%9f%e5%88%97" onclick="onNavClick(`#队列-nav`)" id="队列-nav">
+									队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#amqp%e5%8d%8f%e8%ae%ae" onclick="onNavClick(`#amqp协议-nav`)" id="amqp协议-nav">
+									AMQP协议
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e4%bb%8b%e7%bb%8d" onclick="onNavClick(`#介绍-nav`)" id="介绍-nav">
+									介绍
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%bb%93%e6%9e%84" onclick="onNavClick(`#结构-nav`)" id="结构-nav">
+									结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%89%e7%ab%a0-%e5%ae%a2%e6%88%b7%e7%ab%af%e5%bc%80%e5%8f%91%e5%90%91%e5%af%bc" onclick="onNavClick(`#第三章-客户端开发向导-nav`)" id="第三章-客户端开发向导-nav">
+									第三章 客户端开发向导
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%9b%9b%e7%ab%a0-rabbitmq%e8%bf%9b%e9%98%b6" onclick="onNavClick(`#第四章-rabbitmq进阶-nav`)" id="第四章-rabbitmq进阶-nav">
+									第四章 RabbitMQ进阶
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af%e4%b8%8d%e5%8f%af%e8%be%be%e6%97%b6" onclick="onNavClick(`#消息不可达时-nav`)" id="消息不可达时-nav">
+									消息不可达时
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%a4%87%e4%bb%bd%e4%ba%a4%e6%8d%a2%e5%99%a8" onclick="onNavClick(`#备份交换器-nav`)" id="备份交换器-nav">
+									备份交换器
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%bf%87%e6%9c%9f%e6%97%b6%e9%97%b4" onclick="onNavClick(`#过期时间-nav`)" id="过期时间-nav">
+									过期时间
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%ad%bb%e4%bf%a1%e9%98%9f%e5%88%97" onclick="onNavClick(`#死信队列-nav`)" id="死信队列-nav">
+									死信队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%bb%b6%e8%bf%9f%e9%98%9f%e5%88%97" onclick="onNavClick(`#延迟队列-nav`)" id="延迟队列-nav">
+									延迟队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e4%bc%98%e5%85%88%e7%ba%a7%e9%98%9f%e5%88%97" onclick="onNavClick(`#优先级队列-nav`)" id="优先级队列-nav">
+									优先级队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rpc%e5%ae%9e%e7%8e%b0" onclick="onNavClick(`#rpc实现-nav`)" id="rpc实现-nav">
+									RPC实现
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%8c%81%e4%b9%85%e5%8c%96" onclick="onNavClick(`#持久化-nav`)" id="持久化-nav">
+									持久化
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%94%9f%e4%ba%a7%e8%80%85%e7%a1%ae%e8%ae%a4" onclick="onNavClick(`#生产者确认-nav`)" id="生产者确认-nav">
+									生产者确认
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e8%b4%b9%e7%ab%af%e8%a6%81%e7%82%b9" onclick="onNavClick(`#消费端要点-nav`)" id="消费端要点-nav">
+									消费端要点
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%b6%88%e6%81%af%e4%bc%a0%e8%be%93%e4%bf%9d%e9%9a%9c" onclick="onNavClick(`#消息传输保障-nav`)" id="消息传输保障-nav">
+									消息传输保障
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%ba%94%e7%ab%a0-rabbitmq%e7%ae%a1%e7%90%86" onclick="onNavClick(`#第五章-rabbitmq管理-nav`)" id="第五章-rabbitmq管理-nav">
+									第五章 RabbitMQ管理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%ae%a1%e7%90%86%e9%a1%b5%e9%9d%a2" onclick="onNavClick(`#管理页面-nav`)" id="管理页面-nav">
+									管理页面
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#vhost" onclick="onNavClick(`#vhost-nav`)" id="vhost-nav">
+									vhost
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ad%e7%ab%a0-rabbitmq%e9%85%8d%e7%bd%ae" onclick="onNavClick(`#第六章-rabbitmq配置-nav`)" id="第六章-rabbitmq配置-nav">
+									第六章 RabbitMQ配置
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b8%83%e7%ab%a0-rabbitmq%e8%bf%90%e7%bb%b4" onclick="onNavClick(`#第七章-rabbitmq运维-nav`)" id="第七章-rabbitmq运维-nav">
+									第七章 RabbitMQ运维
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e8%8a%82%e7%82%b9%e7%b1%bb%e5%9e%8b" onclick="onNavClick(`#集群节点类型-nav`)" id="集群节点类型-nav">
+									集群节点类型
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%9f%a5%e7%9c%8b%e6%9c%8d%e5%8a%a1%e6%97%a5%e5%bf%97" onclick="onNavClick(`#查看服务日志-nav`)" id="查看服务日志-nav">
+									查看服务日志
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e5%8d%95%e8%8a%82%e7%82%b9%e6%95%85%e9%9a%9c%e6%81%a2%e5%a4%8d" onclick="onNavClick(`#单节点故障恢复-nav`)" id="单节点故障恢复-nav">
+									单节点故障恢复
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%9b%86%e7%be%a4%e8%bf%81%e7%a7%bb" onclick="onNavClick(`#集群迁移-nav`)" id="集群迁移-nav">
+									集群迁移
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e5%8c%96%e8%bf%81%e7%a7%bb" onclick="onNavClick(`#自动化迁移-nav`)" id="自动化迁移-nav">
+									自动化迁移
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%85%ab%e7%ab%a0-%e8%b7%a8%e8%b6%8a%e9%9b%86%e7%be%a4%e7%9a%84%e7%95%8c%e9%99%90" onclick="onNavClick(`#第八章-跨越集群的界限-nav`)" id="第八章-跨越集群的界限-nav">
+									第八章 跨越集群的界限
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#federation" onclick="onNavClick(`#federation-nav`)" id="federation-nav">
+									Federation
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#shovel" onclick="onNavClick(`#shovel-nav`)" id="shovel-nav">
+									Shovel
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#federation--shovel-%e4%b8%8e%e9%9b%86%e7%be%a4%e7%9a%84%e5%8c%ba%e5%88%ab" onclick="onNavClick(`#federation--shovel-与集群的区别-nav`)" id="federation--shovel-与集群的区别-nav">
+									Federation / Shovel 与集群的区别
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%a1%88%e4%be%8b%e6%b6%88%e6%81%af%e5%a0%86%e7%a7%af%e7%9a%84%e6%b2%bb%e7%90%86" onclick="onNavClick(`#案例消息堆积的治理-nav`)" id="案例消息堆积的治理-nav">
+									案例：消息堆积的治理
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e4%b9%9d%e7%ab%a0-rabbitmq%e9%ab%98%e9%98%b6" onclick="onNavClick(`#第九章-rabbitmq高阶-nav`)" id="第九章-rabbitmq高阶-nav">
+									第九章 RabbitMQ高阶
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e5%ad%98%e5%82%a8%e6%9c%ba%e5%88%b6" onclick="onNavClick(`#存储机制-nav`)" id="存储机制-nav">
+									存储机制
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%98%9f%e5%88%97%e7%9a%84%e7%bb%93%e6%9e%84" onclick="onNavClick(`#队列的结构-nav`)" id="队列的结构-nav">
+									队列的结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%83%b0%e6%80%a7%e9%98%9f%e5%88%97" onclick="onNavClick(`#惰性队列-nav`)" id="惰性队列-nav">
+									惰性队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e6%b5%81%e6%8e%a7" onclick="onNavClick(`#流控-nav`)" id="流控-nav">
+									流控
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e9%95%9c%e5%83%8f%e9%98%9f%e5%88%97" onclick="onNavClick(`#镜像队列-nav`)" id="镜像队列-nav">
+									镜像队列
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e9%95%9c%e5%83%8f%e9%98%9f%e5%88%97%e7%9a%84%e7%bb%93%e6%9e%84" onclick="onNavClick(`#镜像队列的结构-nav`)" id="镜像队列的结构-nav">
+									镜像队列的结构
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e7%ab%a0-%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba" onclick="onNavClick(`#第十章-网络分区-nav`)" id="第十章-网络分区-nav">
+									第十章 网络分区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+							
+								
+									<ul>
+								
+							
+						
+						
+							<li>
+								<a href="#%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba%e6%83%85%e5%86%b5" onclick="onNavClick(`#网络分区情况-nav`)" id="网络分区情况-nav">
+									网络分区情况
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#rabbitmq%e4%b8%ba%e4%bb%80%e4%b9%88%e5%bc%95%e5%85%a5%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba" onclick="onNavClick(`#rabbitmq为什么引入网络分区-nav`)" id="rabbitmq为什么引入网络分区-nav">
+									RabbitMQ为什么引入网络分区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e6%89%8b%e5%8a%a8%e5%a4%84%e7%90%86%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba" onclick="onNavClick(`#手动处理网络分区-nav`)" id="手动处理网络分区-nav">
+									手动处理网络分区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+						
+						
+							<li>
+								<a href="#%e8%87%aa%e5%8a%a8%e5%a4%84%e7%90%86%e7%bd%91%e7%bb%9c%e5%88%86%e5%8c%ba" onclick="onNavClick(`#自动处理网络分区-nav`)" id="自动处理网络分区-nav">
+									自动处理网络分区
+								</a>
+							</li>
+						
+						
+					
+				
+			
+				
+				
+					
+						
+						
+						
+							
+								</ul>
+							
+						
+						
+						
+							<li>
+								<a href="#%e7%ac%ac%e5%8d%81%e4%b8%80%e7%ab%a0-rabbitmq%e6%89%a9%e5%b1%95" onclick="onNavClick(`#第十一章-rabbitmq扩展-nav`)" id="第十一章-rabbitmq扩展-nav">
+									第十一章 RabbitMQ扩展
+								</a>
+							</li>
+						
+						
+					
+				
+			
+		</ul>
+	</div>
+
+</div>
+            
+        </div>
+    </div>
+</div>
+<transition name="fade">
+    <div id="drawer-mask" v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if="isDrawerOpen" v-on:click="toggleDrawer"></div>
+</transition>
+<nav id="navBar" class="navbar sticky-top navbar-light single-column-nav-container">
+    <div id="navBackground" class="nav-background"></div>
+    <div class="container container-narrow nav-content">
+        <button id="nav_dropdown_btn" class="nav-dropdown-toggle" type="button" v-on:click="toggleDrawer">
+            <i class="material-icons">
+                menu
+            </i>
+        </button>
+        <a id="navTitle" class="navbar-brand" href="https://kother.top">
+            Kother&#39;s Blog
+        </a>
+        
+        <button type="button" class="nav-darkmode-toggle" id="darkModeToggleButton2">
+            <i class="material-icons" id="darkModeToggleIcon2">
+                dark_mode
+            </i>
+        </button>
+        
+    </div>
+</nav>
+<div class="single-column-header-container" id="pageHead"
+     v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }">
+    <a href="https://kother.top">
+        <div class="single-column-header-title">Kother&#39;s Blog</div>
+        
+        <div class="single-column-header-subtitle">记录点喜欢的.</div>
+        
+
+    </a>
+</div>
+
+            <div id="content">
+                <div id="streamContainer" class="stream-container">
+
+    <div class="post-list-container post-list-container-shadow">
+        <div class="post">
+            
+            
+            
+
+            <div class="post-head-wrapper-text-only"
+                
+            >
+                <div class="post-title">
+                    RabbitMQ实战指南 读书笔记
+                    
+                    <div class="post-meta">
+                        
+                        <time itemprop="datePublished">
+                            2023-02-05 15:33
+                        </time>
+                        
+
+                        
+
+                        
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <div class="post-body-wrapper">
+                
+                <div class="post-body" v-pre>
+                
+                    <h1 id="rabbitmq实战指南---读书笔记">RabbitMQ实战指南 - 读书笔记</h1>
+<blockquote>
+<p>内容简介</p>
+<ul>
+<li>基础篇首先介绍 RabbitMQ 的基本安装及使用方式，方便零基础的读者以最舒适的方式融入到RabbitMQ 之中。其次介绍 RabbitMQ 的基 本概念，包括生产者、消费者、交换器、队列、绑定等。之后通过 Java 语言讲述了客户端如何与 RabbitMQ 建立(关闭〉连接、声明(删除)交换器、队列、绑定关系，以及如何发送和消费消息等。</li>
+<li>进阶篇讲述 RabbitMQ 的 TIL、死信、延迟队列、优先级队列、 RPC、消息持久化、生产端和消费端的消息确认机制等内容，以期 读者能够掌握 RabbitMQ 的使用精髓。本书中间篇幅主要从RabbitMQ 的管理、配置、运维这三个角度来为读 者提供帮助文档及解决问题的思路。</li>
+<li>高阶篇主要阐述 RabbitMQ 的存储机制、流控及镜像队列的原理，深入 地讲述RabbitMQ 的一些实现细节，便于读者加深对 RabbitMQ 的理解。本书还涉及网络分区的概念，此内 容可称为魔鬼篇，需要掌握前面的所有内容才可理解其中的门道。本书最后讲述的是 RabbitMQ 的一些扩展内 容及附录，供读者参考之用。</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>实战部分没有实践过，只了解了概念，本书等工作后会再次补齐笔记</p>
+</blockquote>
+<p>[TOC]</p>
+<h2 id="第一章-rabbitmq简介">第一章 RabbitMQ简介</h2>
+<h3 id="作用">作用</h3>
+<ul>
+<li>存储消息</li>
+<li>解耦</li>
+<li>削峰</li>
+<li>可恢复性</li>
+<li>顺序保证</li>
+<li>缓冲</li>
+<li>异步通信</li>
+</ul>
+<h3 id="rabbitmq的特点">RabbitMQ的特点</h3>
+<ul>
+<li>可靠性：持久化、传输确认、发布确认</li>
+<li>灵活的路由：内置交换器实现路由，也可以插件实现自己的路由</li>
+<li>扩展性：多个RabbitMQ可以组成一个集群</li>
+<li>高可用：队列可以在集群中的机器上设置镜像，以作备用</li>
+<li>多种协议：AMQP、STOMP、MQTT</li>
+<li>多语言客户端：Java、Python、Ruby、PHP、C#</li>
+<li>管理界面：用户可以在管理页面上监督和管理消息、集群节点</li>
+<li>插件机制：发布扩展和用户自己编写</li>
+</ul>
+<h2 id="第二章-rabbitmq入门">第二章 RabbitMQ入门</h2>
+<h3 id="rabbitmq模型介绍">RabbitMQ模型介绍</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051533907.png" alt="image-20230201122624188"></p>
+<ul>
+<li>隐去中间细节，整体上来说是生产者和消费者模型</li>
+<li>消息 = [消息体，标签(记录交换机、路由键)]，标签在进入队列时被丢弃，生产者只会收到消息体</li>
+</ul>
+<h3 id="运转过程">运转过程</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051533148.png" alt="image-20230201134555758"></p>
+<h3 id="连接模型">连接模型</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051533393.png" alt="image-20230201135326493"></p>
+<ul>
+<li>多个生产者会复用一个Connection，再建立属于自己的channel</li>
+<li>Connection是TCP连接，开销大，RabbitMQ采用No-blocking IO的方法，可以减少性能开销</li>
+</ul>
+<h3 id="交换机">交换机</h3>
+<ul>
+<li>生产者将消息投入到交换机中，交换机再分配给队列</li>
+<li>RoutingKey：路由键，用于指定消息的路由规则</li>
+<li>四种类型
+<ul>
+<li>fanout：广播该交换机收到的消息到所有队列</li>
+<li>direct：只发送给完全匹配的队列</li>
+<li>topic：发送给符合匹配规则的队列（正则）</li>
+<li>headers：基本不用，是根据消息内容中的headers属性匹配</li>
+</ul>
+</li>
+</ul>
+<h3 id="队列">队列</h3>
+<ul>
+<li>多个消费者订阅同一个队列时，消息会被轮询平分</li>
+</ul>
+<h3 id="amqp协议">AMQP协议</h3>
+<h4 id="介绍">介绍</h4>
+<ul>
+<li>是应用层协议的开方标准</li>
+<li>基于此协议的客户端和消息中间件可以传递消息，不受产品、开发语言等条件的限制</li>
+</ul>
+<h4 id="结构">结构</h4>
+<ul>
+<li>Module Layer：协议最高层，提供客户端调用命令</li>
+<li>Session Layer：中间层，客户端命令-&gt;服务器，服务器结果-&gt;客户端，会提供可靠传输机制和错误处理</li>
+<li>Transport Layer：传输层，类似网络七层架构里面的，提供帧的处理、信道复用、错误检测、数据表示</li>
+</ul>
+<h2 id="第三章-客户端开发向导">第三章 客户端开发向导</h2>
+<blockquote>
+<p>本章是基于传统RabbitMQ连接方式开发，因此跳过了，目前比较常用的开发方式是SpringBoot集成</p>
+</blockquote>
+<div class="highlight"><div style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#8b008b;font-weight:bold">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#8b008b;font-weight:bold">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#8b008b;font-weight:bold">&lt;artifactId&gt;</span>spring-boot-starter-amqp<span style="color:#8b008b;font-weight:bold">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">&lt;/dependency&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>注解结合RebbitTemplate开发</li>
+<li>TODO：补一些SpringBoot的开发方法</li>
+</ul>
+<h2 id="第四章-rabbitmq进阶">第四章 RabbitMQ进阶</h2>
+<blockquote>
+<p>提升数据可靠性有以下一些途径: 设置 mandatory 参数或者备份交换器 (immediate 参数己被陶汰);设置 publisher config机制或者事务机制;设置交换器、队列和消息都为持久 化;设置消费端对应的 autoAck 参数为 false 井在消费完消息之后再进行消息确认。</p>
+<p>本章不仅 介绍了数据可靠性的一些细节，还展示了 RabbitMQ 的几种己具备或者衍生的高级特性，包括 TTL、死信队列、延迟队列、优先级队列、 RPC 功能等，这些功能在实际使用中可以让相应应 用的实现变得事半功倍 。</p>
+</blockquote>
+<h3 id="消息不可达时">消息不可达时</h3>
+<ul>
+<li>mandatory参数
+<ul>
+<li>true：找不到队列时，消息返回给生产者</li>
+<li>false：消息被直接丢弃</li>
+</ul>
+</li>
+<li>immediate参数
+<ul>
+<li>true：找到队列，但没有消费者时，消息返回给生产者</li>
+</ul>
+</li>
+</ul>
+<h3 id="备份交换器">备份交换器</h3>
+<ul>
+<li>如果不想消息直接被丢弃（比如找不到队列），可以将未被正确路由的消息存在备份交换器中</li>
+<li>需要与备份交换机绑定队列的routingkey匹配，否则也会丢失。为了方便可以设置routing type = fanout（也就是不需要匹配，广播即可）</li>
+</ul>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051533694.png" alt="image-20230201141000088"></p>
+<h3 id="过期时间">过期时间</h3>
+<ul>
+<li>消息和队列都可以设置TTL</li>
+<li>设置消息的TTL
+<ul>
+<li>设置队列：队列中的消息有相同的TTL
+<ul>
+<li>消息过期方式：一过期则清除，因为TTL都一样</li>
+</ul>
+</li>
+<li>设置消息：某条消息有自己TTL
+<ul>
+<li>消息过期方式：惰性删除，等要发消息了再看看该消息过期没有，如果过期了才删，因为TTL不一样</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>设置队列的TTL
+<ul>
+<li>TTL到达时队列自动被删除</li>
+</ul>
+</li>
+<li>TTL超过时，消息会变为死信</li>
+</ul>
+<h3 id="死信队列">死信队列</h3>
+<blockquote>
+<p>Dead-Letter-Exchange：死信交换机</p>
+</blockquote>
+<ul>
+<li>消息变成死信的情况
+<ul>
+<li>消息被拒绝</li>
+<li>消息过期</li>
+<li>队列满了</li>
+</ul>
+</li>
+<li>可以监听死信队列并且做一些业务处理</li>
+</ul>
+<h3 id="延迟队列">延迟队列</h3>
+<ul>
+<li>消息进入队列后，需要等待一段时间才能发送给消费者</li>
+<li>应用场景
+<ul>
+<li>下单，30分钟内完成支付</li>
+<li>想让智能设备在指定时间内工作，让消息在延迟队列中定时发送</li>
+</ul>
+</li>
+</ul>
+<h3 id="优先级队列">优先级队列</h3>
+<ul>
+<li>优先级高的消息优先处理</li>
+</ul>
+<h3 id="rpc实现">RPC实现</h3>
+<blockquote>
+<p>Remote Procedure Call</p>
+</blockquote>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302011424214.png" alt="image-20230201142440186"></p>
+<ul>
+<li>回调队列：接收response消息（客户端会监听）</li>
+<li>correlationId：关联request和RPC调用返回的response</li>
+</ul>
+<h3 id="持久化">持久化</h3>
+<ul>
+<li>交换机、队列、消息持久化</li>
+</ul>
+<h3 id="生产者确认">生产者确认</h3>
+<ul>
+<li>提供生产者确认自己的消息有没有正常发送到服务器的数据
+<ul>
+<li>事务机制
+<ul>
+<li>事务提交成功则说明消息正确送达</li>
+<li>但是挺浪费性能的，会阻塞</li>
+</ul>
+</li>
+<li>发送方确认机制
+<ul>
+<li>消息（每个消息都包含唯一ID）成功投递后，RabbitMQ会发送唯一ID目前给生产者</li>
+<li>可以单条消息确认，可以批量确认（可能导致批量重传）</li>
+<li>和TCP很像</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>这两个机制不能共存</li>
+<li>只能保证消息被正确发送到MQ的交换器</li>
+</ul>
+<h3 id="消费端要点">消费端要点</h3>
+<ul>
+<li>消息分发方式：轮询
+<ul>
+<li>也可以设置每个消费者最多在确认前收到多少消息</li>
+<li>类似滑动窗口</li>
+</ul>
+</li>
+<li>消息顺序性：收到消息和发布消息的顺序是一致的
+<ul>
+<li>打乱消息顺序性的情况
+<ul>
+<li>多个生产者情况下，有消息重发</li>
+<li>消息优先级</li>
+<li>消息TTL不一致 / 延迟队列</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="消息传输保障">消息传输保障</h3>
+<ul>
+<li>最多一次</li>
+<li>最少一次</li>
+<li>恰好一次</li>
+</ul>
+<h2 id="第五章-rabbitmq管理">第五章 RabbitMQ管理</h2>
+<blockquote>
+<p>这章内容有点工具书了，不记录过多笔记，有需要时再查看即可</p>
+</blockquote>
+<h3 id="管理页面">管理页面</h3>
+<p>http://localhost:15672/#/</p>
+<h3 id="vhost">vhost</h3>
+<blockquote>
+<p>虚拟主机，virtual host</p>
+</blockquote>
+<ul>
+<li>每个vhost都是小型的RabbitMQ服务器</li>
+<li>默认的vhost为/ &ndash;&gt; 指派给guest用户</li>
+</ul>
+<h2 id="第六章-rabbitmq配置">第六章 RabbitMQ配置</h2>
+<blockquote>
+<p>RabbitMQ提供定制化服务</p>
+<p>但本章内容还是工具书，了解即可</p>
+</blockquote>
+<ul>
+<li>环境变量： RabbitMQ 服务端参数可以通过环境变量进行配直，如节点名称、 RabbitMQ 配置文件的地址、节点内部通信端口等</li>
+<li>配置文件：可以定义 RabbitMQ 服务和插件设直，例如， TCP 监听端口，以及其他网络相关的设直、内存限制、磁盘限制等</li>
+<li>运行时参数和策略： 可以在运行时定义集群层面的服务设置</li>
+</ul>
+<h2 id="第七章-rabbitmq运维">第七章 RabbitMQ运维</h2>
+<h3 id="集群节点类型">集群节点类型</h3>
+<ul>
+<li>内存节点</li>
+<li>磁盘节点
+<ul>
+<li>单节点集群只有磁盘节点（否则断电丢失）</li>
+</ul>
+</li>
+<li>集群中至少需要一个磁盘节点
+<ul>
+<li>如果所有磁盘节点都崩溃，集群可运行，但是无法做任何更改</li>
+</ul>
+</li>
+</ul>
+<h3 id="查看服务日志">查看服务日志</h3>
+<ul>
+<li>日志级别：none, error, warning, info, debug</li>
+<li>查看日志方式
+<ul>
+<li>人工查看</li>
+<li>交换器（eg: amq.rabbitmq.log ( topic )）</li>
+</ul>
+</li>
+</ul>
+<h3 id="单节点故障恢复">单节点故障恢复</h3>
+<ul>
+<li>机器掉电故障，节点处于stop状态
+<ul>
+<li>其他节点上执行<code>rabbitmqctl forget_cluster_node {nodename}</code>移除故障节点</li>
+<li>再删除故障节点的Mnesia</li>
+<li>最后重启，将故障节点作为新节点重新加入集群</li>
+<li>（如果盲目重启，可能会导致网络分区问题）</li>
+</ul>
+</li>
+<li>网卡故障
+<ul>
+<li>关闭该机器节点上的故障RabbitMQ进程</li>
+<li>可能有网络分区现象，需要手动恢复</li>
+</ul>
+</li>
+<li>服务进程异常
+<ul>
+<li>考虑风险可控，可控的话一般直接重启即可</li>
+</ul>
+</li>
+</ul>
+<h3 id="集群迁移">集群迁移</h3>
+<ul>
+<li>元数据重建</li>
+<li>数据迁移</li>
+<li>客户端连接切换</li>
+</ul>
+<blockquote>
+<p>手动迁移部分略过了</p>
+</blockquote>
+<h4 id="自动化迁移">自动化迁移</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302021141447.png" alt="image-20230202114117401"></p>
+<ul>
+<li>
+<p>三个部分：客户端、集群、ZooKeeper</p>
+</li>
+<li>
+<p>将客户端需要感知的资源（比如交换机、队列、集群..）加入到ZooKeeper节点中，用watch监视（NodeCache也可以？）</p>
+</li>
+</ul>
+<h2 id="第八章-跨越集群的界限">第八章 跨越集群的界限</h2>
+<h3 id="federation">Federation</h3>
+<ul>
+<li>
+<p>使RabbitMQ在不同的Broker节点之间传递消息，不需要建立集群</p>
+</li>
+<li>
+<p>用到了联邦交换器（Federated Exchange）和AMQP</p>
+</li>
+<li>
+<p>应用场景：如果发送方和接收方距离比较远，发送方在收到确认回馈前需要忍受很长一段时间的网络延迟</p>
+</li>
+<li>
+<p>其实意思就是中间建一个转发站（内部Broker存放数据 + AMQP拉取数据）。发送方如果与接收方距离很远，那么发送方借助这个转发站，可以快速的收到反馈消息，减少延迟。信息到内部Broker以后就交给它慢慢转发</p>
+</li>
+<li>
+<p>中间完全可以建立多个联邦交换器</p>
+</li>
+<li>
+<p>联邦队列</p>
+<ul>
+<li>联邦队列之间可以建立Federation link，下游的联邦队列消息如果消费完毕，可以拉取上游的关联队列</li>
+<li>提供负载均衡，联邦队列中的消息会转向有多余消费能力的一方</li>
+<li><img src="https://gitee.com/kother/typora/raw/master/img/202302051533218.png" alt="image-20230202120411337"></li>
+</ul>
+</li>
+<li>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302021157081.png" alt="image-20230202115739028"></p>
+<ul>
+<li><img src="https://gitee.com/kother/typora/raw/master/img/202302051533777.png" alt="image-20230202115836742"></li>
+<li><img src="https://gitee.com/kother/typora/raw/master/img/202302051533673.png" alt="image-20230202120242150"></li>
+</ul>
+</li>
+</ul>
+<h3 id="shovel">Shovel</h3>
+<ul>
+<li>可靠持续的将Broker A中队列的消息转发到Broker B的交换器（Broker A 和 Broker B 可以相同）</li>
+<li>优势
+<ul>
+<li>松耦合</li>
+<li>广域网</li>
+<li>高度定制</li>
+</ul>
+</li>
+<li>中间会根据需要建立队列 / 交换机</li>
+<li>Shovel相比Federation，处在更低一层（涉及到broker中的队列和交换机）</li>
+<li><img src="https://gitee.com/kother/typora/raw/master/img/202302021209659.png" alt="image-20230202120912617"></li>
+</ul>
+<h3 id="federation--shovel-与集群的区别">Federation / Shovel 与集群的区别</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051533721.png" alt="image-20230202121255425"></p>
+<h3 id="案例消息堆积的治理">案例：消息堆积的治理</h3>
+<ul>
+<li>
+<p>方案A：丢弃</p>
+</li>
+<li>
+<p>方案B：增加消息消费能力</p>
+</li>
+<li>
+<p>方案C：可以设置Shovel，将队列中的堆积消息交给另一个集群，当队列中消息数有足够容量时，再移回来</p>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302021215519.png" alt="image-20230202121529470"></p>
+</li>
+</ul>
+<h2 id="第九章-rabbitmq高阶">第九章 RabbitMQ高阶</h2>
+<h3 id="存储机制">存储机制</h3>
+<h4 id="队列的结构">队列的结构</h4>
+<h5 id="队列消息状态">队列消息状态</h5>
+<blockquote>
+<p>如果消息投递的队列是空的，并且此时有消费者，则消息不会进入队列，而是直接投递给消费者</p>
+<p>消息索引是全局KV，RabbitMQ所有消息都存在这里</p>
+</blockquote>
+<p>进入队列以后，消息的状态可能不断变化</p>
+<ul>
+<li>消息状态
+<ul>
+<li>alpha: 消息内容和消息索引都在内存</li>
+<li>beta: 消息内容在磁盘，消息索引在内存</li>
+<li>gamma: 消息内容在磁盘，消息索引在磁盘和内存</li>
+<li>delta: 消息内容和消息索引都在磁盘</li>
+</ul>
+</li>
+</ul>
+<h4 id="惰性队列">惰性队列</h4>
+<ul>
+<li>尽可能将消息存储到磁盘中</li>
+<li>如果消费者需要，才将其加载到内存</li>
+<li>这样可以减少消耗，但会增加IO</li>
+</ul>
+<h3 id="流控">流控</h3>
+<blockquote>
+<p>Erlang进程通过消息传递来通信，每个进程都有自己的进程邮箱，如果大量消息发送往进程，可能会导致内存溢出，此时就需要流控</p>
+</blockquote>
+<ul>
+<li>基于信用证算法的流控机制</li>
+<li>监视各个进程的邮箱</li>
+<li>当进程负荷量过大的时候拒绝接收上游消息，而上游进程邮箱此时也会开始堆积信息，当堆积到一定量时也会拒绝接受，最后会使网络数据包接收进程阻塞，从而达到暂缓接收的目的</li>
+</ul>
+<h3 id="镜像队列">镜像队列</h3>
+<ul>
+<li>
+<p>将队列镜像到集群中的其他Broker</p>
+</li>
+<li>
+<p>如果集群中的一个节点失效，则会自动切换到镜像节点，以保证肯定性</p>
+</li>
+<li>
+<p>不管消费者绑定master还是slave，消息总是发往master，同时也会发往所有slave，master会执行命令，同时将命令执行结果广播给所有slave，master或slave再将结果返回给消费者</p>
+</li>
+<li>
+<p>此处的master和slave都是针对queue，而队列可以均匀散布在集群的各个broker以实现负载均衡（真正的负载均衡是相对机器而言）</p>
+</li>
+<li>
+<p>如果主节点失效，slave全部断开，选举资历最老的slave为新master（如果未同步，会有消息丢失问题）</p>
+</li>
+<li></li>
+<li>
+<p>一个broker中的主从结构</p>
+<ul>
+<li><img src="https://gitee.com/kother/typora/raw/master/img/202302051533388.png" alt="image-20230202142653567"></li>
+</ul>
+</li>
+<li>
+<p>多个broker构成集群结构</p>
+<ul>
+<li><img src="https://gitee.com/kother/typora/raw/master/img/202302021434939.png" alt="image-20230202143406889"></li>
+</ul>
+</li>
+<li>
+<p>镜像队列最后一个停止的节点是master</p>
+</li>
+<li>
+<p>必须是master先启动</p>
+</li>
+<li>
+<p>如果slave先启动，会等master 30s， 如果30s内没启动则slave自行停止</p>
+</li>
+</ul>
+<h4 id="镜像队列的结构">镜像队列的结构</h4>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051533838.png" alt="image-20230202143810739"></p>
+<ul>
+<li>通过组播方式同步
+<ul>
+<li>GM：所有节点要么都收到，要么都收不到</li>
+<li>GM原理：master和slave会形成一个组，不同的镜像队列形成不同的组，操作命令从GM发出后最终会回到GM，此时GM便知道完成了全部同</li>
+<li><img src="https://gitee.com/kother/typora/raw/master/img/202302051533935.png" alt="image-20230202143906616"></li>
+</ul>
+</li>
+</ul>
+<h2 id="第十章-网络分区">第十章 网络分区</h2>
+<h3 id="网络分区情况">网络分区情况</h3>
+<ul>
+<li>出现网络分区时，不同分区的节点都认为别的分区节点挂了</li>
+<li>如果是集群发生网络分区，那么会各自为政</li>
+<li>如果设置了镜像队列，牵扯到了多个节点，每个分区又都出现了一个master，会出现一些异常情况</li>
+</ul>
+<h3 id="rabbitmq为什么引入网络分区">RabbitMQ为什么引入网络分区</h3>
+<ul>
+<li>如果出现网络波动或故障，导致某个节点异常，这个异常会导致整个调用链阻塞</li>
+<li>需要用网络分区来把异常节点剥离出来</li>
+<li>是否阻塞会通过一个超时判定机制来判断</li>
+</ul>
+<!-- raw HTML omitted -->
+<blockquote>
+<p>运维方面的都没有怎么看，以后需要补上</p>
+</blockquote>
+<h3 id="手动处理网络分区">手动处理网络分区</h3>
+<p><img src="https://gitee.com/kother/typora/raw/master/img/202302051533655.png" alt="image-20230202152940233"></p>
+<h3 id="自动处理网络分区">自动处理网络分区</h3>
+<ul>
+<li>pause-minority</li>
+<li>pause-if-all-down</li>
+<li>autoheal</li>
+</ul>
+<h2 id="第十一章-rabbitmq扩展">第十一章 RabbitMQ扩展</h2>
+
+                    
+                    <HR width="100%" id="EOF">
+		    <p style="color:#777;">上次修改於 2023-02-05</p>
+                    
+                </div>
+            </div>
+            
+            
+            <nav class="post-pagination">
+
+                
+                <a class="newer-posts">
+			下回<br>已經到底啦。
+                </a>
+                
+                
+                
+                <a class="older-posts" href="/read/%E4%BB%8Epaxos%E5%88%B0zookeeper-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
+			上回<br>从Paxos到ZooKeeper 读书笔记
+                </a>
+                
+            </nav>
+            <div class="post-comment-wrapper">
+                
+
+
+<div id="gitalk-container"></div>
+
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+    
+
+
+                    </div>
+            </div><div id="single-column-footer">
+Hugo Theme <a href="https://github.com/amazingrise/hugo-theme-diary">Diary</a> by <a href="https://risehere.net/">Rise</a>
+<br>
+移植自 <a href="https://mak1t0.cc/" target="_blank" rel="noreferrer noopener">Makito</a>'s <a href="https://github.com/SumiMakito/hexo-theme-journal/" target="_blank" rel="noreferrer noopener">Journal.</a> <br>
+<br>
+
+&copy;
+	
+	Kother.
+	
+</div>
+            </div>
+    
+    <script src="/js/journal.js"></script></body>
+</html>
